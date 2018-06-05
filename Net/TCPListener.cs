@@ -153,7 +153,7 @@ namespace Net
 			if ( !session.StartReceive() )
 			{
 				session.Release();
-				SessionManager.instance.Push( session );
+				SessionPool.instance.Push( session );
 			}
 
 			this.StartAccept( acceptEventArgs );

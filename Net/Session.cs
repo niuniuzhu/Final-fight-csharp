@@ -16,7 +16,7 @@ namespace Net
 		private readonly SocketAsyncEventArgs _recvEventArgs;
 		private readonly StreamBuffer _cache = new StreamBuffer();
 
-		internal Session( int id, SessionType type )
+		protected Session( int id, SessionType type )
 		{
 			this.id = id;
 			this.type = type;
