@@ -1,0 +1,24 @@
+﻿syntax = "proto3";
+package LSToBS;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToBSFromLS_Begin = 32768;
+	eMsgToBSFromLS_AskRegisterRet = 32769;
+	eMsgToBSFromLS_OneClinetLoginCheckRet = 32770;
+	eMsgToBSFromLS_End = 32800;
+}
+
+message AskRegisterRet
+{
+	MsgID msgid = 1;
+}
+
+message UserLoginToken
+{
+	MsgID msgid = 1;
+	string uin = 2;
+	string sessionid = 3;
+	uint32 platform = 4;
+}

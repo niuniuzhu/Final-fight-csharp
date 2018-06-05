@@ -1,0 +1,16 @@
+﻿syntax = "proto3";
+package ToLog;
+
+enum MsgID
+{
+	eMsgToLog_Begin = 0;
+	eMsgToLog_WriteLog = 1;
+	eMsgToLog_End = 100;
+}
+
+message WriteLog
+{
+	MsgID msgid = 1;
+	int32 log_type = 2;
+	string log_str = 3;
+}

@@ -1,0 +1,296 @@
+﻿syntax = "proto3";
+package SSToCS;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToCSFromSS_Begin = 8192;
+	eMsgToCSFromSS_AskPing = 8193;
+	eMsgToCSFromSS_AskRegiste = 8194;
+	eMsgToCSFromSS_ReportBattleFinished = 8195;
+	eMsgToCSFromSS_ReportUserOffline = 8196;
+	eMsgToCSFromSS_AskBuffCfgList = 8197;
+	eMsgToCSFromSS_AskSkillCfgList = 8198;
+	eMsgToCSFromSS_AskAllCfgList = 8199;
+	eMsgToCSFromSS_AskHeroCfgList = 8200;
+	eMsgToCSFromSS_AskShopfgList = 8201;
+	eMsgToCSFromSS_AskGoodsfgList = 8202;
+	eMsgToCSFromSS_AskPublicLuaStr = 8203;
+	eMsgToCSFromSS_AskMapCfgList = 8204;
+	eMsgToCSFromSS_AskMapCfgData = 8205;
+	eMsgToCSFromSS_AskUpdateData = 8206;
+	eMsgToCSFromSS_AskAddGold = 8207;
+	eMsgToCSFromSS_AskChangeFirstWinTime = 8210;
+	eMsgToCSFromSS_AskNewSkillCfg = 8211;
+	eMsgToCSFromSS_AskSkillModelType = 8212;
+	eMsgToCSFromSS_AskSkillEffectAccountCfg = 8213;
+	eMsgToCSFromSS_AskSkillEffectEmitCfg = 8214;
+	eMsgToCSFromSS_AskSkillEffectRangeCfg = 8215;
+	eMsgToCSFromSS_AskSkillEffectLeadingCfg = 8216;
+	eMsgToCSFromSS_AskSkillEffectBufCfg = 8217;
+	eMsgToCSFromSS_AskSkillEffectSummonCfg = 8218;
+	eMsgToCSFromSS_AskSkillEffectMoveCfg = 8219;
+	eMsgToCSFromSS_AskSkillEffectSwitchCfg = 8220;
+	eMsgToCSFromSS_AskPassitiveSkillCfg = 8221;
+	eMsgToCSFromSS_AskPassitiveEffectBloodSeekCfg = 8222;
+	eMsgToCSFromSS_AskPassitiveEffectReboundCfg = 8223;
+	eMsgToCSFromSS_AskPassitiveEffectReliveCfg = 8224;
+	eMsgToCSFromSS_AskUpdateGuideStep = 8225;
+	eMsgToCSFromSS_AskUserGoHall = 8226;
+	eMsgToCSFromSS_ReportBattleShowResult = 8227;
+	eMsgToCSFromSS_ReportGotSomeMsg = 8228;
+	eMsgToCSFromSS_AllBattleInfo = 8229;
+	eMsgToCSFromSS_BattleLog = 8230; 
+	eMsgToCSFromSS_UpdateGuideBattleStep = 8231;
+	
+	eMsgToCSFromSS_AskSSGameLogSwitch = 8232;
+	
+	eMsgToCSFromSS_CreateBattleResponse = 8300;
+	eMsgToCSFromSS_FinishBattle = 8310;
+	
+	eMsgToCSFromSS_End= 8500;
+}
+//eMsgToCSFromSS_AskSSGameLogSwitch
+message GameLogSwitch
+{
+	MsgID mgsid = 1;
+}
+
+ //eMsgToCSFromSS_UpdateGuideBattleStep
+ message UpGuideBattleStep  
+ {
+	MsgID mgsid = 1;
+	int64  guid = 2;
+	int32  taskid = 3;	
+	int32  num = 4;	
+ }
+ 
+//eMsgToCSFromSS_BattleLog
+message BattleLog
+{
+	MsgID mgsid = 1;
+	int64  guid = 2;	
+	int32 log_type = 3;
+	string log_str = 4;
+} 
+
+message AskPing
+{
+	MsgID mgsid = 1;
+	int64 time = 2;
+}
+
+message ReportGotSomeMsg
+{
+	MsgID mgsid = 1;
+	int32 gotmsgid = 2;
+	uint64 otherval = 3;
+}
+
+message ReportBattleShowResult
+{
+	MsgID mgsid = 1;
+	uint64 battleid = 2;
+	int32 result = 3;
+}
+
+message AskChangeFirstWinTime
+{
+	MsgID mgsid = 1;
+	uint64 guid = 2;
+	int64 curtime = 3;
+}
+
+message AddGold
+{
+	MsgID mgsid = 1;
+	uint64 guid = 2;
+	int64 gold = 3;
+}
+message AskRegiste
+{
+	MsgID mgsid = 1;
+	int32 ssid = 2;
+	string ip = 3;
+	int32 port = 4;
+	string userpwd = 5;
+}
+
+message ReportBattleFinished
+{
+	MsgID mgsid = 1;
+	int64 battleid = 2;
+	int32 campid = 3;
+	int32 res = 4;
+}
+
+message userData
+{
+	uint64 guid = 1;
+	uint32 deadtimes = 2;
+	uint32 herokills = 3;
+	uint32 gameinn = 4;
+	uint32 wininn = 5;
+	uint32 exp = 6;
+	int64 gold = 7; 
+	int32 destorybuilding = 8;
+	int32 heroid = 9;
+}
+message AskUpdateData
+{ 
+	MsgID mgsid = 1; 
+	repeated userData	user_data = 2;
+}
+
+message UserNetInfo
+{
+	int32 gsid = 1;
+	int32 gcnsid = 2;
+}
+message ReportUserOffline
+{
+	MsgID mgsid = 1;
+	uint64 guid = 2;
+	UserNetInfo usernetinfo = 3;
+}
+
+message AskAllCfgList
+{
+	MsgID mgsid = 1;
+}
+
+message AskHeroCfgList
+{
+	MsgID mgsid = 1;
+}
+message AskGoodsfgList
+{
+	MsgID mgsid = 1;
+}
+message AskShopfgList
+{
+	MsgID mgsid = 1;
+}
+message AskPublicLuaStr
+{
+	MsgID mgsid = 1;
+}
+message AskMapCfgList
+{
+	MsgID mgsid = 1;
+	int32 mapid = 2;
+}
+
+message AskNewSkillCfg
+{
+	MsgID mgsid = 1;
+}
+message AskSkillEffectAccountCfg
+{
+	MsgID mgsid = 1;
+}
+message AskSkillEffectLeadingCfg
+{
+	MsgID mgsid = 1;
+}
+message AskSkillEffectRangeCfg
+{
+	MsgID mgsid = 1;
+}
+message AskSkillEffectBufCfg
+{
+	MsgID mgsid = 1;
+}
+
+message AskSkillEffectSummonCfg
+{
+	MsgID mgsid = 1;
+}
+
+//
+message AskSkillEffectMoveCfg
+{
+	MsgID mgsid = 1;
+}
+
+message AskSkillEffectSwitchCfg
+{
+	MsgID mgsid = 1;
+}
+
+message AskPassitiveSkillCfg
+{
+	MsgID mgsid = 1;
+}
+
+message AskPassitiveEffectBloodSeekCfg
+{
+	MsgID mgsid = 1;
+}
+
+message AskPassitiveEffectReboundCfg
+{
+	MsgID mgsid = 1;
+}
+message AskPassitiveEffectReliveCfg
+{
+	MsgID mgsid = 1;
+}
+message AskUpdateGuideStep
+{
+	MsgID mgsid = 1;
+	uint64 guid = 2;
+	int32 state = 3;
+	int32 stepid = 4;
+}
+
+message AskUserGoHall
+{
+	MsgID mgsid = 1;
+	uint64 guid = 2;
+	int32 type = 3;
+}
+
+message SyncAllBattleInfo
+{
+	MsgID mgsid = 1;
+	repeated uint64 playbattle = 2;
+	uint64 maxbattleid = 3;
+}
+
+message CreateBattleResponse
+{
+	MsgID mgsid = 1;
+	int64 battleid = 2;
+	bool rst = 3;
+}
+
+message FinishBattle
+{
+	MsgID mgsid = 1;
+	int64 battleid = 2;
+	int32 winGrpID = 3;
+	repeated BattleUserData battelUserDataList = 4;
+	
+	message BattleUserData
+	{
+		uint64 guid = 1;
+		uint64 heroguid = 2;
+		uint32 timeinsecond = 3;
+		bool	ifEnd = 4;
+		int32 	heroid = 5;
+		int32	runepage = 6;
+		uint32 deadtimes = 7;
+		uint32 herokills = 8;
+		int32	destorybuilding = 9;
+		int64	diamondused = 10;
+		int64 	goldused = 11;
+		int32	lasthitnum = 12;
+		int32	asskillnum = 13;	
+		int32	herolv	= 14;
+		int32	totalcp = 15;
+		bool	ifAiRobot = 16;
+	}
+}
+
+

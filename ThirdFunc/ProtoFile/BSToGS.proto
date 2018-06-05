@@ -1,0 +1,27 @@
+﻿syntax = "proto3";
+package BSToGS;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToGSFromBS_Begin = 24576;
+	eMsgToGSFromBS_AskRegisterRet = 24577;
+	eMsgToGSFromBS_OneUserLoginToken = 24578;
+	eMsgToGSFromBS_End = 25000;
+}
+message AskRegister
+{
+	MsgID mgsid = 1;
+	int32 gsid = 2;
+	int32 port = 3;
+}
+
+message OneUserLoginToken
+{
+	MsgID msgid = 1;
+	int32 gateclient = 2;
+	string token = 3;
+	string user_name = 4;
+	int32 port = 5;
+	string ip =6;
+}

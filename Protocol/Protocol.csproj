@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netcoreapp2.0</TargetFramework>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<OutputPath>..\Bin\</OutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Google.Protobuf" Version="3.5.1" />
+	</ItemGroup>
+
+</Project>

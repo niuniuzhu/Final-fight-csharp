@@ -1,0 +1,15 @@
+﻿syntax = "proto3";
+package SDKToLS;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToGCFromBS_91UserLoginRes = 1;
+}
+
+message UserLoginRes91
+{
+	MsgID mgsid = 1;
+	int32	gcid = 2;
+	int32 res = 3;
+}

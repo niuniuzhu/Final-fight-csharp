@@ -1,0 +1,40 @@
+﻿syntax = "proto3";
+package GSToSS;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToSSFromGS_Begin = 16384;
+	eMsgToSSFromGS_AskPing = 16385;
+	eMsgToSSFromGS_AskRegiste = 16386;
+	eMsgToSSFromGS_ReportGCMsg = 16387;
+	eMsgToSSFromGS_UserOffLine = 16388;
+	eMsgToSSFromGS_End = 17000;
+}
+
+message UserOffLine
+{
+	MsgID mgsid = 1;
+	int32 usernetid = 2;
+}
+message AskPing
+{
+	MsgID mgsid = 1;
+	int64 time = 2;
+}
+
+message AskRegiste
+{
+	MsgID msgid = 1;
+	int32 gsid = 2;
+	string pwd = 3;
+}
+
+message ReportGCMsg
+{
+	MsgID mgsid = 1;
+	int32 nsid = 2;
+	string othermsg = 3;
+	int32 othermsgid = 4;
+}
+

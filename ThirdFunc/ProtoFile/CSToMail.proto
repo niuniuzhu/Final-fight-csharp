@@ -1,0 +1,20 @@
+﻿syntax = "proto3";
+
+ enum MsgID
+{
+	unknow = 0;
+	eMsg_AskNickNameMailListRes = 30000;
+	eMsg_AskNickNameMailListReq = 30001;
+	eMsg_AskMailInfo = 30002;
+}
+//eMsg_AskNickNameMailListReq
+message UserMailReq
+{
+	MsgID mgsid = 1; 
+	string name = 2;
+}
+message UserMailRes
+{
+	MsgID mgsid = 1; 
+	 
+}

@@ -1,0 +1,24 @@
+﻿syntax = "proto3";
+package GSToBS;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToBSFromGS_Begin = 32768;
+	eMsgToBSFromGS_AskRegister = 32769;
+	eMsgToBSFromGS_ReportAllClientInfo = 32770;
+	eMsgToBSFromGS_OneUserLoginTokenRet = 32771;
+	eMsgToBSFromGS_End = 32800;
+}
+message AskRegister
+{
+	MsgID mgsid = 1;
+	int32 gsid = 2;
+	int32 listenport = 3;
+}
+
+message ReportAllClientInf
+{
+	MsgID msgid = 1;
+	uint32 tokenlist_size = 2;
+}

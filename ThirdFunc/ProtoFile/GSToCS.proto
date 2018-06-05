@@ -1,0 +1,48 @@
+﻿syntax = "proto3";
+package GSToCS;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToCSFromGS_Begin = 8192;
+	eMsgToCSFromGS_AskPing = 8193;
+	eMsgToCSFromGS_AskRegiste = 8194;
+	eMsgToCSFromGS_ReportGCMsg = 8195;
+	eMsgToCSFromGS_ReportGetSomeMsg = 8196;
+	eMsgToCSFromGS_UserOffLine = 8197;
+	eMsgToCSFromGS_End = 8200;
+}
+message UserOffLine
+{
+	MsgID mgsid = 1;
+	int32 usernetid = 2;
+}
+message Asking
+{
+	MsgID mgsid = 1;
+	int64 time = 2;
+}
+
+message ReportGetSomeMsg
+{
+	MsgID mgsid = 1;
+	int32 gotmsgid = 2;
+	uint64 otherval = 3;
+}
+
+message AskRegiste
+{
+	MsgID msgid = 1;
+	int32 gsid = 2;
+	string ip = 3;
+	int32 port = 4;
+	string usepwd = 5;
+}
+
+message ReportGCMsg
+{
+	MsgID msgid = 1;
+	int32 nsid = 2;
+	int32 othermsgid = 3;
+	bytes othermsg = 4;
+}

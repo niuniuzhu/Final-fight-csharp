@@ -1,0 +1,15 @@
+﻿syntax = "proto3";
+package LSToSDK;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToGCFromBS_91UserLogin = 1;
+}
+
+message UserLogin91
+{
+	MsgID mgsid = 1;
+	string logininfo = 2;
+	int32	gcid = 4;
+}

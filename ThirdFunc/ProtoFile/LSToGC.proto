@@ -1,0 +1,29 @@
+﻿syntax = "proto3";
+package LSToGC;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToGCFromLS_NotifyLoginResult = 512;
+	eMsgToGCFromLS_NotifyServerBSAddr = 513;
+}
+
+message LoginResult
+{
+	MsgID msgid = 1;
+	int32 result = 2;
+}
+
+message ServerInfo
+{
+	string ServerName = 1;
+	string ServerAddr = 2;
+	int32 ServerPort = 3;
+	int32 ServerState = 4;
+}
+
+message ServerBSAddr
+{
+	MsgID msgid = 1;
+	repeated ServerInfo serverinfo = 2;
+}

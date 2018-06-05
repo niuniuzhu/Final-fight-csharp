@@ -1,0 +1,84 @@
+﻿syntax = "proto3";
+package CSToGS;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToGSFromCS_Begin = 24576;
+	eMsgToGSFromCS_AskPingRet = 24577;
+	eMsgToGSFromCS_AskRegisteRet = 24578;
+	eMsgToGSFromCS_OrderOpenListen = 24579;
+	eMsgToGSFromCS_OrderCloseListen = 24580;
+	eMsgToGSFromCS_OrderPostToGC = 24581;
+	eMsgToGSFromCS_OrderKickoutGC = 24582;
+	eMsgToGSFromCS_OneSSConnected = 24583;
+	eMsgToGSFromCS_UserConnectedSS = 24584;
+	eMsgToGSFromCS_UserDisConnectedSS = 24585; 
+	eMsgToGSFromCS_End = 25000;
+}
+message AskPing
+{
+	MsgID mgsid = 1;
+	int64 time = 2;
+}
+
+message AskRegisteRet
+{
+	MsgID msgid = 1;
+	int32 registe = 2;
+	int64 curtime = 3;
+	uint32 ssbaseid = 4;
+	message SSInfo
+	{
+		int32 ssid = 1;
+		string ip = 2;
+		int32 port = 3;
+		int32 netstate = 4;
+	}
+	repeated SSInfo ssinfo = 5;
+}
+
+message OrderPostToGC
+{
+	message UserNetInfo
+	{
+		int32 gsid = 1;
+		int32 gcnid = 2;
+	}
+	MsgID msgid = 1;
+	repeated UserNetInfo usernetinfo = 2;
+	int32 othermsgid = 3;
+	bytes othermsg = 4;
+}
+
+message OrderKickoutGC
+{
+	MsgID msgid = 1;
+	int32 gcnid = 2;
+}
+
+message OneSSConnected
+{
+	MsgID msgid = 1;
+	int32 state = 2;
+	int64 time = 3;
+	int32 ssid = 4;
+	string ip = 5;
+	int32 port = 6;
+	int32 netstate = 7;
+	int32 basessid = 8;
+}
+
+message UserConnectedSS
+{
+	MsgID msgid = 1;
+	int32 ssid = 2;
+	repeated int32 gcnid = 3;
+	uint64 battleid = 4;
+}
+
+message UserDisConnectedSS
+{
+	MsgID msgid = 1;
+	repeated int32 gcnid = 2;
+}

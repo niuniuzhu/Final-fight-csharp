@@ -1,0 +1,28 @@
+﻿syntax = "proto3";
+package BSToGC;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToGCFromBS_AskGateAddressRet = 203;
+	eMsgToGCFromBS_OneClinetLoginCheckRet = 204;
+}
+
+//�ѻ�OnNetMsg_NotifyGateServerAddress
+//eMsgToGCFromBS_AskGateAddressRet
+message AskGateAddressRet
+{
+	MsgID mgsid = 1;
+	int32 gateclient = 2;
+	string token = 3;
+	string user_name = 4;
+	int32 port = 5;
+	string ip = 6;
+}
+
+//eMsgToGCFromBS_OneClinetLoginCheckRet
+message ClinetLoginCheckRet
+{
+	MsgID mgsid = 1;
+	uint32 login_success = 2;
+}

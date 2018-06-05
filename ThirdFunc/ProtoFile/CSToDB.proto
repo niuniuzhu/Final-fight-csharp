@@ -1,0 +1,271 @@
+﻿syntax = "proto3";
+package CSToDB;
+
+enum MsgID
+{
+	unknow = 0;
+	eCheckNickNameDBCallBack = 100;
+	eQueryUser_DBCallBack = 101;
+	eLogStore_DBCallBack = 102;
+	eUpdateUser_DBCallBack = 103;
+	eInsertUser_DBCallBack = 104;
+	eUpdateGameMail_DBCallBack = 105;
+	eBuyGoods_DBCallBack = 106;
+	eNicknameConflict_DBCallBack = 107;
+	eQueryObjId_DBCallBack = 108;
+	eAlterSNSList_DBCall = 109;
+	eInsertNotice_DBCall = 110;
+	eDeleteNotice_DBCall = 111;
+	eAlterItem_DBCall = 112;
+	eChangeNickName_DBCall = 113;
+	eExeSQL_Call = 114;
+	eQueryNotice_DBCall = 115;
+	eStoreUserData = 116; 
+	eUpdateUserGameMail_DBCallBack = 117;
+	eInsertCDKeyEvents = 118;
+	eInsertCDKeyInfo = 119;
+	eUpdateCDKeyInfo = 120;
+}
+
+message UpdateCDKeyInfo
+{
+	MsgID msgid = 1;
+	string sql_str = 2;
+}
+
+message InsertCDKeyInfo
+{
+	MsgID msgid = 1;
+	string sql_str = 2;
+}
+
+//eInsertCDKeyEvents
+message CDKeyEvents
+{
+	MsgID msgid = 1;
+	string sql_str = 2;
+}
+
+
+//eUpdateUserGameMail_DBCallBack
+message UpdateUserMail
+{
+	MsgID  msgid = 1;
+	int64  objid = 2;
+	int32  mailid = 3;
+	int32  cstate = 4;	
+}
+
+message StoreUserdata
+{
+	int64				un64ObjIdx = 1;
+	int32				eUserPlatform = 2;
+	int32				un32HeaderID = 3;
+	int32				n8Sex = 4; 
+	int64				n64Diamond = 5;
+	int64				n64Gold = 6;
+	int64				tRegisteUTCMillisec = 7;	//注册时间(s)
+	int64				tLastLoginUTCMillisec = 8;	//上次登录时间(s)
+	int64				tLastLogOutUTCTime = 9;		//下线时间(主动退出，断线s)
+	int64				n64Score = 10;
+	int32				un32TotalGameInns = 11;
+	int32				un32TotalWinInns = 12;
+	int32				un32TotalHeroKills = 13;
+	int32				un32TotalDestoryBuildings = 14;
+	int32				un32TotalDeadTimes = 15;
+	int32				un32TotalAssist = 16;
+	int32				un16UserLv = 17;
+	int32				un32UserCurLvExp = 18;
+	int64				tLastFirstWinTime = 19; 
+	int32				un16Cldays = 20;
+	string				tLastGetLoginReward = 21;
+	int32				un16VipLv = 22;
+	int32				vipScore = 23;
+	string				mGuideSteps = 24;
+	
+	message SUserHeroDBData
+	{
+			int32			un32HeroID = 1;
+			int64			endTime = 2; // time(NULL)
+			int64			buyTime = 3; //购买时间   time(NULL)
+	}
+	repeated SUserHeroDBData sSUserHeroDBData = 25;
+	message SUserRelationshipInfo
+	{
+			string	stNickName = 1; 
+		int32	nHeadId = 2;
+	int64	guididx = 3;
+	int32 eRelationShip = 4;
+	int64 tMilSec = 5;
+	}
+	message	SUserItemInfo
+	{
+		int32	item_id = 1;
+		bool	ifusing = 2;
+		int32	item_num = 3;
+		int64	buy_time = 4;
+		int64	end_time = 6;
+		int32	n32EffectValue = 7;
+		int32	n32EffectID = 8;
+	}
+	repeated SUserRelationshipInfo friendList = 26;
+	repeated SUserRelationshipInfo blackList = 27;
+	repeated SUserItemInfo itemlist = 28;
+	message UserMailDBData
+	{
+		int32		mailId = 1;
+		int32 mState = 2;
+	}
+	repeated UserMailDBData mailList = 29;
+	string nickname = 30;
+	string username = 31;
+	string pwd = 32;
+	string runestr = 33;
+	string slotstr = 34;
+}
+message QueryNotice
+{
+	MsgID msgid = 1;
+}
+
+message ExeSQL_Call
+{
+	MsgID msgid = 1;
+	string sql = 2;
+}
+message ChangeNickName
+{
+	MsgID msgid = 1;
+	string nickname = 2;
+	int64 guid = 3;
+}
+message AlterItem
+{
+	MsgID mgsid = 1;
+	string sql_str = 2;
+}
+
+message DeleteNotice
+{
+	MsgID mgsid = 1;
+	uint32 id = 2;
+}
+
+message InsertNotice
+{
+	MsgID mgsid = 1;
+	string sql_str = 2;
+}
+
+message AlterSNSList
+{
+	MsgID mgsid = 1;
+	uint64 user_id = 2;
+	uint64 related_id = 3;
+	uint32 related = 4;
+	uint32 opration = 5;
+}
+
+//eQueryObjId_DBCallBack
+message QueryObjIdxReq
+{
+	MsgID msgid = 1;
+	string Logininfo = 2;
+	int32	gsid = 3;
+	int32 gcnetid = 4;
+	int32 csid = 5; 
+}
+
+message NicknameConflict
+{
+	MsgID mgsid = 1;
+	string newnickname = 2;
+	int32 gsid = 3;
+	int32 gcnetid = 4;
+	uint64 guid = 5;
+	int32 sdkid = 6;
+	int32 csid = 7;
+	string cdk = 8;
+	string oldnickname = 9;
+}
+
+message BuyGoods
+{
+	MsgID mgsid = 1;
+	string buygoodsmag = 2;
+}
+
+enum MailType
+{
+	mailType_None = 0;
+	mailType_1 = 1;
+	mailType_2 = 2;
+	mailType_3 = 3;
+	mailType_4 = 4;
+}
+
+enum EMailCurtState
+{
+	eMailState_None = 0;
+	eMailState_New = 1;
+	eMailState_LookedButNotGotGift = 2;
+	eMailState_Look = 3;
+	eMailState_Del = 4;
+}
+
+message  GameMailInfo
+{
+	MailType  type = 1;
+	int32 mailId = 2;
+	int64 userid = 3;
+	EMailCurtState curtstate = 4;
+	int32 sdkidx = 5; 
+	string title = 6;
+	string content = 7;
+	string giftstr = 8;
+	string createtime = 9;
+	string overtime = 10;
+	string sender = 11; 
+}
+//eUpdateGameMail_DBCallBack
+message UpdateGameMail
+{
+	MsgID mgsid = 1; 
+	repeated GameMailInfo maillist = 2; 
+}
+
+message InsertUser
+{
+	MsgID mgsid = 1; 
+	int64  guid = 2;
+	string sqlstr = 3;
+}
+message UpdateUser
+{
+	MsgID mgsid = 1;
+	int64  guid = 2;
+	string sqlstr = 3;
+}
+
+message CheckNameReq
+{
+	MsgID mgsid = 1; 
+	int32 gsid = 2;
+	int32 gcnetid = 3;
+	int32 gsnetid = 4;
+	int32 sdkid = 5;
+	int32 csid = 6;
+	string cdk = 7;
+	string completeInfo = 8;
+}
+
+message QueryUserReq
+{
+	MsgID msgid = 1;
+	string Logininfo = 2;
+	int32	gsid = 3;
+	int32 gcnetid = 4;
+	int32 csid = 5; 
+	int64 objid = 6; 
+	string uname = 7;
+}

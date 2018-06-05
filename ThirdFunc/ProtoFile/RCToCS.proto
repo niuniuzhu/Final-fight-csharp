@@ -1,0 +1,100 @@
+﻿syntax = "proto3";
+package RCToCS;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgRC2CS_Begin = 33000;
+	eMsgRC2CS_AskRegist = 33001;
+	eMsgRC2CS_AskServerInfo = 33002;
+	eMsgRC2CS_AskServerUserInfo = 33003;
+	eMsgRC2CS_AskNoticeInfo = 33004;
+	eMsgRC2CS_AskAddNotice = 33005;
+	eMsgRC2CS_AskDeleteNotice = 33006;
+	
+	eMsgRC2CS_AskAddOneMail = 33007;
+	eMsgRC2CS_AskCreateCDKey = 33008;
+	eMsgRC2CS_AskQueryCDkey = 33009; 
+	
+	eMsgRC2CS_End = 33499;
+}
+
+ 
+message QueryCDKey
+{
+	MsgID msgid = 1;
+}
+
+message CreateCDKey
+{
+	MsgID msgid = 1;
+	string title = 2;
+	int32 platform = 3;
+	uint64 end_time = 4;
+	string content = 5;
+	int32 gift_type = 6;
+	message giftInfo
+	{
+		int32 item_id = 1;
+		int32 item_num = 2;
+	}
+	repeated giftInfo gift = 7;
+	int32 code_len = 8;
+	repeated string cdkey = 9;
+}
+ 
+//eMsgRC2CS_AskAddOneMail
+message AskAddMailReq
+{
+	MsgID msgid = 1;
+	int32 type = 2; 
+	int32 sdk = 3; 
+	string title = 4;
+	string content = 5;
+	string gift = 6;
+	string createtime = 7; 
+	string  endtime = 8;  
+	string sender = 9;
+	repeated int64	userIdlist = 10;
+	int32  day = 11;
+}
+
+message AskRegist
+{
+	MsgID msgid = 1;
+	bytes key = 2;
+}
+
+message AskServerInfo
+{
+	MsgID msgid = 1;
+}
+
+message AskServerUserInfo
+{
+	MsgID msgid = 1;
+}
+
+message AskNoticeInfo
+{
+	MsgID msgid = 1;
+}
+
+message AskAddNotice
+{
+	MsgID msgid = 1;
+	int32 platform = 2;
+	bytes title = 3;
+	int32 flag = 4;
+	int32 state = 5;
+	int32 priority = 6;
+	bytes noticeMsg = 7;
+	uint64 star_time = 8;
+	uint64 end_time = 9;
+}
+
+message AskDeleteNotice
+{
+	MsgID msgid = 1;
+	int32 noticeId = 2;
+}

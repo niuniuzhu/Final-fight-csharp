@@ -1,0 +1,44 @@
+﻿syntax = "proto3";
+package SSToGS;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToGSFromSS_Begin = 24576;
+	eMsgToGSFromSS_AskPingRet = 24577;
+	eMsgToGSFromSS_AskRegisteRet = 24578;
+	eMsgToGSFromSS_OrderPostToGC = 24579;
+	eMsgToGSFromSS_OrderKickoutGC = 24580;
+	eMsgToGSFromSS_End = 25000;
+}
+message AskPingRet
+{
+	MsgID mgsid = 1;
+	int64 time = 2;
+}
+
+message AskRegisteRet 
+{
+	MsgID mgsid = 1;
+	int32 state = 2;
+}
+
+message OrderPostToGC
+{
+	message UserNetInfo
+	{
+		int32 gsid = 1;
+		int32 gcnid = 2;
+	}
+	MsgID msgid = 1;
+	repeated UserNetInfo usernetinfo = 2;
+	int32 othermsgid = 3;
+	string othermsg = 4;
+}
+
+message OrderKickoutGC
+{
+	MsgID mgsid = 1;
+	int32 gsnid = 2;
+}
+

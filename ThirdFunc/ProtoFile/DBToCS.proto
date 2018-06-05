@@ -1,0 +1,161 @@
+﻿syntax = "proto3";
+package DBToCS;
+
+enum MsgID
+{
+	unknow = 0;
+	eCheckNickNameLogicCallBack = 1;
+	eQueryUser_DBCallBack = 2;
+	eBuyGoodsCallBack = 3;
+	eChangeNickname_CallBack = 4;
+	eQueryNotice_CallBack = 5;
+	eMail_CallBack = 6;
+	eQueryAllAccount_CallBack = 7;
+	eQueryCDKeyEvents_CallBack = 8;
+	eQueryAllUser_CallBack = 9;
+}
+
+message CDKeyEvents
+{
+	MsgID mgsid = 1;
+	message event_info{
+		int32 id = 1;
+		string title = 2;
+		int32 platform = 3;
+		uint64 end_time = 4;
+		string content = 5;
+		int32 gift_type = 6;
+		string item_info = 7;
+		int32 code_num = 8;
+		int32 code_len = 9;
+	}
+	repeated event_info info = 2;
+	int32 nsid = 3;
+}
+
+message QueryAllAccount
+{
+	MsgID mgsid = 1;
+	message Account
+	{
+		string user_name = 1;
+		int32 csid = 2;
+		int32 sdkid = 3;
+		string nickname = 4;
+		int64 guid = 5;
+	}
+	repeated Account account = 2;
+}
+
+message MailCallBack
+{
+	MsgID mgsid = 1;
+	int32 mailid = 2;
+	int32 mailtype = 3;
+	int32 channel = 4;
+	string title = 5;
+	string content = 6;
+	string gift = 7;
+	string sender = 8;
+	string createtime = 9;
+	int64 objid = 10;
+}
+
+message QueryNotice
+{
+	MsgID mgsid = 1;
+	message Notice
+	{
+		uint32 id = 1;
+		string title = 2;
+		int32 eflag = 3;
+		int32 estate = 4;
+		int32 priority = 5;
+		string notice = 6;
+		uint64 star_time = 7;
+		uint64 end_time = 8;
+		uint32 platform = 9;
+	}
+	repeated Notice notice_info = 2;
+}
+
+message ChangeNickname
+{
+	MsgID mgsid = 1;
+	uint64 guid = 2;
+	bool reflag = 3;
+	string newnickname = 4;
+	string oldnickname = 5;
+}
+
+message BuyGoods
+{
+	MsgID mgsid = 1;
+	string buygoodsmag = 2;
+}
+
+message CheckNameRsp
+{
+	MsgID mgsid = 1;
+	string completeInfo = 2;
+	int32 gsid = 3;
+	int32 gcnetid = 4;
+	int32 gsnetid = 5;
+	int32 checkres = 6;
+}
+
+message HeroCfg
+{
+	uint32 commodityid = 1;
+	int64 buytime = 2;
+	int64 expiredtime = 3;
+}
+
+message RuneInfo
+{
+	string bagStr = 1;
+	string slotStr = 2;
+}
+
+message RSinfo{
+	uint64 related_id = 1;
+	uint32 related_header = 2;
+	string related_name = 3;
+	uint32 relation = 4;
+	uint32 related_vip = 5;
+}
+
+message ItemInfo
+{
+	int32 item_id = 1;
+	uint32 item_num = 2;
+	int32 buy_time = 3;
+	int32 end_time = 4;
+} 
+
+message MailInfo
+{
+	int32 mailid = 1;
+	int32 state = 2;
+}
+message QueryUser
+{
+	MsgID msgid = 1;
+	string db = 2;
+	string login = 3;
+	int32	gsid = 4;
+	int32 gcnetid = 5;
+	string nickname = 6;
+	repeated HeroCfg herocfg = 7;
+	repeated RuneInfo runeinfo = 8;
+	repeated RSinfo rsinfo = 9;
+	repeated ItemInfo item_info = 10; 
+	repeated MailInfo mail_info = 11;
+	string guidestr = 12;
+	string taskData = 13;
+}
+message QueryAllUser
+{
+	MsgID msgid = 1;
+	repeated QueryUser sQueryUser = 2;
+}

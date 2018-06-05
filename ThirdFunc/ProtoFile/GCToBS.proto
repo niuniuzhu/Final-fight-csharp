@@ -1,0 +1,31 @@
+﻿syntax = "proto3";
+package GCToBS;
+
+enum MsgNum
+{
+	unknow = 0;
+	eMsgToBSFromGC_Begin = 32768;
+	eMsgToBSFromGC_AskGateAddress = 32769;
+	eMsgToBSFromGC_OneClinetLogin = 32770;
+	eMsgToBSFromGC_End = 33000;
+}
+
+//已换GameAskGateAddress
+//eMsgToBSFromGC_AskGateAddress
+message AskGateAddress
+{
+	MsgNum msgnum = 1;
+	int32 plat = 2;
+	string username = 3;
+	string token = 4;
+}
+
+message OneClinetLogin
+{
+	MsgNum msgnum = 1;
+	string uin = 2;
+	string sessionid = 3;
+	uint32 plat = 4;
+	uint32 login_success = 5;
+	uint32 nsid = 6;
+}

@@ -1,0 +1,18 @@
+﻿syntax = "proto3";
+package GCToLS;
+
+enum MsgID
+{
+	unknow = 0;
+	eMsgToLSFromGC_Begin = 40960;
+	eMsgToLSFromGC_AskLogin = 40961;
+	eMsgToLSFromGC_End = 40970;
+}
+
+message AskLogin
+{
+	MsgID msgid = 1;
+	uint32 platform = 2;
+	string uin = 3;
+	string sessionid = 4;
+}
