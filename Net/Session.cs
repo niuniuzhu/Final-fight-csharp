@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace Net
 {
-	public class Session
+	public class Session : ISession
 	{
 		public int id { get; }
 		public SessionType type { get; }
@@ -26,7 +26,7 @@ namespace Net
 			this._recvEventArgs.Completed += this.OnIOComplete;
 		}
 
-		public void Dispose()
+		public virtual void Dispose()
 		{
 			this._sendEventArgs.Completed -= this.OnIOComplete;
 			this._recvEventArgs.Completed -= this.OnIOComplete;
@@ -34,20 +34,20 @@ namespace Net
 			this._recvEventArgs.Dispose();
 		}
 
-		public void Release()
+		public virtual void Release()
 		{
 			this._cache.Clear();
-			this.socket = null;
 			this.packetEncodeHandler = null;
 		}
 
-		private void Close()
+		protected void Close()
 		{
 			this.socket.Shutdown( SocketShutdown.Both );
 			this.socket.Close();
+			this.socket = null;
 		}
 
-		internal bool StartReceive()
+		public bool StartReceive()
 		{
 			bool asyncResult;
 			try
@@ -56,7 +56,7 @@ namespace Net
 			}
 			catch ( SocketException e )
 			{
-				Logger.Warn( $"socket receive error, code:{e.SocketErrorCode} " );
+				Logger.Error( $"socket receive error, code:{e.SocketErrorCode} " );
 				this.Close();
 				return false;
 			}
@@ -78,7 +78,7 @@ namespace Net
 			}
 			catch ( SocketException e )
 			{
-				Logger.Warn( $"socket send error, code:{e.SocketErrorCode} " );
+				Logger.Error( $"socket send error, code:{e.SocketErrorCode} " );
 				this.Close();
 				return false;
 			}
@@ -96,7 +96,7 @@ namespace Net
 			}
 			catch ( SocketException e )
 			{
-				Logger.Warn( $"SyncSend buffer error, code:{e.SocketErrorCode} " );
+				Logger.Error( $"SyncSend buffer error, code:{e.SocketErrorCode} " );
 				return -1;
 			}
 			return sendLen;
@@ -118,20 +118,25 @@ namespace Net
 
 		private void ProcessSend( SocketAsyncEventArgs sendEventArgs )
 		{
+			if ( sendEventArgs.SocketError != SocketError.Success )
+			{
+				Logger.Error( $"socket send error, code:{sendEventArgs.SocketError}" );
+				this.Close();
+			}
 		}
 
 		private void ProcessReceive( SocketAsyncEventArgs recvEventArgs )
 		{
 			if ( recvEventArgs.SocketError != SocketError.Success )
 			{
-				Logger.Warn( $"receive error, remote endpoint:{this.socket.RemoteEndPoint}, code:{recvEventArgs.SocketError}" );
+				Logger.Error( $"receive error, remote endpoint:{this.socket.RemoteEndPoint}, code:{recvEventArgs.SocketError}" );
 				this.Close();
 				return;
 			}
 			int size = recvEventArgs.BytesTransferred;
 			if ( size == 0 )
 			{
-				Logger.Warn( $"Receive zero bytes, remote endpoint: {this.socket.RemoteEndPoint}, code:{SocketError.NoData}" );
+				Logger.Error( $"Receive zero bytes, remote endpoint: {this.socket.RemoteEndPoint}, code:{SocketError.NoData}" );
 				this.Close();
 				return;
 			}

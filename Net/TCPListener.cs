@@ -125,7 +125,7 @@ namespace Net
 		{
 			if ( acceptEventArgs.SocketError != SocketError.Success )
 			{
-				Logger.Warn( $"process accept fail,code{acceptEventArgs.SocketError}" );
+				Logger.Error( $"process accept fail,code{acceptEventArgs.SocketError}" );
 				this.Close( acceptEventArgs.AcceptSocket );
 				this.StartAccept( acceptEventArgs );
 				return;
@@ -138,10 +138,10 @@ namespace Net
 				return;
 			}
 
-			Session session = this.sessionCreateHandler();
+			ISession session = this.sessionCreateHandler();
 			if ( session == null )
 			{
-				Logger.Log( "create session failed" );
+				Logger.Error( "create session failed" );
 				this.Close( acceptEventArgs.AcceptSocket );
 				this.StartAccept( acceptEventArgs );
 				return;

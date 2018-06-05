@@ -43,14 +43,14 @@ namespace Net
 
 		private static int _gid;
 
-		private readonly ConcurrentDictionary<Type, ConcurrentQueue<Session>> _typeToObjects = new ConcurrentDictionary<Type, ConcurrentQueue<Session>>();
+		private readonly ConcurrentDictionary<Type, ConcurrentQueue<ISession>> _typeToObjects = new ConcurrentDictionary<Type, ConcurrentQueue<ISession>>();
 
-		public T Pop<T>( SessionType sessionType ) where T : Session
+		public T Pop<T>( SessionType sessionType ) where T : ISession
 		{
 			Type type = typeof( T );
-			if ( !this._typeToObjects.TryGetValue( type, out ConcurrentQueue<Session> objs ) )
+			if ( !this._typeToObjects.TryGetValue( type, out ConcurrentQueue<ISession> objs ) )
 			{
-				objs = new ConcurrentQueue<Session>();
+				objs = new ConcurrentQueue<ISession>();
 				this._typeToObjects[type] = objs;
 			}
 
@@ -60,23 +60,23 @@ namespace Net
 														   Type.DefaultBinder,
 														   new object[] { Interlocked.Increment( ref _gid ) }, sessionType );
 			}
-			objs.TryDequeue( out Session session );
+			objs.TryDequeue( out ISession session );
 			return ( T )session;
 		}
 
-		public void Push( Session session )
+		public void Push( ISession session )
 		{
 			this._typeToObjects[session.GetType()].Enqueue( session );
 		}
 
 		public void Dispose()
 		{
-			foreach ( KeyValuePair<Type, ConcurrentQueue<Session>> kv in this._typeToObjects )
+			foreach ( KeyValuePair<Type, ConcurrentQueue<ISession>> kv in this._typeToObjects )
 			{
-				ConcurrentQueue<Session> queue = kv.Value;
+				ConcurrentQueue<ISession> queue = kv.Value;
 				while ( !queue.IsEmpty )
 				{
-					queue.TryDequeue( out Session session );
+					queue.TryDequeue( out ISession session );
 					session.Dispose();
 				}
 			}
