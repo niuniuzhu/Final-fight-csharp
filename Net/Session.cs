@@ -42,7 +42,10 @@ namespace Net
 
 		protected void Close()
 		{
-			this.socket.Shutdown( SocketShutdown.Both );
+			if ( this.connected )
+			{
+				this.socket.Shutdown( SocketShutdown.Both );
+			}
 			this.socket.Close();
 			this.socket = null;
 		}
@@ -158,6 +161,14 @@ namespace Net
 			//todo data event
 
 			this.ProcessData();
+		}
+
+		/// <summary>
+		/// 处理网络事件,该方法在主线程调用
+		/// </summary>
+		/// <param name="netEvent"></param>
+		internal void ProcessEvent( NetEvent netEvent )
+		{
 
 		}
 	}

@@ -70,7 +70,9 @@ namespace Net
 
 		public bool Stop()
 		{
-			return this.Close( this._socket );
+			Socket socket = this._socket;
+			this._socket = null;
+			return this.Close( socket );
 		}
 
 		private bool Close( Socket socket )

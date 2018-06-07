@@ -39,11 +39,13 @@ namespace Net
 	{
 		private static SessionPool _instance;
 		public static SessionPool instance => _instance ?? ( _instance = new SessionPool() );
-
-
 		private static int _gid;
 
 		private readonly ConcurrentDictionary<Type, ConcurrentQueue<ISession>> _typeToObjects = new ConcurrentDictionary<Type, ConcurrentQueue<ISession>>();
+
+		private SessionPool()
+		{
+		}
 
 		public T Pop<T>( SessionType sessionType ) where T : ISession
 		{
@@ -56,9 +58,9 @@ namespace Net
 
 			if ( objs.Count == 0 )
 			{
-				return ( T )Activator.CreateInstance( typeof( T ), BindingFlags.NonPublic | BindingFlags.Instance,
-														   Type.DefaultBinder,
-														   new object[] { Interlocked.Increment( ref _gid ) }, sessionType );
+				return ( T ) Activator.CreateInstance( typeof( T ), BindingFlags.NonPublic | BindingFlags.Instance,
+				                                       null,
+				                                       new object[] { Interlocked.Increment( ref _gid ), sessionType }, null );
 			}
 			objs.TryDequeue( out ISession session );
 			return ( T )session;

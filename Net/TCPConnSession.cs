@@ -39,6 +39,8 @@ namespace Net
 
 			this.socket.SetSocketOption( SocketOptionLevel.Socket, SocketOptionName.NoDelay, true );
 			this.socket.NoDelay = true;
+
+			this._connectEventArgs.RemoteEndPoint = new IPEndPoint( IPAddress.Parse( ip ), port );
 			bool asyncResult;
 			try
 			{
@@ -71,6 +73,10 @@ namespace Net
 			{
 				Logger.Error( $"socket connect error, code:{connectEventArgs.SocketError}" );
 				this.Close();
+				NetEvent netEvent;
+				netEvent.type = NetEvent.Type.Establish;
+				netEvent.session = this;
+				EventManager.instance.Push( netEvent );
 			}
 		}
 	}

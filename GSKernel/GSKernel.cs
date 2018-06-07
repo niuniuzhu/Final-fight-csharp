@@ -2,6 +2,7 @@
 using System.IO;
 using Core;
 using Core.XML;
+using Net;
 
 namespace GateServer
 {
@@ -115,19 +116,19 @@ namespace GateServer
 			return EResult.Normal;
 		}
 
-		private EResult Start()
+		public EResult Start()
 		{
-			//GSNetSessionMgr* pNetSession = new GSNetSessionMgr;
-			//// 允许客户端连接
-			//pNetSession->CreateListener( m_sGSConfig.n32GCListenPort, 102400, 102400, 0 );
-			//// 连接中心服务器
-			//pNetSession->CreateConnector( ST_CLIENT_G2C, m_sGSConfig.sCSIP.aszIPAddr, m_sGSConfig.n32CSPort, 10240000, 40960000, 0 );
-			//// 连接DBServer
-			//pNetSession->CreateConnector( ST_CLIENT_G2B, m_sGSConfig.sBSListenIP.aszIPAddr, m_sGSConfig.n32BSListenPort, 1024000, 1024000, 0 );
+			NetSessionMgr netSession = new NetSessionMgr();
+			// 允许客户端连接
+			netSession.CreateListener( NetworkProtoType.TCP, m_sGSConfig.n32GCListenPort, 102400, out _ );
+			// 连接中心服务器
+			netSession.CreateConnector( NetworkProtoType.TCP, SessionType.ClientG2C, m_sGSConfig.sCSIP, m_sGSConfig.n32CSPort, 10240000, 0 );
+			// 连接DBServer
+			netSession.CreateConnector( NetworkProtoType.TCP, SessionType.ClientG2B, m_sGSConfig.sBSListenIP, m_sGSConfig.n32BSListenPort, 1024000, 0 );
 
-			////reset member variables.
-			//m_tHeartBeatTicks = 0;
-			//MainLoop();
+			//reset member variables.
+			m_tHeartBeatTicks = 0;
+			this.MainLoop();
 
 			return EResult.Normal;
 		}
@@ -136,6 +137,10 @@ namespace GateServer
 		{
 			Logger.Info( "GSKernel Stop success!" );
 			return EResult.Normal;
+		}
+
+		private void MainLoop()
+		{
 		}
 
 		private int OnMsgFromCS_AskPingRet( string pmsg, int n32msglength )
