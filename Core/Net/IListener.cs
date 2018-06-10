@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 
-namespace Net
+namespace Core.Net
 {
 	public interface IListener
 	{
@@ -41,7 +41,7 @@ namespace Net
 		 * @param bReUseAddr : the flag for re-using same address
 		 * @return true means success, false means failure
 		 */
-		bool Start( string ip, int port, bool reUseAddr = true );
+		bool Start( string ip, int port, SocketType socketType, ProtocolType protoType, bool reUseAddr = true );
 
 		/**
 		 * @brief Stop listening

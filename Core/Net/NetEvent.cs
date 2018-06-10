@@ -1,4 +1,4 @@
-﻿namespace Net
+﻿namespace Core.Net
 {
 	public struct NetEvent
 	{
@@ -15,6 +15,6 @@
 		}
 
 		public Type type;
-		public Session session;
+		public INetSession session;
 	}
 }

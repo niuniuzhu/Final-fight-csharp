@@ -1,15 +1,14 @@
 ﻿using System.Net.Sockets;
 
-namespace Net
+namespace Core.Net
 {
-	public interface ISession
+	public interface IConnection
 	{
-		int id { get; }
-		SessionType type { get; }
-		Socket socket { set; }
-		PacketEncodeHandler packetEncodeHandler { set; }
-		int recvBufSize { set; }
+		INetSession session { get; set; }
 		bool connected { get; }
+		Socket socket { set; }
+		int recvBufSize { set; }
+		PacketEncodeHandler packetEncodeHandler { set; }
 		void Dispose();
 		void Release();
 		bool StartReceive();

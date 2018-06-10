@@ -8,6 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Google.Protobuf" Version="3.5.1" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\Core\Core.csproj">
 	    <Private>false</Private>
 	  </ProjectReference>

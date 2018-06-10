@@ -274,7 +274,7 @@ namespace Core.Misc
 			int num = values.Length;
 			if ( num == 0 )
 			{
-				return  0;
+				return 0;
 			}
 			int num2 = values[0];
 			for ( int i = 1; i < num; i++ )
@@ -401,9 +401,29 @@ namespace Core.Misc
 		///   <para>Returns the sign of f.</para>
 		/// </summary>
 		/// <param name="f"></param>
-		public static float Sign( float f )
+		public static int Sign( float f )
 		{
-			return ( f < 0f ) ? -1f : 1f;
+			return ( f < 0f ) ? -1 : 1;
+		}
+
+		public static int Sign( int f )
+		{
+			return ( f < 0 ) ? -1 : 1;
+		}
+
+		public static int Sign( double f )
+		{
+			return ( f < 0 ) ? -1 : 1;
+		}
+
+		public static int Sign( short f )
+		{
+			return ( f < 0 ) ? -1 : 1;
+		}
+
+		public static int Sign( long f )
+		{
+			return ( f < 0 ) ? -1 : 1;
 		}
 
 		/// <summary>

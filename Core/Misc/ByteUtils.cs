@@ -2,6 +2,21 @@
 {
 	public static class ByteUtils
 	{
+
+		public static int Encode32( byte[] p, int offset, int l )
+		{
+			int sign = MathUtils.Sign( l );
+			if ( sign == -1 )
+			{
+				l |= 1 << 31;
+			}
+			p[0 + offset] = ( byte )( l >> 0 );
+			p[1 + offset] = ( byte )( l >> 8 );
+			p[2 + offset] = ( byte )( l >> 16 );
+			p[3 + offset] = ( byte )( l >> 24 );
+			return 4;
+		}
+
 		public static int Encode8u( byte[] p, int offset, byte c )
 		{
 			p[0 + offset] = c;

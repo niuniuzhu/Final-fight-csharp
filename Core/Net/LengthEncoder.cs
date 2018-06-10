@@ -1,6 +1,6 @@
 ﻿using Core.Misc;
 
-namespace Net
+namespace Core.Net
 {
 	public static class LengthEncoder
 	{

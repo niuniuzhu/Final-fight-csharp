@@ -1,32 +1,28 @@
-﻿using Core;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 
-namespace Net
+namespace Core.Net
 {
-	public class Session : ISession
+	public class Connection : IConnection
 	{
-		public int id { get; }
-		public SessionType type { get; }
 		public Socket socket { get; set; }
-		public PacketEncodeHandler packetEncodeHandler { get; set; }
-		public bool connected => this.socket.Connected;
+		public INetSession session { get; set; }
 		public int recvBufSize { set => this._recvEventArgs.SetBuffer( new byte[value], 0, value ); }
+		public PacketEncodeHandler packetEncodeHandler { get; set; }
+		public bool connected => this.socket != null && this.socket.Connected;
 
 		private readonly SocketAsyncEventArgs _sendEventArgs;
 		private readonly SocketAsyncEventArgs _recvEventArgs;
 		private readonly StreamBuffer _cache = new StreamBuffer();
 
-		protected Session( int id, SessionType type )
+		public Connection()
 		{
-			this.id = id;
-			this.type = type;
 			this._sendEventArgs = new SocketAsyncEventArgs { UserToken = this };
 			this._recvEventArgs = new SocketAsyncEventArgs { UserToken = this };
 			this._sendEventArgs.Completed += this.OnIOComplete;
 			this._recvEventArgs.Completed += this.OnIOComplete;
 		}
 
-		public virtual void Dispose()
+		public void Dispose()
 		{
 			this._sendEventArgs.Completed -= this.OnIOComplete;
 			this._recvEventArgs.Completed -= this.OnIOComplete;
@@ -34,13 +30,13 @@ namespace Net
 			this._recvEventArgs.Dispose();
 		}
 
-		public virtual void Release()
+		public void Release()
 		{
 			this._cache.Clear();
 			this.packetEncodeHandler = null;
 		}
 
-		protected void Close()
+		private void Close()
 		{
 			if ( this.connected )
 			{
@@ -161,15 +157,6 @@ namespace Net
 			//todo data event
 
 			this.ProcessData();
-		}
-
-		/// <summary>
-		/// 处理网络事件,该方法在主线程调用
-		/// </summary>
-		/// <param name="netEvent"></param>
-		internal void ProcessEvent( NetEvent netEvent )
-		{
-
 		}
 	}
 }

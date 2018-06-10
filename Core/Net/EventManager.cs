@@ -1,6 +1,7 @@
 ﻿using Core.Structure;
+using System.Collections.Generic;
 
-namespace Net
+namespace Core.Net
 {
 	public class EventManager
 	{
@@ -18,14 +19,11 @@ namespace Net
 			this._queue.Push( netEvent );
 		}
 
-		public void Update()
+		public void PopEvents( Queue<NetEvent> container )
 		{
 			this._queue.Switch();
 			while ( !this._queue.isEmpty )
-			{
-				NetEvent netEvent = this._queue.Pop();
-				netEvent.session.ProcessEvent( netEvent );
-			}
+				container.Enqueue( this._queue.Pop() );
 		}
 	}
 }

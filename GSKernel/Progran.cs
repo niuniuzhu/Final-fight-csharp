@@ -1,18 +1,28 @@
-﻿using System;
+﻿using Core;
+using Core.Structure;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using Core;
 
 namespace GateServer
 {
 	static class Progran
 	{
+		private const int HEART_BEAT_CD_TICK = 1;
+
+		private static readonly SwitchQueue<string> INPUT_QUEUE = new SwitchQueue<string>();
+		private static bool _disposed;
+
 		static int Main( string[] args )
 		{
 			AssemblyName[] assemblies = Assembly.GetEntryAssembly().GetReferencedAssemblies();
 			foreach ( AssemblyName assembly in assemblies )
 				Assembly.Load( assembly );
+
+			Thread tInputConsumer = new Thread( InputConsumer ) { IsBackground = true };
+			tInputConsumer.Start();
 
 			Logger.Init( File.ReadAllText( @".\Config\logger_config.xml" ), "GSKernel" );
 
@@ -32,8 +42,58 @@ namespace GateServer
 				return 0;
 			}
 
-			Console.ReadLine();
+			MainLoop();
+			tInputConsumer.Join();
+
 			return 0;
+		}
+
+		private static void Dispose()
+		{
+			_disposed = true;
+			GSKernel.instance.Dispose();
+		}
+
+		private static void MainLoop()
+		{
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
+			long lastElapsed = 0;
+			while ( !_disposed )
+			{
+				long elapsed = sw.ElapsedMilliseconds;
+				GSKernel.instance.Update( elapsed, elapsed - lastElapsed );
+				ProcessInput();
+				lastElapsed = elapsed;
+				Thread.Sleep( HEART_BEAT_CD_TICK );
+			}
+		}
+
+		private static void InputConsumer()
+		{
+			while ( !_disposed )
+			{
+				string cmd = Console.ReadLine();
+				INPUT_QUEUE.Push( cmd );
+				Thread.Sleep( 10 );
+			}
+		}
+
+		private static void ProcessInput()
+		{
+			INPUT_QUEUE.Switch();
+			while ( !INPUT_QUEUE.isEmpty )
+			{
+				string cmd = INPUT_QUEUE.Pop();
+				if ( cmd == "exit" )
+				{
+					Dispose();
+				}
+				else if ( cmd == "cls" )
+				{
+					Console.Clear();
+				}
+			}
 		}
 	}
 }

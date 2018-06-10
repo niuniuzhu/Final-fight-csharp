@@ -1,14 +1,13 @@
-﻿using Core;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Net
+namespace Core.Net
 {
 	public delegate int PacketEncodeHandler( byte[] buf, int offset, int size, out byte[] data );
-	public delegate Session SessionCreateHandler();
+	public delegate INetSession SessionCreateHandler();
 
-	public class TCPListener : IListener
+	public class Listener : IListener
 	{
 		public PacketEncodeHandler packetEncodeHandler { get; set; }
 		public SessionCreateHandler sessionCreateHandler { get; set; }
@@ -19,7 +18,7 @@ namespace Net
 
 		private Socket _socket;
 
-		internal TCPListener()
+		public Listener()
 		{
 		}
 
@@ -33,11 +32,11 @@ namespace Net
 			this._socket.SetSocketOption( SocketOptionLevel.Socket, optionName, pOpt );
 		}
 
-		public bool Start( string ip, int port, bool reUseAddr = true )
+		public bool Start( string ip, int port, SocketType socketType, ProtocolType protoType, bool reUseAddr = true )
 		{
 			try
 			{
-				this._socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
+				this._socket = new Socket( AddressFamily.InterNetwork, socketType, protoType );
 			}
 			catch ( SocketException e )
 			{
@@ -140,7 +139,7 @@ namespace Net
 				return;
 			}
 
-			ISession session = this.sessionCreateHandler();
+			INetSession session = this.sessionCreateHandler();
 			if ( session == null )
 			{
 				Logger.Error( "create session failed" );
@@ -148,16 +147,14 @@ namespace Net
 				this.StartAccept( acceptEventArgs );
 				return;
 			}
-
-			session.socket = acceptEventArgs.AcceptSocket;
-			session.packetEncodeHandler = this.packetEncodeHandler;
-			session.recvBufSize = this.recvBufSize;
-			if ( !session.StartReceive() )
+			session.connection.socket = acceptEventArgs.AcceptSocket;
+			session.connection.packetEncodeHandler = this.packetEncodeHandler;
+			session.connection.recvBufSize = this.recvBufSize;
+			if ( !session.connection.StartReceive() )
 			{
 				session.Release();
 				SessionPool.instance.Push( session );
 			}
-
 			this.StartAccept( acceptEventArgs );
 		}
 	}
