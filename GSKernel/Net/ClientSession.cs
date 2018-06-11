@@ -1,4 +1,4 @@
-﻿using Net;
+﻿using Shared.Net;
 
 namespace GateServer.Net
 {

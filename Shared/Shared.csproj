@@ -5,6 +5,8 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<OutputPath>..\Bin\</OutputPath>
 		<DefineConstants>KCP_NATIVE</DefineConstants>
+		<RootNamespace>Shared</RootNamespace>
+		<AssemblyName>Shared</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>

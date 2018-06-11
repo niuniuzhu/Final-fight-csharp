@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using Core.Net;
 
-namespace Net
+namespace Shared.Net
 {
 	public abstract class CliSession : NetSession
 	{

@@ -1,6 +1,4 @@
-﻿using Core.Net;
-
-namespace Net
+﻿namespace Shared.Net
 {
 	public abstract class SrvCliSession : NetSession
 	{

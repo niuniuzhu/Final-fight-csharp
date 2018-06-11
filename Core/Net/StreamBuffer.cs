@@ -9,6 +9,10 @@ namespace Core.Net
 		private readonly BinaryWriter _bw;
 		private readonly BinaryReader _br;
 
+		public MemoryStream ms => this._ms;
+		public BinaryWriter bw => this._bw;
+		public BinaryReader br => this._br;
+
 		/// <summary>
 		/// 获取当前位置
 		/// </summary>
@@ -44,7 +48,7 @@ namespace Core.Net
 			this._br = new BinaryReader( this._ms, Encoding.UTF8 );
 		}
 
-		public StreamBuffer( byte[] buff)
+		public StreamBuffer( byte[] buff )
 		{
 			this._ms = new MemoryStream( buff );
 			this._bw = new BinaryWriter( this._ms );

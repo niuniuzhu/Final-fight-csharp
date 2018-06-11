@@ -1,22 +1,24 @@
-﻿using Core;
+﻿using System.Collections.Generic;
+using Core;
 using Core.Misc;
 using GateServer.Net;
-using Net;
-using System;
+using Shared;
+using Shared.Net;
 using System.Net.Sockets;
+using Google.Protobuf;
 
 namespace GateServer
 {
-	public class GSKernel
+	public partial class GSKernel
 	{
 		private static GSKernel _instance;
 		public static GSKernel instance => _instance ?? ( _instance = new GSKernel() );
 
 		private const long HEART_PACK = 100;
 
-		public delegate int CSMsgHandler( string msg );
-		public delegate int SSMsgHandler( CGSSSInfo piSSInfo, string msg );
-		public delegate int PFGCMsgHandler( int n32NSID, string msg );
+		public delegate EResult CSMsgHandler( byte[] data, int len );
+		public delegate EResult SSMsgHandler( GSSSInfo piSSInfo, byte[] data, int len );
+		public delegate EResult PFGCMsgHandler( int n32NSID, byte[] data, int len );
 
 		public GSConfig gsConfig { get; private set; }
 		public GSNetSessionMgr netSessionMrg { private set; get; }
@@ -25,6 +27,8 @@ namespace GateServer
 		private readonly SSMsgHandler[] _ssMsgHandler;//场景服务器消息
 		private readonly UpdateContext _context;
 		private long _timestamp;
+
+		private readonly Dictionary<int, GSSSInfo> _GSSSInfoMap = new Dictionary<int, GSSSInfo>();
 
 		private GSKernel()
 		{
@@ -85,51 +89,35 @@ namespace GateServer
 			{
 				++this._context.ticks;
 				this._context.utcTime = TimeUtils.utcTime;
-				this._context.timeSinceStartup = elapsed;
+				this._context.time = elapsed;
 				this._context.deltaTime = HEART_PACK;
-				this.netSessionMrg.Update();
 				this._timestamp -= HEART_PACK;
+				EResult eResult = this.OnHeartBeat( this._context );
+				if ( EResult.Normal != eResult )
+				{
+					Logger.Error( $"fail with error code {eResult}!, please amend the error and try again!" );
+					return;
+				}
 			}
+			this.netSessionMrg.Update();
 		}
 
-		private int OnMsgFromCS_AskPingRet( string pmsg )
+		public int TransToCS( ByteString bs, int n32MsgID, int n32TransID, int gcNetID )
 		{
-			throw new NotImplementedException();
+			this.netSessionMrg.TranMsgToSession( SessionType.ClientG2C, 0, bs, n32MsgID, n32TransID, gcNetID );
+			return 0;
 		}
 
-		private int OnMsgFromCS_OrderOpenListen( string pmsg )
+		public int TransToSS( GSSSInfo piSSInfo, ByteString bs, int n32MsgID, int n32TransID, int gcNetID )
 		{
-			throw new NotImplementedException();
+			this.netSessionMrg.TranMsgToSession( SessionType.ClientG2S, piSSInfo.m_n32NSID, bs, n32MsgID, n32TransID, gcNetID );
+			return 0;
 		}
 
-		private int OnMsgFromCS_OrderCloseListen( string pmsg )
+		public GSSSInfo GetGSSSInfoBySSID( int n32SSID )
 		{
-			throw new NotImplementedException();
-		}
-
-		private int OnMsgFromCS_OrderKickoutGC( string pmsg )
-		{
-			throw new NotImplementedException();
-		}
-
-		private int OnMsgFromCS_UserConnectedToSS( string pmsg )
-		{
-			throw new NotImplementedException();
-		}
-
-		private int OnMsgFromCS_UserDisConnectedToSS( string pmsg )
-		{
-			throw new NotImplementedException();
-		}
-
-		private int OnMsgFromSS_AskPingRet( CGSSSInfo pissinfo, string pmsg )
-		{
-			throw new NotImplementedException();
-		}
-
-		private int OnMsgFromSS_OrderKickoutGC( CGSSSInfo pissinfo, string pmsg )
-		{
-			throw new NotImplementedException();
+			this._GSSSInfoMap.TryGetValue( n32SSID, out GSSSInfo ssInfo );
+			return ssInfo;
 		}
 	}
 }

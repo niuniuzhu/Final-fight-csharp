@@ -154,7 +154,13 @@ namespace Core.Net
 				return;
 			this._cache.Strip( len, ( int )this._cache.length - len );
 
-			//todo data event
+			NetEvent netEvent = NetEventMgr.instance.pool.Pop();
+			netEvent.type = NetEvent.Type.Recv;
+			netEvent.session = this.session;
+			netEvent.data = data;
+			netEvent.offset = 0;
+			netEvent.size = data.Length;
+			NetEventMgr.instance.Push( netEvent );
 
 			this.ProcessData();
 		}

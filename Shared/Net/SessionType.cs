@@ -1,4 +1,4 @@
-﻿namespace Net
+﻿namespace Shared.Net
 {
 	public enum SessionType
 	{

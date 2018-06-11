@@ -1,6 +1,7 @@
-﻿using Core.Net;
+﻿using Core;
+using Core.Net;
 
-namespace Net
+namespace Shared.Net
 {
 	public abstract class NetSession : INetSession
 	{
@@ -39,6 +40,7 @@ namespace Net
 
 		public void OnRecv( byte[] buf, int size )
 		{
+			Logger.Log( size );
 		}
 
 		public bool Send( byte[] data, int size )

@@ -85,13 +85,15 @@ namespace Core.Net
 				this.Close();
 				return;
 			}
-			NetEvent netEvent;
-			netEvent.type = NetEvent.Type.Establish;
-			netEvent.session = this.session;
+
 			this.session.connection.socket = this.socket;
 			this.session.connection.recvBufSize = this.recvBufSize;
 			this.session.connection.packetEncodeHandler = this.packetEncodeHandler;
-			EventManager.instance.Push( netEvent );
+
+			NetEvent netEvent = NetEventMgr.instance.pool.Pop();
+			netEvent.type = NetEvent.Type.Establish;
+			netEvent.session = this.session;
+			NetEventMgr.instance.Push( netEvent );
 		}
 	}
 }

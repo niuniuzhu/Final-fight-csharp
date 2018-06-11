@@ -1,7 +1,6 @@
-﻿using System;
-using Core.Net;
-using GSToBS;
-using Net;
+﻿using Core.Net;
+using Shared.Net;
+using System;
 
 namespace GateServer.Net
 {
@@ -21,7 +20,7 @@ namespace GateServer.Net
 
 		protected override CliSession CreateConnectorSession( SessionType sessionType )
 		{
-			CliSession session = null;
+			CliSession session;
 			switch ( sessionType )
 			{
 				case SessionType.ClientG2C:

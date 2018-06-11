@@ -1,7 +1,8 @@
-﻿using System;
-using System.IO;
-using Core;
+﻿using Core;
 using Core.XML;
+using Shared;
+using System;
+using System.IO;
 
 namespace GateServer
 {

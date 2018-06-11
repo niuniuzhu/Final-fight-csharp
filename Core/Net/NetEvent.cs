@@ -1,6 +1,6 @@
 ﻿namespace Core.Net
 {
-	public struct NetEvent
+	public class NetEvent
 	{
 		public enum Type
 		{
@@ -16,5 +16,8 @@
 
 		public Type type;
 		public INetSession session;
+		public byte[] data;
+		public int offset;
+		public int size;
 	}
 }

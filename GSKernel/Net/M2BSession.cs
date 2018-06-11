@@ -1,7 +1,6 @@
 ﻿using Core;
-using Google.Protobuf;
 using GSToBS;
-using Net;
+using Shared.Net;
 
 namespace GateServer.Net
 {
@@ -14,10 +13,11 @@ namespace GateServer.Net
 		protected override void SendInitData()
 		{
 			Logger.Info( "BS Connected, try to register me." );
-			GSToBS.AskRegister askRegister = new AskRegister();
-			//askRegister.Mgsid = MsgID.EMsgToBsfromGsAskRegister;
-			askRegister.Gsid = GSKernel.instance.gsConfig.n32GSID;
-			askRegister.Listenport = GSKernel.instance.gsConfig.n32GCListenPort;
+			GSToBS.AskRegister askRegister = new AskRegister
+			{
+				Gsid = GSKernel.instance.gsConfig.n32GSID,
+				Listenport = GSKernel.instance.gsConfig.n32GCListenPort
+			};
 			GSKernel.instance.netSessionMrg.SendMsgToSession( SessionType.ClientG2B, 0, askRegister, ( int )MsgID.EMsgToBsfromGsAskRegister );
 		}
 	}

@@ -1,36 +1,36 @@
-protoc SSToCS.proto --csharp_out=../../Shared/Protocols
-protoc SSToGS.proto --csharp_out=../../Shared/Protocols
+protoc SSToCS.proto --csharp_out=../../Protocol
+protoc SSToGS.proto --csharp_out=../../Protocol
 
-protoc GSToBS.proto --csharp_out=../../Shared/Protocols
-protoc GSToSS.proto --csharp_out=../../Shared/Protocols
-protoc GSToCS.proto --csharp_out=../../Shared/Protocols
-protoc GSToGC.proto --csharp_out=../../Shared/Protocols
+protoc GSToBS.proto --csharp_out=../../Protocol
+protoc GSToSS.proto --csharp_out=../../Protocol
+protoc GSToCS.proto --csharp_out=../../Protocol
+protoc GSToGC.proto --csharp_out=../../Protocol
 
-protoc BSToLS.proto --csharp_out=../../Shared/Protocols
-protoc BSToGS.proto --csharp_out=../../Shared/Protocols
-protoc BSToGC.proto --csharp_out=../../Shared/Protocols
+protoc BSToLS.proto --csharp_out=../../Protocol
+protoc BSToGS.proto --csharp_out=../../Protocol
+protoc BSToGC.proto --csharp_out=../../Protocol
 
-protoc GCToLS.proto --csharp_out=../../Shared/Protocols
-protoc GCToBS.proto --csharp_out=../../Shared/Protocols
-protoc GCToCS.proto --csharp_out=../../Shared/Protocols
-protoc GCToSS.proto --csharp_out=../../Shared/Protocols
+protoc GCToLS.proto --csharp_out=../../Protocol
+protoc GCToBS.proto --csharp_out=../../Protocol
+protoc GCToCS.proto --csharp_out=../../Protocol
+protoc GCToSS.proto --csharp_out=../../Protocol
 
-protoc CSToSS.proto --csharp_out=../../Shared/Protocols
-protoc CSToGS.proto --csharp_out=../../Shared/Protocols
-protoc CSToRC.proto --csharp_out=../../Shared/Protocols
+protoc CSToSS.proto --csharp_out=../../Protocol
+protoc CSToGS.proto --csharp_out=../../Protocol
+protoc CSToRC.proto --csharp_out=../../Protocol
 
-protoc LSToBS.proto --csharp_out=../../Shared/Protocols
-protoc LSToGC.proto --csharp_out=../../Shared/Protocols
+protoc LSToBS.proto --csharp_out=../../Protocol
+protoc LSToGC.proto --csharp_out=../../Protocol
 
-protoc RCToCS.proto --csharp_out=../../Shared/Protocols
+protoc RCToCS.proto --csharp_out=../../Protocol
 
-protoc CSToDB.proto --csharp_out=../../Shared/Protocols
-protoc DBToCs.proto --csharp_out=../../Shared/Protocols
+protoc CSToDB.proto --csharp_out=../../Protocol
+protoc DBToCs.proto --csharp_out=../../Protocol
 
-protoc LSToSDK.proto --csharp_out=../../Shared/Protocols
-protoc SDKToLS.proto --csharp_out=../../Shared/Protocols
+protoc LSToSDK.proto --csharp_out=../../Protocol
+protoc SDKToLS.proto --csharp_out=../../Protocol
 
-protoc ToLog.proto --csharp_out=../../Shared/Protocols
+protoc ToLog.proto --csharp_out=../../Protocol
 
 rem protogen -i:GCToLS.proto -o:../ClientProtobuf/GCToLS.cs
 rem protogen -i:GCToSS.proto -o:../ClientProtobuf/GCToSS.cs

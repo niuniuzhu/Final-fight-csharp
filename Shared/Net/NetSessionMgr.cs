@@ -1,12 +1,9 @@
-﻿using System;
-using Core.Net;
+﻿using Core.Net;
 using Google.Protobuf;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Sockets;
-using Core;
 
-namespace Net
+namespace Shared.Net
 {
 	public abstract class NetSessionMgr
 	{
@@ -56,22 +53,20 @@ namespace Net
 			return session;
 		}
 
-		public void SendMsgToSession( SessionType sessionType, int sessionId, Google.Protobuf.IMessage sMsg, int n32MsgID )
+		public void SendMsgToSession( SessionType sessionType, int sessionId, IMessage sMsg, int n32MsgID )
 		{
 			if ( !this._unSafeSend )
 			{
 				int n32MsgSize = sMsg.CalculateSize();
 				int n32Length = n32MsgSize + 2 * sizeof( int );
-				MemoryStream ms = new MemoryStream();
-				BinaryWriter bw = new BinaryWriter( ms );
-				bw.Write( n32Length );
-				bw.Write( n32MsgID );
-				using ( CodedOutputStream outputStream = new CodedOutputStream( ms ) )
-				{
-					sMsg.WriteTo( outputStream );
-				}
-				byte[] buffer = ms.ToArray();
-				Logger.Log( BitConverter.ToString( buffer, 0 ) );
+				StreamBuffer sBuffer = StreamBufferPool.Pop();
+				sBuffer.Write( n32Length );
+				sBuffer.Write( n32MsgID );
+				CodedOutputStream outputStream = new CodedOutputStream( sBuffer.ms, true );
+				sMsg.WriteTo( outputStream );
+				outputStream.CheckNoSpaceLeft();
+				byte[] buffer = sBuffer.ToArray();
+				StreamBufferPool.Push( sBuffer );
 				this.Send( sessionType, sessionId, buffer );
 			}
 			else
@@ -86,6 +81,41 @@ namespace Net
 				//memcpy( pBuffer + 3 * sizeof( int ), ( char* )&n32MsgID, sizeof( int ) );
 				//bool res = sMsg.SerializeToArray( pBuffer + 4 * sizeof( int ), n32MsgSize );
 				//Assert( res );
+				//EnterCriticalSection( &mNetworkCs );
+				//m_SafeQueue.push_back( pBuffer );
+				//LeaveCriticalSection( &mNetworkCs );
+			}
+		}
+
+		public void TranMsgToSession( SessionType stype, int sessionId, ByteString bs, int n32MsgID, int n32TransId, int n32GcNet )
+		{
+			if ( n32TransId == 0 ) n32TransId = n32MsgID;//无法伪装
+
+			if ( !this._unSafeSend )
+			{
+				int n32Length = bs.Length + 4 * sizeof( int );
+				StreamBuffer sBuffer = StreamBufferPool.Pop();
+				sBuffer.Write( n32Length );
+				sBuffer.Write( n32TransId );
+				sBuffer.Write( n32MsgID );
+				sBuffer.Write( n32GcNet );
+				bs.WriteTo( sBuffer.ms );
+				byte[] buffer = sBuffer.ToArray();
+				StreamBufferPool.Push( sBuffer );
+				this.Send( stype, sessionId, buffer );
+			}
+			else
+			{
+				//int n32Length = n32MsgLen + 6 * sizeof( int );
+				//char* pBuffer = new char[n32Length];
+				//memcpy( pBuffer + 0 * sizeof( int ), ( char* )&stype, sizeof( int ) );
+				//memcpy( pBuffer + 1 * sizeof( int ), ( char* )&sessionId, sizeof( int ) );
+				//n32Length = n32MsgLen + 16;
+				//memcpy( pBuffer + 2 * sizeof( int ), ( char* )&n32Length, sizeof( int ) );
+				//memcpy( pBuffer + 3 * sizeof( int ), ( char* )&n32TransId, sizeof( int ) );//伪装消息ID
+				//memcpy( pBuffer + 4 * sizeof( int ), ( char* )&n32MsgID, sizeof( int ) );//真实消息ID
+				//memcpy( pBuffer + 5 * sizeof( int ), ( char* )&n32GcNet, sizeof( int ) );//插入
+				//memcpy( pBuffer + 6 * sizeof( int ), msgBuffer, n32MsgLen );
 				//EnterCriticalSection( &mNetworkCs );
 				//m_SafeQueue.push_back( pBuffer );
 				//LeaveCriticalSection( &mNetworkCs );
@@ -114,7 +144,7 @@ namespace Net
 
 		public void Update()
 		{
-			EventManager.instance.PopEvents( this._events );
+			NetEventMgr.instance.PopEvents( this._events );
 			while ( this._events.Count > 0 )
 			{
 				NetEvent netEvent = this._events.Dequeue();
@@ -132,12 +162,14 @@ namespace Net
 					case NetEvent.Type.Terminate:
 						break;
 					case NetEvent.Type.Recv:
+						netEvent.session.OnRecv( netEvent.data, netEvent.size );
 						break;
 					case NetEvent.Type.Send:
 						break;
 					case NetEvent.Type.BindErr:
 						break;
 				}
+				NetEventMgr.instance.pool.Push( netEvent );
 			}
 		}
 	}
