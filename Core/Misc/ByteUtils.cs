@@ -2,18 +2,23 @@
 {
 	public static class ByteUtils
 	{
-
-		public static int Encode32( byte[] p, int offset, int l )
+		public static int Encode32i( byte[] p, int offset, int value )
 		{
-			int sign = MathUtils.Sign( l );
-			if ( sign == -1 )
-			{
-				l |= 1 << 31;
-			}
-			p[0 + offset] = ( byte )( l >> 0 );
-			p[1 + offset] = ( byte )( l >> 8 );
-			p[2 + offset] = ( byte )( l >> 16 );
-			p[3 + offset] = ( byte )( l >> 24 );
+			p[0 + offset] = ( byte )( value >> 0 );
+			p[1 + offset] = ( byte )( value >> 8 );
+			p[2 + offset] = ( byte )( value >> 16 );
+			p[3 + offset] = ( byte )( value >> 24 );
+			return 4;
+		}
+
+		public static int Decode32i( byte[] p, int offset, ref int c )
+		{
+			int result = 0;
+			result |= p[0 + offset];
+			result |= p[1 + offset] << 8;
+			result |= p[2 + offset] << 16;
+			result |= p[3 + offset] << 24;
+			c = result;
 			return 4;
 		}
 
@@ -45,12 +50,12 @@
 			return 2;
 		}
 
-		public static int Encode32u( byte[] p, int offset, uint l )
+		public static int Encode32u( byte[] p, int offset, uint value )
 		{
-			p[0 + offset] = ( byte )( l >> 0 );
-			p[1 + offset] = ( byte )( l >> 8 );
-			p[2 + offset] = ( byte )( l >> 16 );
-			p[3 + offset] = ( byte )( l >> 24 );
+			p[0 + offset] = ( byte )( value >> 0 );
+			p[1 + offset] = ( byte )( value >> 8 );
+			p[2 + offset] = ( byte )( value >> 16 );
+			p[3 + offset] = ( byte )( value >> 24 );
 			return 4;
 		}
 
@@ -65,10 +70,10 @@
 			return 4;
 		}
 
-		public static int Encode64u( byte[] p, int offset, ulong l )
+		public static int Encode64u( byte[] p, int offset, ulong value )
 		{
-			uint l0 = ( uint )( l & 0xffffffff );
-			uint l1 = ( uint )( l >> 32 );
+			uint l0 = ( uint )( value & 0xffffffff );
+			uint l1 = ( uint )( value >> 32 );
 			int offset2 = Encode32u( p, offset, l0 );
 			Encode32u( p, offset + offset2, l1 );
 			return 8;

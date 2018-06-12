@@ -4,12 +4,14 @@ namespace Core.Net
 {
 	public interface IListener
 	{
+		PacketEncodeHandler packetEncodeHandler { get; set; }
+
 		/**
 		 * @brief Set an user implemented ISDPacketParser object, which process
 		 *        packet parse logic of the connection accepted by the ISDListener
 		 * @param poPacketParser ISDPacketParser instance pointer
 		 */
-		PacketEncodeHandler packetEncodeHandler { get; set; }
+		PacketDecodeHandler packetDecodeHandler { get; set; }
 
 		/**
 		 * @brief Set the user implemented ISDSessionFactory object to ISDListener

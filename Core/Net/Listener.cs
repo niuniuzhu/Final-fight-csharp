@@ -4,17 +4,19 @@ using System.Net.Sockets;
 
 namespace Core.Net
 {
-	public delegate int PacketEncodeHandler( byte[] buf, int offset, int size, out byte[] data );
-	public delegate INetSession SessionCreateHandler();
-
 	public class Listener : IListener
 	{
 		public PacketEncodeHandler packetEncodeHandler { get; set; }
+		public PacketDecodeHandler packetDecodeHandler { get; set; }
 		public SessionCreateHandler sessionCreateHandler { get; set; }
 
 		public int recvBufSize { get; set; } = 10240;
 
-		public bool noDelay { get => this._socket.NoDelay; set => this._socket.NoDelay = value; }
+		public bool noDelay
+		{
+			get => this._socket.NoDelay;
+			set => this._socket.NoDelay = value;
+		}
 
 		private Socket _socket;
 
@@ -149,12 +151,16 @@ namespace Core.Net
 			}
 			session.connection.socket = acceptEventArgs.AcceptSocket;
 			session.connection.packetEncodeHandler = this.packetEncodeHandler;
+			session.connection.packetDecodeHandler = this.packetDecodeHandler;
 			session.connection.recvBufSize = this.recvBufSize;
-			if ( !session.connection.StartReceive() )
-			{
-				session.Release();
-				SessionPool.instance.Push( session );
-			}
+
+			NetEvent netEvent = NetEventMgr.instance.pool.Pop();
+			netEvent.type = NetEvent.Type.Establish;
+			netEvent.session = session;
+			NetEventMgr.instance.Push( netEvent );
+
+			session.connection.StartReceive();
+
 			this.StartAccept( acceptEventArgs );
 		}
 	}

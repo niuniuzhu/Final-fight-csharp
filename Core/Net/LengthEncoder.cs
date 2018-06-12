@@ -4,12 +4,12 @@ namespace Core.Net
 {
 	public static class LengthEncoder
 	{
-		private const int LENGTH_SIZE = sizeof( ushort );
+		private const int LENGTH_SIZE = sizeof( int );
 
 		public static byte[] Encode( byte[] data, int offset, int size )
 		{
 			byte[] result = new byte[size + LENGTH_SIZE];
-			int mOffset = ByteUtils.Encode16u( result, 0, ( ushort )size );
+			int mOffset = ByteUtils.Encode32i( result, 0, size );
 			System.Buffer.BlockCopy( data, offset, result, mOffset, size );
 			return result;
 		}
@@ -21,16 +21,16 @@ namespace Core.Net
 				result = null;
 				return -1;
 			}
-			ushort length = 0;
-			ByteUtils.Decode16u( data, offset, ref length );
-			if ( length > size - LENGTH_SIZE )//还没有足够数组
+			int length = 0;
+			ByteUtils.Decode32i( data, offset, ref length );
+			if ( length > size )//还没有足够数组
 			{
 				result = null;
 				return -1;
 			}
-			result = new byte[length];
-			System.Buffer.BlockCopy( data, offset + LENGTH_SIZE, result, 0, length );
-			return LENGTH_SIZE + length;
+			result = new byte[length - LENGTH_SIZE];
+			System.Buffer.BlockCopy( data, offset + LENGTH_SIZE, result, 0, length - LENGTH_SIZE );
+			return length;
 		}
 	}
 }

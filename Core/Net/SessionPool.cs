@@ -6,8 +6,6 @@ using System.Threading;
 
 namespace Core.Net
 {
-
-
 	public class SessionPool
 	{
 		private static SessionPool _instance;
@@ -31,9 +29,13 @@ namespace Core.Net
 
 			if ( objs.Count == 0 )
 			{
-				return ( T ) Activator.CreateInstance( typeof( T ), BindingFlags.NonPublic | BindingFlags.Instance,
-				                                       null,
-				                                       new object[] { Interlocked.Increment( ref _gid ) }, null );
+				uint id = ( uint )Interlocked.Increment( ref _gid );
+				if ( id == uint.MaxValue )
+					return default( T );
+
+				return ( T )Activator.CreateInstance( typeof( T ), BindingFlags.NonPublic | BindingFlags.Instance,
+													   null,
+													   new object[] { id }, null );
 			}
 			objs.TryDequeue( out INetSession session );
 			return ( T )session;

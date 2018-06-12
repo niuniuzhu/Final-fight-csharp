@@ -6,15 +6,17 @@ namespace Core.Net
 	public class Connector : IConnector
 	{
 		public Socket socket { get; set; }
-		public INetSession session { get; set; }
+		public INetSession session { get; }
 		public int recvBufSize { get; set; }
 		public PacketEncodeHandler packetEncodeHandler { get; set; }
+		public PacketDecodeHandler packetDecodeHandler { get; set; }
 		public bool connected => this.socket != null && this.socket.Connected;
 
 		private readonly SocketAsyncEventArgs _connEventArgs;
 
-		public Connector()
+		public Connector( INetSession session )
 		{
+			this.session = session;
 			this._connEventArgs = new SocketAsyncEventArgs { UserToken = this };
 			this._connEventArgs.Completed += this.OnIOComplete;
 		}
@@ -25,7 +27,7 @@ namespace Core.Net
 			this._connEventArgs.Dispose();
 		}
 
-		private void Close()
+		public void Close()
 		{
 			if ( this.connected )
 			{
@@ -43,7 +45,7 @@ namespace Core.Net
 			}
 			catch ( SocketException e )
 			{
-				Logger.Error( $"create socket error, code:{e.SocketErrorCode}" );
+				this.OnError( $"create socket error, code:{e.SocketErrorCode}" );
 				return false;
 			}
 
@@ -58,8 +60,7 @@ namespace Core.Net
 			}
 			catch ( SocketException e )
 			{
-				Logger.Error( $"socket connect error, code:{e.SocketErrorCode} " );
-				this.Close();
+				this.OnError( $"socket connect error, code:{e.SocketErrorCode} " );
 				return false;
 			}
 			if ( !asyncResult )
@@ -81,18 +82,28 @@ namespace Core.Net
 		{
 			if ( connectEventArgs.SocketError != SocketError.Success )
 			{
-				Logger.Error( $"socket connect error, code:{connectEventArgs.SocketError}" );
-				this.Close();
+				this.OnError( $"socket connect error, code:{connectEventArgs.SocketError}" );
 				return;
 			}
-
 			this.session.connection.socket = this.socket;
 			this.session.connection.recvBufSize = this.recvBufSize;
 			this.session.connection.packetEncodeHandler = this.packetEncodeHandler;
+			this.session.connection.packetDecodeHandler = this.packetDecodeHandler;
+			this.session.connection.StartReceive();
+			this.socket = null;
 
 			NetEvent netEvent = NetEventMgr.instance.pool.Pop();
 			netEvent.type = NetEvent.Type.Establish;
 			netEvent.session = this.session;
+			NetEventMgr.instance.Push( netEvent );
+		}
+
+		private void OnError( string error )
+		{
+			NetEvent netEvent = NetEventMgr.instance.pool.Pop();
+			netEvent.type = NetEvent.Type.ConnErr;
+			netEvent.session = this.session;
+			netEvent.error = error;
 			NetEventMgr.instance.Push( netEvent );
 		}
 	}

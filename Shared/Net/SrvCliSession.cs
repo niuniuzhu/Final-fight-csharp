@@ -2,8 +2,9 @@
 {
 	public abstract class SrvCliSession : NetSession
 	{
-		protected SrvCliSession( int id ) : base( id )
+		protected SrvCliSession( uint id ) : base( id )
 		{
+			this._isSrvCli = true;
 		}
 	}
 }

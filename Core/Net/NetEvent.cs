@@ -1,4 +1,6 @@
-﻿namespace Core.Net
+﻿using System.Net.Sockets;
+
+namespace Core.Net
 {
 	public class NetEvent
 	{
@@ -16,8 +18,7 @@
 
 		public Type type;
 		public INetSession session;
+		public string error;
 		public byte[] data;
-		public int offset;
-		public int size;
 	}
 }

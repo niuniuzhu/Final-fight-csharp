@@ -4,13 +4,15 @@ namespace Core.Net
 {
 	public interface IConnection
 	{
-		INetSession session { get; set; }
-		bool connected { get; }
 		Socket socket { set; }
+		INetSession session { get; }
 		int recvBufSize { set; }
-		PacketEncodeHandler packetEncodeHandler { set; }
+		bool connected { get; }
+		PacketEncodeHandler packetEncodeHandler { set; get; }
+		PacketDecodeHandler packetDecodeHandler { set; }
 		void Dispose();
 		void Release();
+		void Close();
 		bool StartReceive();
 		bool Send( byte[] data, int len );
 		int SyncSend( byte[] data, uint len );

@@ -1,5 +1,5 @@
-﻿using System.Collections.Concurrent;
-using Core.Structure;
+﻿using Core.Structure;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Core.Net

@@ -13,7 +13,7 @@ namespace GateServer
 		public int m_n32ListenPort;
 		//property from local.
 		public EServerNetState m_eSSNetState;
-		public int m_n32NSID;
+		public uint m_n32NSID;
 		public uint m_un32ConnTimes;
 		public long m_tLastConnMilsec;
 		public long m_tPingTickCounter;
