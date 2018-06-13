@@ -27,7 +27,7 @@ namespace GateServer.Net
 			askRegiste.Gsid = GSKernel.instance.gsConfig.n32GSID;
 			askRegiste.Usepwd = GSKernel.instance.gsConfig.aszMyUserPwd;
 			byte[] data = askRegiste.ToByteArray();
-			this.owner.TranMsgToSession( SessionType.ClientG2C, this.id, data, 0, data.Length, ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, 0, 0 );
+			this.owner.TranMsgToSession( this.id, data, 0, data.Length, ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, 0, 0 );
 		}
 
 		protected override void OnRealEstablish()
@@ -40,13 +40,15 @@ namespace GateServer.Net
 			Logger.Info( "CS DisConnect." );
 		}
 
-		protected override void InternalOnHeartBeat( UpdateContext context )
+		public override void OnHeartBeat( UpdateContext context )
 		{
-			if ( context.utcTime - this._lastPingCSTickCounter < Consts.C_T_DEFAULT_PING_CD_TICK )
+			base.OnHeartBeat( context );
+
+			if ( !this._inited || context.utcTime - this._lastPingCSTickCounter < Consts.DEFAULT_PING_CD_TICK )
 				return;
 			GSToCS.Asking sPing = new GSToCS.Asking { Time = context.utcTime };
 			byte[] data = sPing.ToByteArray();
-			this.owner.TranMsgToSession( SessionType.ClientG2C, this.id, data, 0, data.Length, ( int )GSToCS.MsgID.EMsgToCsfromGsAskPing, 0, 0 );
+			this.owner.TranMsgToSession( this.id, data, 0, data.Length, ( int )GSToCS.MsgID.EMsgToCsfromGsAskPing, 0, 0 );
 			this._lastPingCSTickCounter = context.utcTime;
 		}
 
@@ -71,7 +73,6 @@ namespace GateServer.Net
 			GSKernel.instance.csTimeError = csMilsec - selfMilsec;
 			GSKernel.instance.ssBaseIdx = askRegisteRet.Ssbaseid;
 			int ssinfoCount = askRegisteRet.Ssinfo.Count;
-			Logger.Debug( $"m_un32MaxSSNum:{ssinfoCount}" );
 			if ( ssinfoCount > 100000 )
 			{
 				Logger.Warn( $"CS Register Error(ss max={ssinfoCount})!" );
@@ -87,28 +88,28 @@ namespace GateServer.Net
 					if ( 0 == askRegisteRet.Ssinfo[i].Ssid )
 						continue;
 
-					if ( GSKernel.instance.ContainsSSInfo( askRegisteRet.Ssinfo[i].Ssid ) )
+					if ( GSKernel.instance.ssMsgManager.ContainsSSInfo( askRegisteRet.Ssinfo[i].Ssid ) )
 						continue;
 
 					GSSSInfo ssInfo = new GSSSInfo();
-					ssInfo.m_n32SSID = askRegisteRet.Ssinfo[i].Ssid;
-					ssInfo.m_sListenIP = askRegisteRet.Ssinfo[i].Ip.Replace( "\0", string.Empty );
-					ssInfo.m_n32ListenPort = askRegisteRet.Ssinfo[i].Port;
-					ssInfo.m_eSSNetState = ( EServerNetState )askRegisteRet.Ssinfo[i].Netstate;
-					ssInfo.m_n32NSID = 0;
-					ssInfo.m_un32ConnTimes = 0;
-					ssInfo.m_tLastConnMilsec = 0;
-					ssInfo.m_tPingTickCounter = 0;
-					ssInfo.m_n64MsgReceived = 0;
-					ssInfo.m_n64MsgSent = 0;
-					ssInfo.m_n64DataReceived = 0;
-					ssInfo.m_n64DataSent = 0;
-					GSKernel.instance.AddGSSInfo( ssInfo.m_n32SSID, ssInfo );
-					if ( ssInfo.m_eSSNetState == EServerNetState.SnsClosed )
+					ssInfo.ssID = askRegisteRet.Ssinfo[i].Ssid;
+					ssInfo.listenIp = askRegisteRet.Ssinfo[i].Ip.Replace( "\0", string.Empty );
+					ssInfo.listenPort = askRegisteRet.Ssinfo[i].Port;
+					ssInfo.ssNetState = ( EServerNetState )askRegisteRet.Ssinfo[i].Netstate;
+					ssInfo.nsID = 0;
+					ssInfo.connTimes = 0;
+					ssInfo.lastConnMilsec = 0;
+					ssInfo.pingTickCounter = 0;
+					ssInfo.msgReceived = 0;
+					ssInfo.msgSent = 0;
+					ssInfo.dataReceived = 0;
+					ssInfo.dataSent = 0;
+					GSKernel.instance.ssMsgManager.AddGSSInfo( ssInfo.ssID, ssInfo );
+					if ( ssInfo.ssNetState == EServerNetState.SnsClosed )
 						continue;
 
-					this.owner.CreateConnector( SessionType.ClientG2S, ssInfo.m_sListenIP, ssInfo.m_n32ListenPort,
-												Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 10240, ssInfo.m_n32SSID );
+					this.owner.CreateConnector( SessionType.ClientG2S, ssInfo.listenIp, ssInfo.listenPort,
+												Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 10240, ssInfo.ssID );
 					++GSKernel.instance.ssConnectNum;
 				}
 			}
@@ -124,30 +125,30 @@ namespace GateServer.Net
 			OneSSConnected oneSsConnected = new OneSSConnected();
 			oneSsConnected.MergeFrom( data, offset, size );
 
-			GSSSInfo pcSSInfo = GSKernel.instance.GetGSSSInfo( oneSsConnected.Ssid );
+			GSSSInfo pcSSInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( oneSsConnected.Ssid );
 			if ( pcSSInfo != null )
 			{
-				pcSSInfo.m_sListenIP = oneSsConnected.Ip.Replace( "\0", string.Empty ); ;
-				pcSSInfo.m_n32ListenPort = oneSsConnected.Port;
-				if ( pcSSInfo.m_eSSNetState == EServerNetState.SnsClosed )
+				pcSSInfo.listenIp = oneSsConnected.Ip.Replace( "\0", string.Empty ); ;
+				pcSSInfo.listenPort = oneSsConnected.Port;
+				if ( pcSSInfo.ssNetState == EServerNetState.SnsClosed )
 				{
-					pcSSInfo.m_eSSNetState = ( EServerNetState )oneSsConnected.Netstate;
-					pcSSInfo.m_n32NSID = 0;
-					this.owner.CreateConnector( SessionType.ClientG2S, pcSSInfo.m_sListenIP, pcSSInfo.m_n32ListenPort,
+					pcSSInfo.ssNetState = ( EServerNetState )oneSsConnected.Netstate;
+					pcSSInfo.nsID = 0;
+					this.owner.CreateConnector( SessionType.ClientG2S, pcSSInfo.listenIp, pcSSInfo.listenPort,
 												Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 10240, oneSsConnected.Ssid );
 				}
 			}
 			return true;
 		}
 
-		protected override bool OnUnknowMsg( byte[] data, int offset, int size, int msgID )
+		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
-			int n32RealMsgID = 0;
-			uint n32GcNetID = 0;
-			offset += ByteUtils.Decode32i( data, offset, ref n32RealMsgID );
-			offset += ByteUtils.Decode32u( data, offset, ref n32GcNetID );
+			int realMsgID = 0;
+			uint gcNetID = 0;
+			offset += ByteUtils.Decode32i( data, offset, ref realMsgID );
+			offset += ByteUtils.Decode32u( data, offset, ref gcNetID );
 			size -= 2 * sizeof( int );
-			GSKernel.instance.csMsgHandler.HandleUnhandledMsg( data, offset, size, n32RealMsgID, msgID, n32GcNetID );
+			GSKernel.instance.csMsgManager.HandleUnhandledMsg( data, offset, size, realMsgID, msgID, gcNetID );
 			return true;
 		}
 		#endregion

@@ -8,7 +8,7 @@ namespace GateServer.Net
 	{
 		protected override SrvCliSession CreateListenerSession()
 		{
-			ClientSession session = SessionPool.instance.Pop<ClientSession>();
+			ClientSession session = NetSessionPool.instance.Pop<ClientSession>();
 			session.owner = this;
 			session.type = SessionType.ServerGS;
 			return session;
@@ -20,17 +20,17 @@ namespace GateServer.Net
 			switch ( sessionType )
 			{
 				case SessionType.ClientG2C:
-					session = SessionPool.instance.Pop<M2CSession>();
+					session = NetSessionPool.instance.Pop<M2CSession>();
 					session.owner = this;
 					break;
 
 				case SessionType.ClientG2S:
-					session = SessionPool.instance.Pop<M2SSession>();
+					session = NetSessionPool.instance.Pop<M2SSession>();
 					session.owner = this;
 					break;
 
 				case SessionType.ClientG2B:
-					session = SessionPool.instance.Pop<M2BSession>();
+					session = NetSessionPool.instance.Pop<M2BSession>();
 					session.owner = this;
 					break;
 

@@ -41,9 +41,7 @@ namespace Core.Net
 		public void Close()
 		{
 			if ( this.connected )
-			{
 				this.socket.Shutdown( SocketShutdown.Both );
-			}
 			this.socket.Close();
 			this.socket = null;
 		}
@@ -170,6 +168,7 @@ namespace Core.Net
 		{
 			NetEvent netEvent = NetEventMgr.instance.pool.Pop();
 			netEvent.type = NetEvent.Type.Error;
+			netEvent.session = this.session;
 			netEvent.error = error;
 			NetEventMgr.instance.Push( netEvent );
 		}

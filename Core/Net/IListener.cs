@@ -29,6 +29,8 @@ namespace Core.Net
 		 */
 		int recvBufSize { get; set; }
 
+		void Dispose();
+
 		/**
 		 * @brief Set extension options
 		 * @param dwType : option type
@@ -43,7 +45,7 @@ namespace Core.Net
 		 * @param bReUseAddr : the flag for re-using same address
 		 * @return true means success, false means failure
 		 */
-		bool Start( string ip, int port, SocketType socketType, ProtocolType protoType, bool reUseAddr = true );
+		bool Start( string ip, int port, SocketType socketType, ProtocolType protoType, bool reuseAddr = true );
 
 		/**
 		 * @brief Stop listening

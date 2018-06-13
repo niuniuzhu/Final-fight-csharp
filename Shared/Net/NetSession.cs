@@ -32,10 +32,7 @@ namespace Shared.Net
 
 		public virtual void Dispose()
 		{
-		}
-
-		public virtual void Release()
-		{
+			this.Close();
 		}
 
 		public void Close()
@@ -54,6 +51,7 @@ namespace Shared.Net
 			}
 			this.connection.Close();
 			this.OnClose();
+			NetSessionPool.instance.Push( this );
 		}
 
 		protected void SetInited( bool isInited, bool isTrigger )
@@ -106,7 +104,7 @@ namespace Shared.Net
 			if ( this._msgCenter.TryGetHandler( msgID, out MsgHandler handler ) )
 				handler.Invoke( data, offset, size, msgID );
 			else
-				this.OnUnknowMsg( data, offset, size, msgID );
+				this.HandleUnhandledMsg( data, offset, size, msgID );
 		}
 
 		public void OnSend()
@@ -121,16 +119,9 @@ namespace Shared.Net
 
 		protected abstract void OnClose();
 
-		protected abstract bool OnUnknowMsg( byte[] data, int offset, int size, int msgID );
+		protected abstract bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID );
 
-		public void OnHeartBeat( UpdateContext context )
-		{
-			if ( !this._inited )
-				return;
-			this.InternalOnHeartBeat( context );
-		}
-
-		protected virtual void InternalOnHeartBeat( UpdateContext context )
+		public virtual void OnHeartBeat( UpdateContext context )
 		{
 		}
 	}

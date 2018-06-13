@@ -5,22 +5,21 @@ namespace GateServer
 	public class GSSSInfo
 	{
 		//property from config file.
-		public int m_n32SSID;
-
-		public string m_szUserPwd;
-		//property  from scene server.
-		public string m_sListenIP;
-		public int m_n32ListenPort;
+		public int ssID;
+		public string userPwd;
+		//property from scene server.
+		public string listenIp;
+		public int listenPort;
 		//property from local.
-		public EServerNetState m_eSSNetState;
-		public uint m_n32NSID;
-		public uint m_un32ConnTimes;
-		public long m_tLastConnMilsec;
-		public long m_tPingTickCounter;
+		public EServerNetState ssNetState;
+		public uint nsID;
+		public uint connTimes;
+		public long lastConnMilsec;
+		public long pingTickCounter;
 
-		public long m_n64MsgReceived;
-		public long m_n64MsgSent;
-		public long m_n64DataReceived;
-		public long m_n64DataSent;
+		public long msgReceived;
+		public long msgSent;
+		public long dataReceived;
+		public long dataSent;
 	}
 }

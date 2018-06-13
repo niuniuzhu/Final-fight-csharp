@@ -1,36 +1,36 @@
 ﻿using Core;
 using Core.Misc;
+using Core.Net;
 using GateServer.Net;
 using Shared;
 using Shared.Net;
-using System.Collections.Generic;
 
 namespace GateServer
 {
-	public partial class GSKernel
+	public sealed class GSKernel
 	{
 		private static GSKernel _instance;
 		public static GSKernel instance => _instance ?? ( _instance = new GSKernel() );
 
-		private const long HEART_PACK = 100;
+		public GSConfig gsConfig { get; }
+		public GSNetSessionMgr netSessionMrg { get; private set; }
+		public UserTokenMgr userTokenMgr { get; private set; }
+		public CSMsgManager csMsgManager { get; private set; }
+		public SSMsgManager ssMsgManager { get; private set; }
 
 		public long csTimeError;
 		public uint ssBaseIdx;
 		public int ssConnectNum;
-		public GSConfig gsConfig { get; }
-		public GSNetSessionMgr netSessionMrg { get; private set; }
-		public CSMsgHandler csMsgHandler { get; private set; }
-		public SSMsgHandler ssMsgHandler { get; private set; }
 
 		private readonly UpdateContext _context;
 		private long _timestamp;
 
-		private readonly Dictionary<int, GSSSInfo> _GSSSInfoMap = new Dictionary<int, GSSSInfo>();
-
 		private GSKernel()
 		{
-			this.csMsgHandler = new CSMsgHandler();
-			this.ssMsgHandler = new SSMsgHandler();
+			this.csMsgManager = new CSMsgManager();
+			this.ssMsgManager = new SSMsgManager();
+			this.userTokenMgr = new UserTokenMgr();
+			this.netSessionMrg = new GSNetSessionMgr();
 			this._context = new UpdateContext();
 			this.gsConfig = new GSConfig();
 		}
@@ -53,11 +53,11 @@ namespace GateServer
 				this.netSessionMrg.Dispose();
 				this.netSessionMrg = null;
 			}
+			NetSessionPool.instance.Dispose();
 		}
 
 		public EResult Start()
 		{
-			this.netSessionMrg = new GSNetSessionMgr();
 			this.netSessionMrg.CreateListener( this.gsConfig.n32GCListenPort, 10240, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 0 );
 			this.netSessionMrg.CreateConnector( SessionType.ClientG2C, this.gsConfig.sCSIP, this.gsConfig.n32CSPort, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 10240000, 0 );
 			this.netSessionMrg.CreateConnector( SessionType.ClientG2B, this.gsConfig.sBSListenIP, this.gsConfig.n32BSListenPort, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 1024000, 0 );
@@ -73,13 +73,13 @@ namespace GateServer
 		public void Update( long elapsed, long dt )
 		{
 			this._timestamp += dt;
-			while ( this._timestamp >= HEART_PACK )
+			while ( this._timestamp >= Consts.HEART_PACK )
 			{
 				++this._context.ticks;
 				this._context.utcTime = TimeUtils.utcTime;
 				this._context.time = elapsed;
-				this._context.deltaTime = HEART_PACK;
-				this._timestamp -= HEART_PACK;
+				this._context.deltaTime = Consts.HEART_PACK;
+				this._timestamp -= Consts.HEART_PACK;
 				EResult eResult = this.OnHeartBeat( this._context );
 				if ( EResult.Normal != eResult )
 				{
@@ -89,43 +89,14 @@ namespace GateServer
 			}
 			this.netSessionMrg.Update();
 		}
+
 		private EResult OnHeartBeat( UpdateContext context )
 		{
 			this.netSessionMrg.OnHeartBeat( context );
-			this.CheckSSConnect( context.utcTime );
-			this.ChechUserToken( context.utcTime );
-			this.ReportGsInfo( context.utcTime );
+			this.ssMsgManager.PingSS( context.utcTime );
+			this.userTokenMgr.ChechUserToken( context.utcTime );
+			this.userTokenMgr.ReportGsInfo( context.utcTime );
 			return EResult.Normal;
-		}
-
-		private EResult CheckSSConnect( long utcTime )
-		{
-			return EResult.Normal;
-		}
-
-		private EResult ChechUserToken( long utcTime )
-		{
-			return EResult.Normal;
-		}
-
-		private void ReportGsInfo( long utcTime )
-		{
-		}
-
-		public void AddGSSInfo( int ssID, GSSSInfo gsssInfo )
-		{
-			this._GSSSInfoMap[ssID] = gsssInfo;
-		}
-
-		public GSSSInfo GetGSSSInfo( int ssID )
-		{
-			this._GSSSInfoMap.TryGetValue( ssID, out GSSSInfo ssInfo );
-			return ssInfo;
-		}
-
-		public bool ContainsSSInfo( int ssID )
-		{
-			return this._GSSSInfoMap.ContainsKey( ssID );
 		}
 	}
 }

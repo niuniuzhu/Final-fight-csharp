@@ -17,7 +17,7 @@ namespace GateServer.Net
 			return true;
 		}
 
-		protected override bool OnUnknowMsg( byte[] data, int offset, int size, int msgID )
+		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
 			//ClientSession cliSession = ( ClientSession )vthis;
 			//if ( !cliSession._logicInited )

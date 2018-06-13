@@ -13,5 +13,6 @@ namespace Core.Net
 		void Dispose();
 		void Close();
 		bool Connect( string ip, int port, SocketType socketType, ProtocolType protoType );
+		bool ReConnect();
 	}
 }

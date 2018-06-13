@@ -6,15 +6,15 @@ using System.Threading;
 
 namespace Core.Net
 {
-	public class SessionPool
+	public class NetSessionPool
 	{
-		private static SessionPool _instance;
-		public static SessionPool instance => _instance ?? ( _instance = new SessionPool() );
+		private static NetSessionPool _instance;
+		public static NetSessionPool instance => _instance ?? ( _instance = new NetSessionPool() );
 		private static int _gid;
 
 		private readonly ConcurrentDictionary<Type, ConcurrentQueue<INetSession>> _typeToObjects = new ConcurrentDictionary<Type, ConcurrentQueue<INetSession>>();
 
-		private SessionPool()
+		private NetSessionPool()
 		{
 		}
 

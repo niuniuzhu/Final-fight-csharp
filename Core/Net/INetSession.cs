@@ -5,7 +5,6 @@
 		uint id { get; }
 		IConnection connection { get; }
 		void Dispose();
-		void Release();
 		void Close();
 		void OnEstablish();
 		void OnTerminate();

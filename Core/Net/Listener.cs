@@ -20,10 +20,6 @@ namespace Core.Net
 
 		private Socket _socket;
 
-		public Listener()
-		{
-		}
-
 		public void Dispose()
 		{
 			this.Stop();
@@ -34,8 +30,9 @@ namespace Core.Net
 			this._socket.SetSocketOption( SocketOptionLevel.Socket, optionName, pOpt );
 		}
 
-		public bool Start( string ip, int port, SocketType socketType, ProtocolType protoType, bool reUseAddr = true )
+		public bool Start( string ip, int port, SocketType socketType, ProtocolType protoType, bool reuseAddr = true )
 		{
+			Logger.Log( $"Start Listen {ip}:{port}, reuseAddr {reuseAddr}" );
 			try
 			{
 				this._socket = new Socket( AddressFamily.InterNetwork, socketType, protoType );
@@ -45,7 +42,7 @@ namespace Core.Net
 				Logger.Error( $"create socket error, code:{e.SocketErrorCode}" );
 				return false;
 			}
-			this._socket.SetSocketOption( SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, reUseAddr );
+			this._socket.SetSocketOption( SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, reuseAddr );
 			this._socket.NoDelay = true;
 			try
 			{

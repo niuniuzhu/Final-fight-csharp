@@ -13,6 +13,10 @@ namespace Core.Net
 		public bool connected => this.socket != null && this.socket.Connected;
 
 		private readonly SocketAsyncEventArgs _connEventArgs;
+		private string _ip;
+		private int _port;
+		private SocketType _socketType;
+		private ProtocolType _protocolType;
 
 		public Connector( INetSession session )
 		{
@@ -30,18 +34,25 @@ namespace Core.Net
 		public void Close()
 		{
 			if ( this.connected )
-			{
 				this.socket.Shutdown( SocketShutdown.Both );
-			}
 			this.socket.Close();
 			this.socket = null;
 		}
 
 		public bool Connect( string ip, int port, SocketType socketType, ProtocolType protoType )
 		{
+			this._ip = ip;
+			this._port = port;
+			this._socketType = socketType;
+			this._protocolType = protoType;
+			return this.ReConnect();
+		}
+
+		public bool ReConnect()
+		{
 			try
 			{
-				this.socket = new Socket( AddressFamily.InterNetwork, socketType, protoType );
+				this.socket = new Socket( AddressFamily.InterNetwork, this._socketType, this._protocolType );
 			}
 			catch ( SocketException e )
 			{
@@ -52,7 +63,7 @@ namespace Core.Net
 			this.socket.SetSocketOption( SocketOptionLevel.Socket, SocketOptionName.NoDelay, true );
 			this.socket.NoDelay = true;
 
-			this._connEventArgs.RemoteEndPoint = new IPEndPoint( IPAddress.Parse( ip ), port );
+			this._connEventArgs.RemoteEndPoint = new IPEndPoint( IPAddress.Parse( this._ip ), this._port );
 			bool asyncResult;
 			try
 			{
@@ -60,7 +71,7 @@ namespace Core.Net
 			}
 			catch ( SocketException e )
 			{
-				this.OnError( $"socket connect error, code:{e.SocketErrorCode} " );
+				this.OnError( $"socket connect error, address:{this._ip}:{this._port}, code:{e.SocketErrorCode} " );
 				return false;
 			}
 			if ( !asyncResult )
@@ -82,7 +93,7 @@ namespace Core.Net
 		{
 			if ( connectEventArgs.SocketError != SocketError.Success )
 			{
-				this.OnError( $"socket connect error, code:{connectEventArgs.SocketError}" );
+				this.OnError( $"socket connect error, address:{this._ip}:{this._port}, code:{connectEventArgs.SocketError}" );
 				return;
 			}
 			this.session.connection.socket = this.socket;

@@ -6,7 +6,7 @@ namespace Shared
 	{
 		Normal,
 		CfgFailed,
-		ParseProtoFailed,
+		NullPointer
 	}
 
 	public enum EServerNetState
@@ -365,8 +365,9 @@ namespace Shared
 	{
 		public const SocketType SOCKET_TYPE = SocketType.Stream;
 		public const ProtocolType PROTOCOL_TYPE = ProtocolType.Tcp;
+		public const long HEART_PACK = 100;
 		public const int MAX_COUNT_LISTENER = 3;
-		public const long C_T_DEFAULT_PING_CD_TICK = 1000 * 160;
+		public const long DEFAULT_PING_CD_TICK = 1000 * 160;
 		public const uint PP_INVALID = uint.MaxValue;
 	}
 }

@@ -15,56 +15,56 @@ namespace GateServer.Net
 
 		protected override void SendInitData()
 		{
-			GSSSInfo ssInfo = GSKernel.instance.GetGSSSInfo( this.logicID );
+			GSSSInfo ssInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( this.logicID );
 			if ( ssInfo == null )
 			{
 				Logger.Error( string.Empty );
 				return;
 			}
-			Logger.Info( $"SS({ssInfo.m_n32SSID}) Connected, try to register me." );
-			ssInfo.m_n32NSID = this.id;
+			Logger.Info( $"SS({ssInfo.ssID}) Connected, try to register me." );
+			ssInfo.nsID = this.id;
 			GSToSS.AskRegiste askRegiste = new GSToSS.AskRegiste()
 			{
 				Gsid = GSKernel.instance.gsConfig.n32GSID,
 				Pwd = GSKernel.instance.gsConfig.aszMyUserPwd
 			};
 			byte[] data = askRegiste.ToByteArray();
-			this.owner.TranMsgToSession( SessionType.ClientG2S, ssInfo.m_n32NSID, data, 0, data.Length, ( int )GSToSS.MsgID.EMsgToSsfromGsAskRegiste, 0, 0 );
+			this.owner.TranMsgToSession( ssInfo.nsID, data, 0, data.Length, ( int )GSToSS.MsgID.EMsgToSsfromGsAskRegiste, 0, 0 );
 		}
 
 		protected override void OnRealEstablish()
 		{
-			GSSSInfo ssInfo = GSKernel.instance.GetGSSSInfo( this.logicID );
+			GSSSInfo ssInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( this.logicID );
 			if ( ssInfo == null )
 			{
 				Logger.Error( string.Empty );
 				return;
 			}
-			Logger.Info( $"SS({ssInfo.m_n32SSID}) Connected and register ok." );
-			ssInfo.m_n32NSID = this.id;
-			ssInfo.m_tLastConnMilsec = TimeUtils.utcTime;
-			ssInfo.m_tPingTickCounter = 0;
+			Logger.Info( $"SS({ssInfo.ssID}) Connected and register ok." );
+			ssInfo.nsID = this.id;
+			ssInfo.lastConnMilsec = TimeUtils.utcTime;
+			ssInfo.pingTickCounter = 0;
 		}
 
 		protected override void OnClose()
 		{
-			GSSSInfo ssInfo = GSKernel.instance.GetGSSSInfo( this.logicID );
+			GSSSInfo ssInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( this.logicID );
 			if ( ssInfo == null )
 			{
 				Logger.Error( string.Empty );
 				return;
 			}
-			Logger.Info( $"SS({ssInfo.m_n32SSID}) DisConnect." );
+			Logger.Info( $"SS({ssInfo.ssID}) DisConnect." );
 			//GSKernel.instance.OnEvent( EVT_ON_SS_DISCONNECT, pcSSInfo ); //todo
-			ssInfo.m_n32NSID = 0;
+			ssInfo.nsID = 0;
 		}
 
 		#region msg handlers
 		private bool MsgInitHandler( byte[] data, int offset, int size, int msgID )
 		{
 			// don't send any message until it init success.
-			GSSSInfo pcSSInfo = GSKernel.instance.GetGSSSInfo( this.logicID );
-			if ( pcSSInfo == null || data == null )
+			GSSSInfo ssInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( this.logicID );
+			if ( ssInfo == null || data == null )
 			{
 				Logger.Error( string.Empty );
 				return false;
@@ -77,27 +77,27 @@ namespace GateServer.Net
 
 			if ( ( int )EResult.Normal != askRegisteRet.State )
 			{
-				Logger.Warn( $"register to SS {pcSSInfo.m_n32SSID} Fail with error code {askRegisteRet.State}." );
+				Logger.Warn( $"register to SS {ssInfo.ssID} Fail with error code {askRegisteRet.State}." );
 				return false;
 			}
 
-			pcSSInfo.m_eSSNetState = EServerNetState.SnsFree;
-			Logger.Info( $"register to SS {pcSSInfo.m_n32SSID} success at session {pcSSInfo.m_n32NSID}." );
+			ssInfo.ssNetState = EServerNetState.SnsFree;
+			Logger.Info( $"register to SS {ssInfo.ssID} success at session {ssInfo.nsID}." );
 			this.SetInited( true, true );
 
 			return true;
 		}
 
-		protected override bool OnUnknowMsg( byte[] data, int offset, int size, int msgID )
+		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
-			int n32RealMsgID = 0;
-			uint n32GcNetID = 0;
-			offset += ByteUtils.Decode32i( data, offset, ref n32RealMsgID );
-			offset += ByteUtils.Decode32u( data, offset, ref n32GcNetID );
+			int realMsgID = 0;
+			uint gcNetID = 0;
+			offset += ByteUtils.Decode32i( data, offset, ref realMsgID );
+			offset += ByteUtils.Decode32u( data, offset, ref gcNetID );
 			size -= 2 * sizeof( int );
-			GSSSInfo pcSSInfo = GSKernel.instance.GetGSSSInfo( this.logicID );
-			if ( pcSSInfo != null )
-				GSKernel.instance.ssMsgHandler.HandleUnhandledMsg( pcSSInfo, data, offset, size, n32RealMsgID, msgID, n32GcNetID );
+			GSSSInfo ssInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( this.logicID );
+			if ( ssInfo != null )
+				GSKernel.instance.ssMsgManager.HandleUnhandledMsg( ssInfo, data, offset, size, realMsgID, msgID, gcNetID );
 			return true;
 		}
 		#endregion
