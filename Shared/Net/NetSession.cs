@@ -10,7 +10,7 @@ namespace Shared.Net
 		public uint id { get; }
 		public int logicID { get; set; }
 		public SessionType type { get; set; }
-		public IConnection connection { get; }
+		public IConnection connection { get; protected set; }
 
 		protected readonly HandlerContainer _handlerContainer;
 

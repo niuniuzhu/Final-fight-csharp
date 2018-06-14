@@ -13,11 +13,13 @@ namespace GateServer
 		public static GSKernel instance => _instance ?? ( _instance = new GSKernel() );
 
 		public GSConfig gsConfig { get; }
-		public GSNetSessionMgr netSessionMrg { get; private set; }
-		public UserTokenMgr userTokenMgr { get; private set; }
-		public CSMsgManager csMsgManager { get; private set; }
-		public SSMsgManager ssMsgManager { get; private set; }
+		public GSNetSessionMgr netSessionMrg { get; }
+		public UserTokenMgr userTokenMgr { get; }
+		public CSMsgManager csMsgManager { get; }
+		public SSMsgManager ssMsgManager { get; }
+		public GCMsgManager gcMsgManager { get; }
 
+		public uint csNetSessionId;
 		public long csTimeError;
 		public uint ssBaseIdx;
 		public int ssConnectNum;
@@ -29,6 +31,7 @@ namespace GateServer
 		{
 			this.csMsgManager = new CSMsgManager();
 			this.ssMsgManager = new SSMsgManager();
+			this.gcMsgManager = new GCMsgManager();
 			this.userTokenMgr = new UserTokenMgr();
 			this.netSessionMrg = new GSNetSessionMgr();
 			this._context = new UpdateContext();
@@ -48,11 +51,7 @@ namespace GateServer
 
 		public void Dispose()
 		{
-			if ( this.netSessionMrg != null )
-			{
-				this.netSessionMrg.Dispose();
-				this.netSessionMrg = null;
-			}
+			this.netSessionMrg.Dispose();
 			NetSessionPool.instance.Dispose();
 		}
 
@@ -61,12 +60,6 @@ namespace GateServer
 			this.netSessionMrg.CreateListener( this.gsConfig.n32GCListenPort, 10240, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 0 );
 			this.netSessionMrg.CreateConnector( SessionType.ClientG2C, this.gsConfig.sCSIP, this.gsConfig.n32CSPort, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 10240000, 0 );
 			this.netSessionMrg.CreateConnector( SessionType.ClientG2B, this.gsConfig.sBSListenIP, this.gsConfig.n32BSListenPort, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 1024000, 0 );
-			return EResult.Normal;
-		}
-
-		private EResult Stop()
-		{
-			Logger.Info( "GSKernel Stop success!" );
 			return EResult.Normal;
 		}
 

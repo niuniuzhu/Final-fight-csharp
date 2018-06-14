@@ -33,11 +33,13 @@ namespace GateServer.Net
 		protected override void OnRealEstablish()
 		{
 			Logger.Info( "CS Connected and register ok" );
+			GSKernel.instance.csNetSessionId = this.id;
 		}
 
 		protected override void OnClose()
 		{
 			Logger.Info( "CS DisConnect." );
+			GSKernel.instance.csNetSessionId = 0;
 		}
 
 		public override void OnHeartBeat( UpdateContext context )

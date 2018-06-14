@@ -7,7 +7,7 @@ namespace Core.Net
 		/// <summary>
 		/// 此连接持有的Socket实例
 		/// </summary>
-		Socket socket { set; }
+		Socket socket { get; set; }
 
 		/// <summary>
 		/// 此连接关联的session
@@ -43,6 +43,11 @@ namespace Core.Net
 		/// 关闭此连接
 		/// </summary>
 		void Close();
+
+		/// <summary>
+		/// 设置套接字参数
+		/// </summary>
+		void SetOpt( SocketOptionName optionName, object opt );
 
 		/// <summary>
 		/// 开始接收数据

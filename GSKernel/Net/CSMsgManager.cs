@@ -8,6 +8,7 @@ namespace GateServer.Net
 {
 	public class CSMsgManager : MsgManager
 	{
+		public delegate void ForeachHandler( GSSSInfo ssInfo );
 		private delegate EResult MsgHandler( byte[] data, int offset, int size );
 
 		private readonly Dictionary<uint, GSSSInfo> _user2SSInfoMap = new Dictionary<uint, GSSSInfo>();
@@ -49,6 +50,12 @@ namespace GateServer.Net
 		/// 是否包含指定场景服务器id的信息
 		/// </summary>
 		public bool ContainsSSInfo( uint gcNetID ) => this._user2SSInfoMap.ContainsKey( gcNetID );
+
+		public void ForeachSSInfo( ForeachHandler handler )
+		{
+			foreach ( KeyValuePair<uint, GSSSInfo> kv in this._user2SSInfoMap )
+				handler( kv.Value );
+		}
 
 		/// <summary>
 		/// 处理中心服务器返回的ping消息
@@ -158,7 +165,7 @@ namespace GateServer.Net
 						return ErrorCode.EC_InvalidMsgProtocalID;
 					break;
 			}
-			return ErrorCode.EC_NullMsgHandler;
+			return ErrorCode.EC_Success;
 		}
 	}
 }

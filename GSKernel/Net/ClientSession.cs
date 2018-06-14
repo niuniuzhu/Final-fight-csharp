@@ -1,4 +1,5 @@
-﻿using Shared.Net;
+﻿using Core;
+using Shared.Net;
 
 namespace GateServer.Net
 {
@@ -8,6 +9,25 @@ namespace GateServer.Net
 
 		protected ClientSession( uint id ) : base( id )
 		{
+			this._handlerContainer.Register( ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcBegin, this.MsgInitHandler );
+		}
+
+		protected override void OnRealEstablish()
+		{
+			if ( this._logicInited )
+				return;
+			this._logicInited = true;
+			Logger.Log( $"client({this.id})({this.connection.socket.RemoteEndPoint}) connected." );
+		}
+
+		protected override void OnClose()
+		{
+			if ( this._logicInited )
+			{
+				Logger.Log( $"client({this.id})({this.connection.socket.RemoteEndPoint}) disconnected." );
+				GSKernel.instance.userTokenMgr.OnUserLost( this.id );
+				this._logicInited = false;
+			}
 		}
 
 		#region msg handlers
@@ -19,12 +39,9 @@ namespace GateServer.Net
 
 		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
-			//ClientSession cliSession = ( ClientSession )vthis;
-			//if ( !cliSession._logicInited )
-			//{
-			//	cliSession.SetInited( true, true );
-			//}
-			//GSKernel.instance.HandleMsgFromGC( cliSession.id, data, n32MsgID );
+			if ( !this._logicInited )
+				this.SetInited( true, true );
+			GSKernel.instance.gcMsgManager.HandleUnhandledMsg( this.id, data, offset, size, msgID );
 			return true;
 		}
 		#endregion

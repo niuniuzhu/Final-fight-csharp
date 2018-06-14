@@ -20,6 +20,7 @@ namespace Shared
 
 	public enum ErrorCode
 	{
+		EC_Success = 0,
 		EC_Begin = -0x00010000 * 2,
 		EC_InvalidModelStatus, //非法的模块状态
 		EC_InvalidModelID, //非法的模块ID
@@ -84,10 +85,10 @@ namespace Shared
 		EC_ReadCfgFileFail, //读取配置文件失败
 		EC_TooManyNPCCfgNum, //NPC配置数量太多
 		EC_TooManyHeroCfgNum, //英雄配置数量太多
-		Ec_TooManMapDataCfgNum, //地图配置数量太多
+		EC_TooManMapDataCfgNum, //地图配置数量太多
 		EC_InvalidHeroSeat, //非法的英雄座位
 		EC_InvalidMapID, //非法的地图ID
-		Ec_InvalidPos, //非法的位置
+		EC_InvalidPos, //非法的位置
 		EC_InvalidCellID, //非法的单元格ID
 		EC_NullArea, //非法的区域
 		EC_InvalidScriptParameters, //非法的脚本参数

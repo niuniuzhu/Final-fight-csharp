@@ -42,6 +42,7 @@ namespace Core.Net
 			this.packetEncodeHandler = null;
 			this.packetDecodeHandler = null;
 		}
+		public void SetOpt( SocketOptionName optionName, object opt ) => this.socket.SetSocketOption( SocketOptionLevel.Socket, optionName, opt );
 
 		public bool StartReceive()
 		{

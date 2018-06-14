@@ -1,4 +1,5 @@
-﻿using Shared.Net;
+﻿using Google.Protobuf;
+using Shared.Net;
 
 namespace GateServer.Net
 {
@@ -19,6 +20,24 @@ namespace GateServer.Net
 		protected int PostToGameClient( uint sessionID, byte[] data, int offset, int size, int msgID )
 		{
 			GSKernel.instance.netSessionMrg.SendMsgToSession( sessionID, data, offset, size, msgID );
+			return 0;
+		}
+
+		protected int PostToGameClient( SessionType sessionType, byte[] data, int offset, int size, int msgID )
+		{
+			GSKernel.instance.netSessionMrg.SendMsgToSession( sessionType, data, offset, size, msgID );
+			return 0;
+		}
+
+		protected int PostToGameClient( uint sessionID, IMessage msg, int msgID )
+		{
+			GSKernel.instance.netSessionMrg.SendMsgToSession( sessionID, msg, msgID );
+			return 0;
+		}
+
+		protected int PostToGameClient( SessionType sessionType, IMessage msg, int msgID )
+		{
+			GSKernel.instance.netSessionMrg.SendMsgToSession( sessionType, msg, msgID );
 			return 0;
 		}
 

@@ -131,7 +131,7 @@ namespace GateServer.Net
 						return ErrorCode.EC_InvalidMsgProtocalID;
 					break;
 			}
-			return ErrorCode.EC_NullMsgHandler;
+			return ErrorCode.EC_Success;
 		}
 	}
 }
