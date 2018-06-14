@@ -5,9 +5,11 @@ using System.Net.Sockets;
 
 namespace Shared.Net
 {
+	/// <summary>
+	/// 作为客户端的session,通常是主动发起连接后创建的session
+	/// </summary>
 	public abstract class CliSession : NetSession
 	{
-		private const long RECONN_DETECT_INTERVAL = 10000;
 
 		public IConnector connector { get; }
 		public bool reconnectTag { get; set; }
@@ -25,22 +27,20 @@ namespace Shared.Net
 			return this.Reconnect( ip, port, socketType, protoType );
 		}
 
-		public bool Reconnect()
+		private void Reconnect()
 		{
 			if ( !this._reconFlag || !this.reconnectTag )
-				return false;
+				return;
 
 			long curTime = TimeUtils.utcTime;
 			if ( curTime < this._reconnTime )
-				return false;
+				return;
 
-			this._reconnTime = curTime + RECONN_DETECT_INTERVAL;
+			this._reconnTime = curTime + Consts.RECONN_DETECT_INTERVAL;
 			if ( !this.connector.ReConnect() )
-				return false;
+				return;
 
 			this._reconFlag = false;
-
-			return true;
 		}
 
 		private bool Reconnect( string ip, int port, SocketType socketType, ProtocolType protoType )
@@ -58,7 +58,10 @@ namespace Shared.Net
 		public override void OnEstablish()
 		{
 			base.OnEstablish();
+			//标记远端连接已经初始化,那么在往后收到的远端初始化消息后,不会重复发送初始化消息,否则会进入死循环
+			//参考NetSession.SetInited
 			this._remoteInited = true;
+			//向远端发送初始化数据
 			this.SendInitData();
 		}
 

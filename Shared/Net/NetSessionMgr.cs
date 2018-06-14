@@ -249,16 +249,11 @@ namespace Shared.Net
 					case NetEvent.Type.Error:
 						netEvent.session.OnError( netEvent.error );
 						break;
-					case NetEvent.Type.Terminate:
-						netEvent.session.OnTerminate();
-						break;
 					case NetEvent.Type.Recv:
 						netEvent.session.OnRecv( netEvent.data, 0, netEvent.data.Length );
 						break;
 					case NetEvent.Type.Send:
 						netEvent.session.OnSend();
-						break;
-					case NetEvent.Type.BindErr:
 						break;
 				}
 				NetEventMgr.instance.pool.Push( netEvent );

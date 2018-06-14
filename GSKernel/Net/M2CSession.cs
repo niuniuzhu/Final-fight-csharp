@@ -13,8 +13,8 @@ namespace GateServer.Net
 
 		protected M2CSession( uint id ) : base( id )
 		{
-			this._msgCenter.RegisterMsgFunc( ( int )MsgID.EMsgToGsfromCsAskRegisteRet, this.MsgInitHandler );
-			this._msgCenter.RegisterMsgFunc( ( int )MsgID.EMsgToGsfromCsOneSsconnected, this.MsgOneSSConnectedHandler );
+			this._handlerContainer.Register( ( int )MsgID.EMsgToGsfromCsAskRegisteRet, this.MsgInitHandler );
+			this._handlerContainer.Register( ( int )MsgID.EMsgToGsfromCsOneSsconnected, this.MsgOneSSConnectedHandler );
 		}
 
 		protected override void SendInitData()
@@ -145,7 +145,9 @@ namespace GateServer.Net
 		{
 			int realMsgID = 0;
 			uint gcNetID = 0;
+			//剥离第二层数据ID
 			offset += ByteUtils.Decode32i( data, offset, ref realMsgID );
+			//剥离客户端网络ID
 			offset += ByteUtils.Decode32u( data, offset, ref gcNetID );
 			size -= 2 * sizeof( int );
 			GSKernel.instance.csMsgManager.HandleUnhandledMsg( data, offset, size, realMsgID, msgID, gcNetID );

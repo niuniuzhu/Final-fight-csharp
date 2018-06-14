@@ -20,15 +20,9 @@ namespace Core.Net
 
 		private Socket _socket;
 
-		public void Dispose()
-		{
-			this.Stop();
-		}
+		public void Dispose() => this.Stop();
 
-		public void SetOpt( SocketOptionName optionName, object pOpt )
-		{
-			this._socket.SetSocketOption( SocketOptionLevel.Socket, optionName, pOpt );
-		}
+		public void SetOpt( SocketOptionName optionName, object opt ) => this._socket.SetSocketOption( SocketOptionLevel.Socket, optionName, opt );
 
 		public bool Start( string ip, int port, SocketType socketType, ProtocolType protoType, bool reuseAddr = true )
 		{
@@ -116,15 +110,13 @@ namespace Core.Net
 				this.ProcessAccept( acceptEventArgs );
 		}
 
-		private void OnAcceptComplete( object sender, SocketAsyncEventArgs acceptEventArgs )
-		{
-			this.ProcessAccept( acceptEventArgs );
-		}
+		private void OnAcceptComplete( object sender, SocketAsyncEventArgs acceptEventArgs ) => this.ProcessAccept( acceptEventArgs );
 
 		private void ProcessAccept( SocketAsyncEventArgs acceptEventArgs )
 		{
 			if ( acceptEventArgs.SocketError != SocketError.Success )
 			{
+				//网络错误
 				Logger.Error( $"process accept fail,code{acceptEventArgs.SocketError}" );
 				this.Close( acceptEventArgs.AcceptSocket );
 				this.StartAccept( acceptEventArgs );
@@ -138,6 +130,7 @@ namespace Core.Net
 				return;
 			}
 
+			//调用委托创建session
 			INetSession session = this.sessionCreateHandler();
 			if ( session == null )
 			{
@@ -156,6 +149,7 @@ namespace Core.Net
 			netEvent.session = session;
 			NetEventMgr.instance.Push( netEvent );
 
+			//开始接收数据
 			session.connection.StartReceive();
 
 			this.StartAccept( acceptEventArgs );

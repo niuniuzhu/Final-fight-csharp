@@ -4,53 +4,51 @@ namespace Core.Net
 {
 	public interface IListener
 	{
+		/// <summary>
+		/// 包编码器
+		/// </summary>
 		PacketEncodeHandler packetEncodeHandler { get; set; }
 
-		/**
-		 * @brief Set an user implemented ISDPacketParser object, which process
-		 *        packet parse logic of the connection accepted by the ISDListener
-		 * @param poPacketParser ISDPacketParser instance pointer
-		 */
+		/// <summary>
+		/// 包解码器
+		/// </summary>
 		PacketDecodeHandler packetDecodeHandler { get; set; }
 
-		/**
-		 * @brief Set the user implemented ISDSessionFactory object to ISDListener
-		 *
-		 * When a TCP connection is accepted by ISDListener,
-		 * ISDSessionFactory object will be asked to create a ISDSession
-		 * @param poSessionFactory ISDSessionFactory instance factory
-		 */
+		/// <summary>
+		/// 当有连接到达时调用该委托创建session
+		/// </summary>
 		SessionCreateHandler sessionCreateHandler { get; set; }
 
-		/**
-		 * @brief Set the send and receive buffer size of the connection accepted by the ISDListener object
-		 * @param dwRecvBufSize : receiving buffer size in bytes
-		 * @param dwSendBufSize : sending buffer size in bytes
-		 */
+		/// <summary>
+		/// 连接建立后的接收缓冲区大小
+		/// </summary>
 		int recvBufSize { get; set; }
 
+		/// <summary>
+		/// 销毁此实例
+		/// </summary>
 		void Dispose();
 
-		/**
-		 * @brief Set extension options
-		 * @param dwType : option type
-		 * @param pOpt : option value
-		 */
-		void SetOpt( SocketOptionName optionName, object pOpt );
+		/// <summary>
+		/// 设置套接字参数
+		/// </summary>
+		void SetOpt( SocketOptionName optionName, object opt );
 
-		/**
-		 * @brief Listen at specified IP and port
-		 * @param pszIP : IP string
-		 * @param wPort : port number
-		 * @param bReUseAddr : the flag for re-using same address
-		 * @return true means success, false means failure
-		 */
+		/// <summary>
+		/// 开始监听
+		/// </summary>
+		/// <param name="ip">本地ip</param>
+		/// <param name="port">本地端口</param>
+		/// <param name="socketType">套接字类型</param>
+		/// <param name="protoType">协议类型</param>
+		/// <param name="reuseAddr">是否端口重用</param>
+		/// <returns>操作是否成功</returns>
 		bool Start( string ip, int port, SocketType socketType, ProtocolType protoType, bool reuseAddr = true );
 
-		/**
-		 * @brief Stop listening
-		 * @return true means success, false means failure
-		 */
+		/// <summary>
+		/// 停止监听
+		/// </summary>
+		/// <returns></returns>
 		bool Stop();
 	}
 }

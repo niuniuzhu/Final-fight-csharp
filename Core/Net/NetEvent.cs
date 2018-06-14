@@ -10,10 +10,8 @@ namespace Core.Net
 			Establish,
 			ConnErr,
 			Error,
-			Terminate,
 			Recv,
 			Send,
-			BindErr,
 		}
 
 		public Type type;

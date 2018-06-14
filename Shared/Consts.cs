@@ -365,9 +365,25 @@ namespace Shared
 	{
 		public const SocketType SOCKET_TYPE = SocketType.Stream;
 		public const ProtocolType PROTOCOL_TYPE = ProtocolType.Tcp;
+
+		/// <summary>
+		/// 心跳间隔
+		/// </summary>
 		public const long HEART_PACK = 100;
+
+		/// <summary>
+		/// 最大监听器数
+		/// </summary>
 		public const int MAX_COUNT_LISTENER = 3;
+
+		/// <summary>
+		/// Ping的时间间隔
+		/// </summary>
 		public const long DEFAULT_PING_CD_TICK = 1000 * 160;
-		public const uint PP_INVALID = uint.MaxValue;
+
+		/// <summary>
+		/// 重连检测的时间间隔
+		/// </summary>
+		public const long RECONN_DETECT_INTERVAL = 10000;
 	}
 }
