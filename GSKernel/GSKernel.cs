@@ -14,15 +14,10 @@ namespace GateServer
 
 		public GSConfig gsConfig { get; }
 		public GSNetSessionMgr netSessionMrg { get; }
-		public UserTokenMgr userTokenMgr { get; }
+		public GSStorage gsStorage { get; }
 		public CSMsgManager csMsgManager { get; }
 		public SSMsgManager ssMsgManager { get; }
 		public GCMsgManager gcMsgManager { get; }
-
-		public uint csNetSessionId;
-		public long csTimeError;
-		public uint ssBaseIdx;
-		public int ssConnectNum;
 
 		private readonly UpdateContext _context;
 		private long _timestamp;
@@ -32,7 +27,7 @@ namespace GateServer
 			this.csMsgManager = new CSMsgManager();
 			this.ssMsgManager = new SSMsgManager();
 			this.gcMsgManager = new GCMsgManager();
-			this.userTokenMgr = new UserTokenMgr();
+			this.gsStorage = new GSStorage();
 			this.netSessionMrg = new GSNetSessionMgr();
 			this._context = new UpdateContext();
 			this.gsConfig = new GSConfig();
@@ -86,9 +81,7 @@ namespace GateServer
 		private EResult OnHeartBeat( UpdateContext context )
 		{
 			this.netSessionMrg.OnHeartBeat( context );
-			this.ssMsgManager.PingSS( context.utcTime );
-			this.userTokenMgr.ChechUserToken( context.utcTime );
-			this.userTokenMgr.ReportGsInfo( context.utcTime );
+			this.gsStorage.OnHeartBeat( context );
 			return EResult.Normal;
 		}
 	}

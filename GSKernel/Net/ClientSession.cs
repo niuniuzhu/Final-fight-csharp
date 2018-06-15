@@ -25,7 +25,7 @@ namespace GateServer.Net
 			if ( this._logicInited )
 			{
 				Logger.Log( $"client({this.id})({this.connection.socket.RemoteEndPoint}) disconnected." );
-				GSKernel.instance.userTokenMgr.OnUserLost( this.id );
+				GSKernel.instance.gsStorage.OnUserLost( this.id );
 				this._logicInited = false;
 			}
 		}

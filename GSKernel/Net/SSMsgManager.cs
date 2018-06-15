@@ -10,7 +10,6 @@ namespace GateServer.Net
 	{
 		private delegate EResult MsgHandler( GSSSInfo ssInfo, byte[] data, int offset, int size );
 
-		private readonly Dictionary<int, GSSSInfo> _GSSSInfoMap = new Dictionary<int, GSSSInfo>();
 		private readonly Dictionary<int, MsgHandler> _handlers = new Dictionary<int, MsgHandler>();
 
 		public SSMsgManager()
@@ -19,55 +18,6 @@ namespace GateServer.Net
 			this._handlers[( int )SSToGS.MsgID.EMsgToGsfromSsAskPingRet] = this.OnMsgFromSS_AskPingRet;
 			this._handlers[( int )SSToGS.MsgID.EMsgToGsfromSsOrderKickoutGc] = this.OnMsgFromSS_OrderKickoutGC;
 			#endregion
-		}
-
-		/// <summary>
-		/// 添加场景服务器信息
-		/// </summary>
-		public void AddGSSInfo( int ssID, GSSSInfo gsssInfo ) => this._GSSSInfoMap[ssID] = gsssInfo;
-
-		/// <summary>
-		/// 移除指定场景服务器信息
-		/// </summary>
-		public bool RemoveGSSInfo( int ssID ) => this._GSSSInfoMap.Remove( ssID );
-
-		/// <summary>
-		/// 获取本地场景服务器信息
-		/// </summary>
-		public GSSSInfo GetGSSSInfo( int ssID )
-		{
-			this._GSSSInfoMap.TryGetValue( ssID, out GSSSInfo ssInfo );
-			return ssInfo;
-		}
-
-		/// <summary>
-		/// 是否包含指定场景服务器id的信息
-		/// </summary>
-		public bool ContainsSSInfo( int ssID ) => this._GSSSInfoMap.ContainsKey( ssID );
-
-		/// <summary>
-		/// 向每个场景服务器发送ping
-		/// </summary>
-		public EResult PingSS( long utcTime )
-		{
-			if ( this._GSSSInfoMap.Count == 0 )
-				return EResult.Normal;
-
-			foreach ( KeyValuePair<int, GSSSInfo> kv in this._GSSSInfoMap )
-			{
-				GSSSInfo ssInfo = kv.Value;
-				if ( 0 == ssInfo.ssID || 0 == ssInfo.nsID )
-					continue;
-
-				if ( utcTime - ssInfo.pingTickCounter < Consts.DEFAULT_PING_CD_TICK )
-					continue;
-
-				GSToSS.AskPing sMsg = new GSToSS.AskPing { Time = utcTime };
-				byte[] data = sMsg.ToByteArray();
-				GSKernel.instance.netSessionMrg.TranMsgToSession( ssInfo.nsID, data, 0, data.Length, ( int )GSToSS.MsgID.EMsgToSsfromGsAskPing, 0, 0 );
-				ssInfo.pingTickCounter = utcTime;
-			}
-			return EResult.Normal;
 		}
 
 		/// <summary>
@@ -118,7 +68,7 @@ namespace GateServer.Net
 						//该消息的路由:ss-cs-gs-gc
 						//该消息从ss发出,目标端是网络id为gcNetID的客户端,消息体是场景信息
 						//当该消息流经gs时建立该客户端和场景信息的映射关系
-						GSKernel.instance.csMsgManager.AddGSSInfo( gcNetID, ssInfo );
+						GSKernel.instance.gsStorage.AddUserSSInfo( gcNetID, ssInfo );
 					}
 					this.PostToGameClient( gcNetID, data, offset, size, msgID );
 					break;

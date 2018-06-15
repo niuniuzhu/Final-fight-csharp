@@ -15,7 +15,7 @@ namespace GateServer.Net
 
 		protected override void SendInitData()
 		{
-			GSSSInfo ssInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( this.logicID );
+			GSSSInfo ssInfo = GSKernel.instance.gsStorage.GetSSInfo( this.logicID );
 			if ( ssInfo == null )
 			{
 				Logger.Error( string.Empty );
@@ -34,7 +34,7 @@ namespace GateServer.Net
 
 		protected override void OnRealEstablish()
 		{
-			GSSSInfo ssInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( this.logicID );
+			GSSSInfo ssInfo = GSKernel.instance.gsStorage.GetSSInfo( this.logicID );
 			if ( ssInfo == null )
 			{
 				Logger.Error( string.Empty );
@@ -48,7 +48,7 @@ namespace GateServer.Net
 
 		protected override void OnClose()
 		{
-			GSSSInfo ssInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( this.logicID );
+			GSSSInfo ssInfo = GSKernel.instance.gsStorage.GetSSInfo( this.logicID );
 			if ( ssInfo == null )
 			{
 				Logger.Error( string.Empty );
@@ -63,7 +63,7 @@ namespace GateServer.Net
 		private bool MsgInitHandler( byte[] data, int offset, int size, int msgID )
 		{
 			// don't send any message until it init success.
-			GSSSInfo ssInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( this.logicID );
+			GSSSInfo ssInfo = GSKernel.instance.gsStorage.GetSSInfo( this.logicID );
 			if ( ssInfo == null || data == null )
 			{
 				Logger.Error( string.Empty );
@@ -95,7 +95,7 @@ namespace GateServer.Net
 			offset += ByteUtils.Decode32i( data, offset, ref realMsgID );
 			offset += ByteUtils.Decode32u( data, offset, ref gcNetID );
 			size -= 2 * sizeof( int );
-			GSSSInfo ssInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( this.logicID );
+			GSSSInfo ssInfo = GSKernel.instance.gsStorage.GetSSInfo( this.logicID );
 			if ( ssInfo != null )
 				GSKernel.instance.ssMsgManager.HandleUnhandledMsg( ssInfo, data, offset, size, realMsgID, msgID, gcNetID );
 			return true;

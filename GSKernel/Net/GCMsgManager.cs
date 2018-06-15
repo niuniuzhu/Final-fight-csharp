@@ -32,7 +32,7 @@ namespace GateServer.Net
 			pLogin.MergeFrom( data, offset, size );
 
 			//验证token
-			if ( !GSKernel.instance.userTokenMgr.IsUserCanLogin( pLogin.Name, pLogin.Passwd, nsID ) )
+			if ( !GSKernel.instance.gsStorage.IsUserCanLogin( pLogin.Name, pLogin.Passwd, nsID ) )
 			{
 				Logger.Error( $"user {pLogin.Name} can't login with token {pLogin.Passwd}" );
 				GSToGC.NetClash sMsg = new GSToGC.NetClash();
@@ -69,7 +69,7 @@ namespace GateServer.Net
 			GCToCS.ReconnectToGame pReconnectToGame = new GCToCS.ReconnectToGame();
 			pReconnectToGame.MergeFrom( data, offset, size );
 			//验证token
-			if ( !GSKernel.instance.userTokenMgr.IsUserCanLogin( pReconnectToGame.Name, pReconnectToGame.Passwd, nsID ) )
+			if ( !GSKernel.instance.gsStorage.IsUserCanLogin( pReconnectToGame.Name, pReconnectToGame.Passwd, nsID ) )
 			{
 				Logger.Error( $"user {pReconnectToGame.Name} can't login with token {pReconnectToGame.Passwd}" );
 				GSToGC.NetClash sMsg = new GSToGC.NetClash();
@@ -95,7 +95,7 @@ namespace GateServer.Net
 		private void TransToCS( uint nsID, byte[] data, int offset, int size, int msgID, bool bLogMsgFlag, GCToCS.Login ploginMsg )
 		{
 			//确保已经连接到中心服务器
-			if ( GSKernel.instance.csNetSessionId > 0 )
+			if ( GSKernel.instance.gsStorage.csNetSessionId > 0 )
 			{
 				if ( bLogMsgFlag )
 				{
@@ -106,7 +106,7 @@ namespace GateServer.Net
 					GSKernel.instance.netSessionMrg.TranMsgToSession( SessionType.ClientG2C, data, offset, size, msgID, ( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, nsID );
 			}
 			else
-				Logger.Warn( $"invalid CSNetSessionId:{GSKernel.instance.csNetSessionId}" );
+				Logger.Warn( $"invalid CSNetSessionId:{GSKernel.instance.gsStorage.csNetSessionId}" );
 		}
 
 		public ErrorCode HandleUnhandledMsg( uint nsID, byte[] data, int offset, int size, int msgID )
@@ -117,7 +117,7 @@ namespace GateServer.Net
 			{
 				if ( msgID > ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcBegin && msgID < ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcEnd )
 				{
-					GSSSInfo ssInfo = GSKernel.instance.csMsgManager.GetSSInfo( nsID );
+					GSSSInfo ssInfo = GSKernel.instance.gsStorage.GetUserSSInfo( nsID );
 					if ( ssInfo == null )
 						Logger.Error( $"nsid:{nsID} send msg:{msgID} error, can't get ssinfo." );
 					else

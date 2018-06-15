@@ -6,7 +6,7 @@ namespace GateServer.Net
 	public abstract class MsgManager
 	{
 		/// <summary>
-		/// 消息分发到所有客户端
+		/// 消息广播到所有客户端
 		/// </summary>
 		protected int BroadcastToGameClient( byte[] data, int offset, int size, int msgID )
 		{

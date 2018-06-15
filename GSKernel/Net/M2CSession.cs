@@ -33,13 +33,13 @@ namespace GateServer.Net
 		protected override void OnRealEstablish()
 		{
 			Logger.Info( "CS Connected and register ok" );
-			GSKernel.instance.csNetSessionId = this.id;
+			GSKernel.instance.gsStorage.csNetSessionId = this.id;
 		}
 
 		protected override void OnClose()
 		{
 			Logger.Info( "CS DisConnect." );
-			GSKernel.instance.csNetSessionId = 0;
+			GSKernel.instance.gsStorage.csNetSessionId = 0;
 		}
 
 		public override void OnHeartBeat( UpdateContext context )
@@ -72,8 +72,8 @@ namespace GateServer.Net
 
 			long csMilsec = askRegisteRet.Curtime;
 			long selfMilsec = TimeUtils.utcTime;
-			GSKernel.instance.csTimeError = csMilsec - selfMilsec;
-			GSKernel.instance.ssBaseIdx = askRegisteRet.Ssbaseid;
+			GSKernel.instance.gsStorage.csTimeError = csMilsec - selfMilsec;
+			GSKernel.instance.gsStorage.ssBaseIdx = askRegisteRet.Ssbaseid;
 			int ssinfoCount = askRegisteRet.Ssinfo.Count;
 			if ( ssinfoCount > 100000 )
 			{
@@ -83,14 +83,14 @@ namespace GateServer.Net
 
 			if ( 0 < ssinfoCount )
 			{
-				GSKernel.instance.ssConnectNum = 0;
+				GSKernel.instance.gsStorage.ssConnectNum = 0;
 				for ( int i = 0; i < ssinfoCount; i++ )
 				{
 					// 消息解码//
 					if ( 0 == askRegisteRet.Ssinfo[i].Ssid )
 						continue;
 
-					if ( GSKernel.instance.ssMsgManager.ContainsSSInfo( askRegisteRet.Ssinfo[i].Ssid ) )
+					if ( GSKernel.instance.gsStorage.ContainsSSInfo( askRegisteRet.Ssinfo[i].Ssid ) )
 						continue;
 
 					GSSSInfo ssInfo = new GSSSInfo();
@@ -106,13 +106,13 @@ namespace GateServer.Net
 					ssInfo.msgSent = 0;
 					ssInfo.dataReceived = 0;
 					ssInfo.dataSent = 0;
-					GSKernel.instance.ssMsgManager.AddGSSInfo( ssInfo.ssID, ssInfo );
+					GSKernel.instance.gsStorage.AddSSInfo( ssInfo.ssID, ssInfo );
 					if ( ssInfo.ssNetState == EServerNetState.SnsClosed )
 						continue;
 
 					this.owner.CreateConnector( SessionType.ClientG2S, ssInfo.listenIp, ssInfo.listenPort,
 												Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 10240, ssInfo.ssID );
-					++GSKernel.instance.ssConnectNum;
+					++GSKernel.instance.gsStorage.ssConnectNum;
 				}
 			}
 			this.SetInited( true, true );
@@ -127,7 +127,7 @@ namespace GateServer.Net
 			OneSSConnected oneSsConnected = new OneSSConnected();
 			oneSsConnected.MergeFrom( data, offset, size );
 
-			GSSSInfo pcSSInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( oneSsConnected.Ssid );
+			GSSSInfo pcSSInfo = GSKernel.instance.gsStorage.GetSSInfo( oneSsConnected.Ssid );
 			if ( pcSSInfo != null )
 			{
 				pcSSInfo.listenIp = oneSsConnected.Ip.Replace( "\0", string.Empty ); ;

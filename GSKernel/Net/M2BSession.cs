@@ -45,7 +45,7 @@ namespace GateServer.Net
 			BSToGS.OneUserLoginToken reportAllClientInf = new BSToGS.OneUserLoginToken();
 			reportAllClientInf.MergeFrom( data, offset, size );
 
-			GSKernel.instance.userTokenMgr.AddUserToken( reportAllClientInf.UserName, reportAllClientInf.Token );
+			GSKernel.instance.gsStorage.AddUserToken( reportAllClientInf.UserName, reportAllClientInf.Token );
 			this.owner.SendMsgToSession( this.id, reportAllClientInf, ( int )GSToBS.MsgID.EMsgToBsfromGsOneUserLoginTokenRet );
 			return true;
 		}

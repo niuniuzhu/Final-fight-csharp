@@ -8,10 +8,8 @@ namespace GateServer.Net
 {
 	public class CSMsgManager : MsgManager
 	{
-		public delegate void ForeachHandler( GSSSInfo ssInfo );
 		private delegate EResult MsgHandler( byte[] data, int offset, int size );
 
-		private readonly Dictionary<uint, GSSSInfo> _user2SSInfoMap = new Dictionary<uint, GSSSInfo>();
 		private readonly Dictionary<int, MsgHandler> _handlers = new Dictionary<int, MsgHandler>();
 
 		public CSMsgManager()
@@ -24,37 +22,6 @@ namespace GateServer.Net
 			this._handlers[( int )CSToGS.MsgID.EMsgToGsfromCsUserConnectedSs] = this.OnMsgFromCS_UserConnectedToSS;
 			this._handlers[( int )CSToGS.MsgID.EMsgToGsfromCsUserDisConnectedSs] = this.OnMsgFromCS_UserDisConnectedToSS;
 			#endregion
-		}
-
-		/// <summary>
-		/// 添加场景服务器信息
-		/// </summary>
-		public void AddGSSInfo( uint gcNetID, GSSSInfo gsssInfo ) => this._user2SSInfoMap[gcNetID] = gsssInfo;
-
-		/// <summary>
-		/// 移除指定场景服务器信息
-		/// </summary>
-		public bool RemoveGSSInfo( uint gcNetID ) => this._user2SSInfoMap.Remove( gcNetID );
-
-		/// <summary>
-		/// 获取本地场景服务器信息
-		/// </summary>
-
-		public GSSSInfo GetSSInfo( uint gcNetID )
-		{
-			this._user2SSInfoMap.TryGetValue( gcNetID, out GSSSInfo ssInfo );
-			return ssInfo;
-		}
-
-		/// <summary>
-		/// 是否包含指定场景服务器id的信息
-		/// </summary>
-		public bool ContainsSSInfo( uint gcNetID ) => this._user2SSInfoMap.ContainsKey( gcNetID );
-
-		public void ForeachSSInfo( ForeachHandler handler )
-		{
-			foreach ( KeyValuePair<uint, GSSSInfo> kv in this._user2SSInfoMap )
-				handler( kv.Value );
 		}
 
 		/// <summary>
@@ -110,7 +77,7 @@ namespace GateServer.Net
 			CSToGS.UserConnectedSS userConnectedSS = new CSToGS.UserConnectedSS();
 			userConnectedSS.MergeFrom( data, offset, size );
 
-			GSSSInfo ssInfo = GSKernel.instance.ssMsgManager.GetGSSSInfo( userConnectedSS.Ssid );
+			GSSSInfo ssInfo = GSKernel.instance.gsStorage.GetSSInfo( userConnectedSS.Ssid );
 			if ( null == ssInfo )
 			{
 				Logger.Error( $"ssInfo is null with ssid({userConnectedSS.Ssid})" );
@@ -122,7 +89,7 @@ namespace GateServer.Net
 			for ( int i = 0; i < count; ++i )
 			{
 				uint gcNetID = ( uint )userConnectedSS.Gcnid[i];
-				this.AddGSSInfo( gcNetID, ssInfo );
+				GSKernel.instance.gsStorage.AddUserSSInfo( gcNetID, ssInfo );
 				Logger.Log( $"user netID({gcNetID}) connect with SS({ssInfo.ssID})" );
 			}
 			return EResult.Normal;
@@ -138,7 +105,7 @@ namespace GateServer.Net
 
 			int count = userConnectedSS.Gcnid.Count;
 			for ( int i = 0; i < count; ++i )
-				this.RemoveGSSInfo( ( uint )userConnectedSS.Gcnid[i] );
+				GSKernel.instance.gsStorage.RemoveUserSSInfo( ( uint )userConnectedSS.Gcnid[i] );
 			return EResult.Normal;
 		}
 
