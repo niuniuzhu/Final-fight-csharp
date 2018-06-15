@@ -1,10 +1,13 @@
-﻿using System.Net.Sockets;
+﻿using System.Net;
+using System.Net.Sockets;
 
 namespace Core.Net
 {
 	public class Connection : IConnection
 	{
 		public Socket socket { get; set; }
+		public EndPoint remoteEndPoint { get; set; }
+		public EndPoint localEndPoint { get; set; }
 		public INetSession session { get; }
 		public int recvBufSize { set => this._recvEventArgs.SetBuffer( new byte[value], 0, value ); }
 		public PacketEncodeHandler packetEncodeHandler { get; set; }
@@ -34,6 +37,8 @@ namespace Core.Net
 
 		public void Close()
 		{
+			if ( this.socket == null )
+				return;
 			if ( this.connected )
 				this.socket.Shutdown( SocketShutdown.Both );
 			this.socket.Close();
@@ -42,6 +47,7 @@ namespace Core.Net
 			this.packetEncodeHandler = null;
 			this.packetDecodeHandler = null;
 		}
+
 		public void SetOpt( SocketOptionName optionName, object opt ) => this.socket.SetSocketOption( SocketOptionLevel.Socket, optionName, opt );
 
 		public bool StartReceive()
@@ -131,14 +137,14 @@ namespace Core.Net
 			if ( recvEventArgs.SocketError != SocketError.Success )
 			{
 				//网络错误
-				this.OnError( $"receive error, remote endpoint:{this.socket.RemoteEndPoint}, code:{recvEventArgs.SocketError}" );
+				this.OnError( $"receive error, remote endpoint:{this.remoteEndPoint}, code:{recvEventArgs.SocketError}" );
 				return;
 			}
 			int size = recvEventArgs.BytesTransferred;
 			if ( size == 0 )
 			{
 				//远端可能已经关闭连接
-				this.OnError( $"Receive zero bytes, remote endpoint: {this.socket.RemoteEndPoint}, code:{SocketError.NoData}" );
+				this.OnError( $"Receive zero bytes, remote endpoint: {this.remoteEndPoint}, code:{SocketError.NoData}" );
 				return;
 			}
 			//写入缓冲区

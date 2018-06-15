@@ -23,58 +23,68 @@ namespace GateServer.Net
 			#endregion
 		}
 
+		/// <summary>
+		/// 客户端请求登录网关服务器
+		/// </summary>
 		private EResult OnMsgToGstoCsfromGcAskLogin( uint nsID, byte[] data, int offset, int size, int msgID )
 		{
-			bool bLogMsgFlag = false;
-			GCToCS.Login ploginMsg = new GCToCS.Login();
+			bool logMsgFlag = false;
+			GCToCS.Login loginMsg = new GCToCS.Login();
 
-			GCToCS.Login pLogin = new GCToCS.Login();
-			pLogin.MergeFrom( data, offset, size );
+			GCToCS.Login login = new GCToCS.Login();
+			login.MergeFrom( data, offset, size );
 
 			//验证token
-			if ( !GSKernel.instance.gsStorage.IsUserCanLogin( pLogin.Name, pLogin.Passwd, nsID ) )
+			//正常登录流程是连接到登录服务器,再通过负载均衡服务器把消息转发给合适的网关服务器
+			//如果客户端绕过上述过程直接连接网关服务器并请求登录,则是非法操作
+			if ( !GSKernel.instance.gsStorage.IsUserCanLogin( login.Name, login.Passwd, nsID ) )
 			{
-				Logger.Error( $"user {pLogin.Name} can't login with token {pLogin.Passwd}" );
-				GSToGC.NetClash sMsg = new GSToGC.NetClash();
-				this.PostToGameClient( nsID, sMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyNetClash );
-				this.PostGameClientDisconnect( nsID );
+				Logger.Error( $"user {login.Name} can't login with token {login.Passwd}" );
+				GSToGC.NetClash msg = new GSToGC.NetClash();
+				//断开连接
+				GSKernel.instance.PostToGameClient( nsID, msg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyNetClash );
+				GSKernel.instance.PostGameClientDisconnect( nsID );
 				return EResult.Normal;
 			}
 			//获取IP
-			INetSession pClient = GSKernel.instance.netSessionMrg.GetSession( nsID );
+			INetSession pClient = GSKernel.instance.GetSession( nsID );
 			if ( null != pClient )
 			{
-				EndPoint endPoint = pClient.connection.socket.RemoteEndPoint;
+				EndPoint endPoint = pClient.connection.remoteEndPoint;
 				if ( endPoint == null )
 				{
-					Logger.Error( $"user {pLogin.Name} can't login with IP is null" );
-					this.PostGameClientDisconnect( nsID );
+					Logger.Error( $"user {login.Name} can't login with IP is null" );
+					GSKernel.instance.PostGameClientDisconnect( nsID );
 					return EResult.Normal;
 				}
-				bLogMsgFlag = true;
-				ploginMsg.Platform = pLogin.Platform;
-				ploginMsg.Sdk = pLogin.Sdk;
-				ploginMsg.Name = pLogin.Name;
-				ploginMsg.Passwd = pLogin.Passwd;
-				ploginMsg.Equimentid = pLogin.Equimentid;
-				ploginMsg.Ipaddress = endPoint.ToString();
-				Logger.Log( $"client({nsID}) ask login({ploginMsg.Name})({ploginMsg.Passwd})" );
+				logMsgFlag = true;
+				loginMsg.Platform = login.Platform;
+				loginMsg.Sdk = login.Sdk;
+				loginMsg.Name = login.Name;
+				loginMsg.Passwd = login.Passwd;
+				loginMsg.Equimentid = login.Equimentid;
+				loginMsg.Ipaddress = endPoint.ToString();
+				Logger.Log( $"client({nsID}) ask login({loginMsg.Name})({loginMsg.Passwd})" );
 			}
-			this.TransToCS( nsID, data, offset, size, msgID, bLogMsgFlag, ploginMsg );
+			//把登录信息转发到中心服务器
+			this.TransToCS( nsID, data, offset, size, msgID, logMsgFlag, loginMsg );
 			return EResult.Normal;
 		}
 
+		/// <summary>
+		/// 客户端请求重新登录
+		/// </summary>
 		private EResult OnMsgToGstoCsfromGcAskReconnectGame( uint nsID, byte[] data, int offset, int size, int msgID )
 		{
-			GCToCS.ReconnectToGame pReconnectToGame = new GCToCS.ReconnectToGame();
-			pReconnectToGame.MergeFrom( data, offset, size );
+			GCToCS.ReconnectToGame reconnectToGame = new GCToCS.ReconnectToGame();
+			reconnectToGame.MergeFrom( data, offset, size );
 			//验证token
-			if ( !GSKernel.instance.gsStorage.IsUserCanLogin( pReconnectToGame.Name, pReconnectToGame.Passwd, nsID ) )
+			if ( !GSKernel.instance.gsStorage.IsUserCanLogin( reconnectToGame.Name, reconnectToGame.Passwd, nsID ) )
 			{
-				Logger.Error( $"user {pReconnectToGame.Name} can't login with token {pReconnectToGame.Passwd}" );
-				GSToGC.NetClash sMsg = new GSToGC.NetClash();
-				this.PostToGameClient( nsID, sMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyNetClash );
-				this.PostGameClientDisconnect( nsID );
+				Logger.Error( $"user {reconnectToGame.Name} can't login with token {reconnectToGame.Passwd}" );
+				GSToGC.NetClash msg = new GSToGC.NetClash();
+				GSKernel.instance.PostToGameClient( nsID, msg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyNetClash );
+				GSKernel.instance.PostGameClientDisconnect( nsID );
 			}
 			return EResult.Normal;
 		}
@@ -88,22 +98,22 @@ namespace GateServer.Net
 				Time = msgPing.Time,
 				Flag = 1
 			};
-			this.PostToGameClient( nsID, retMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsGcaskPingRet );
+			GSKernel.instance.PostToGameClient( nsID, retMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsGcaskPingRet );
 			return EResult.Normal;
 		}
 
-		private void TransToCS( uint nsID, byte[] data, int offset, int size, int msgID, bool bLogMsgFlag, GCToCS.Login ploginMsg )
+		private void TransToCS( uint nsID, byte[] data, int offset, int size, int msgID, bool logMsgFlag, GCToCS.Login loginMsg )
 		{
 			//确保已经连接到中心服务器
 			if ( GSKernel.instance.gsStorage.csNetSessionId > 0 )
 			{
-				if ( bLogMsgFlag )
+				if ( logMsgFlag )
 				{
-					byte[] data2 = ploginMsg.ToByteArray();
-					GSKernel.instance.netSessionMrg.TranMsgToSession( SessionType.ClientG2C, data2, 0, data2.Length, msgID, ( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, nsID );
+					byte[] data2 = loginMsg.ToByteArray();
+					GSKernel.instance.TranMsgToSession( SessionType.ClientG2C, data2, 0, data2.Length, msgID, ( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, nsID );
 				}
 				else
-					GSKernel.instance.netSessionMrg.TranMsgToSession( SessionType.ClientG2C, data, offset, size, msgID, ( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, nsID );
+					GSKernel.instance.TranMsgToSession( SessionType.ClientG2C, data, offset, size, msgID, ( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, nsID );
 			}
 			else
 				Logger.Warn( $"invalid CSNetSessionId:{GSKernel.instance.gsStorage.csNetSessionId}" );
@@ -115,7 +125,13 @@ namespace GateServer.Net
 				handler( nsID, data, offset, size, msgID );
 			else
 			{
-				if ( msgID > ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcBegin && msgID < ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcEnd )
+				if ( msgID > ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcBegin &&
+					 msgID < ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcEnd )
+				{
+					this.TransToCS( nsID, data, offset, size, msgID, false, null );
+				}
+				else if ( msgID > ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcBegin &&
+						  msgID < ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcEnd )
 				{
 					GSSSInfo ssInfo = GSKernel.instance.gsStorage.GetUserSSInfo( nsID );
 					if ( ssInfo == null )
@@ -123,15 +139,15 @@ namespace GateServer.Net
 					else
 					{
 						if ( ssInfo.nsID > 0 )
-							GSKernel.instance.netSessionMrg.TranMsgToSession( ssInfo.nsID, data, offset, size, msgID,
-																			  ( int )GSToSS.MsgID.EMsgToSsfromGsReportGcmsg, nsID );
+							GSKernel.instance.TranMsgToSession( ssInfo.nsID, data, offset, size, msgID,
+																( int )GSToSS.MsgID.EMsgToSsfromGsReportGcmsg, nsID );
 						else
 							Logger.Error( $"invalid ssID:{ssInfo.nsID}!!" );
 					}
 				}
 				else
 				{
-					Logger.Error( $"unknown msg with Protocal id:{msgID}, offset:{offset}, size:{size}, nsID:{nsID}" );
+					Logger.Error( $"unknown msg with protocal id:{msgID}, offset:{offset}, size:{size}, nsID:{nsID}" );
 					return ErrorCode.EC_InvalidMsgProtocalID;
 				}
 			}

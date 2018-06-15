@@ -21,10 +21,6 @@ namespace Shared.Net
 			this._events.Clear();
 		}
 
-		public void AddSession( NetSession session ) => this._idToSession[session.id] = session;
-
-		public bool RemoveSession( NetSession session ) => this._idToSession.Remove( session.id );
-
 		/// <summary>
 		/// 创建监听器
 		/// </summary>
@@ -82,6 +78,10 @@ namespace Shared.Net
 
 		protected abstract CliSession CreateConnectorSession( SessionType sessionType );
 
+		public void AddSession( NetSession session ) => this._idToSession[session.id] = session;
+
+		public bool RemoveSession( NetSession session ) => this._idToSession.Remove( session.id );
+
 		/// <summary>
 		/// 获取指定id的session
 		/// </summary>
@@ -92,7 +92,7 @@ namespace Shared.Net
 		}
 
 		/// <summary>
-		/// 发送消息到指定的地方session
+		/// 发送消息到指定的session
 		/// </summary>
 		/// <param name="sessionId">session id</param>
 		/// <param name="msg">消息</param>

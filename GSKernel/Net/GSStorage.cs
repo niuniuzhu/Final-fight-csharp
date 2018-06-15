@@ -34,7 +34,7 @@ namespace GateServer.Net
 		public long overTime;
 		public uint reconnectCount;
 		public uint netSessionID;
-	};
+	}
 
 	public class GSStorage
 	{
@@ -45,6 +45,7 @@ namespace GateServer.Net
 
 		#region user to ssInfo
 		private readonly Dictionary<uint, GSSSInfo> _user2SSInfoMap = new Dictionary<uint, GSSSInfo>();
+		private readonly List<uint> _userToDelete = new List<uint>();
 
 		/// <summary>
 		/// 添加场景服务器信息
@@ -70,6 +71,23 @@ namespace GateServer.Net
 		/// 是否包含指定场景服务器id的信息
 		/// </summary>
 		public bool ContainsUserSSInfo( uint gcNetID ) => this._user2SSInfoMap.ContainsKey( gcNetID );
+
+		public void OnSSClosed( GSSSInfo ssInfo )
+		{
+			foreach ( KeyValuePair<uint, GSSSInfo> kv in this._user2SSInfoMap )
+			{
+				if ( ssInfo != kv.Value )
+					continue;
+				GSKernel.instance.PostGameClientDisconnect( kv.Key );
+				this._userToDelete.Add( kv.Key );
+			}
+			int count = this._userToDelete.Count;
+			if ( count <= 0 )
+				return;
+			for ( int i = 0; i < count; i++ )
+				this._user2SSInfoMap.Remove( this._userToDelete[i] );
+			this._userToDelete.Clear();
+		}
 		#endregion
 
 		#region ssInfo
@@ -99,11 +117,10 @@ namespace GateServer.Net
 		/// </summary>
 		public bool ContainsSSInfo( int ssID ) => this._GSSSInfoMap.ContainsKey( ssID );
 
-
 		/// <summary>
 		/// 向每个场景服务器发送ping
 		/// </summary>
-		private EResult PingSS( long utcTime )
+		public EResult PingSS( long utcTime )
 		{
 			if ( this._GSSSInfoMap.Count == 0 )
 				return EResult.Normal;
@@ -119,7 +136,7 @@ namespace GateServer.Net
 
 				GSToSS.AskPing sMsg = new GSToSS.AskPing { Time = utcTime };
 				byte[] data = sMsg.ToByteArray();
-				GSKernel.instance.netSessionMrg.TranMsgToSession( ssInfo.nsID, data, 0, data.Length, ( int )GSToSS.MsgID.EMsgToSsfromGsAskPing, 0, 0 );
+				GSKernel.instance.TranMsgToSession( ssInfo.nsID, data, 0, data.Length, ( int )GSToSS.MsgID.EMsgToSsfromGsAskPing, 0, 0 );
 				ssInfo.pingTickCounter = utcTime;
 			}
 			return EResult.Normal;
@@ -129,16 +146,16 @@ namespace GateServer.Net
 		#region usertoken
 		private readonly Dictionary<string, SUserToken> _userTokenList = new Dictionary<string, SUserToken>();
 		private readonly Dictionary<uint, SUserToken> _userTokenListByNsId = new Dictionary<uint, SUserToken>();
-		private readonly List<string> _tobeDeletes = new List<string>();
+		private readonly List<string> _tokensToDelete = new List<string>();
 		private long _lastReprot;
 		private long _nextReportTime;
 
-		public void AddUserToken( string sUserName, string sToken )
+		public void AddUserToken( string userName, string token )
 		{
-			if ( !this._userTokenList.TryGetValue( sUserName, out SUserToken userToken ) )
+			if ( !this._userTokenList.TryGetValue( userName, out SUserToken userToken ) )
 				userToken = new SUserToken();
-			userToken.userName = sUserName;
-			userToken.userToken = sToken;
+			userToken.userName = userName;
+			userToken.userToken = token;
 			userToken.overTime = TimeUtils.utcTime + 60000;
 			if ( userToken.netSessionID > 0 )
 			{
@@ -146,6 +163,7 @@ namespace GateServer.Net
 				userToken.netSessionID = 0;
 			}
 			userToken.reconnectCount = 0;
+			this._userTokenList[userName] = userToken;
 		}
 
 		public void ClearAllUserToken()
@@ -154,19 +172,19 @@ namespace GateServer.Net
 			this._userTokenListByNsId.Clear();
 		}
 
-		public bool IsUserCanLogin( string sUserName, string sToken, uint nsId )
+		public bool IsUserCanLogin( string userName, string token, uint nsId )
 		{
 			if ( GSKernel.instance.gsConfig.n32SkipBalance > 0 )
 				return true;
 
-			if ( !this._userTokenList.TryGetValue( sUserName, out SUserToken userToken ) )
+			if ( !this._userTokenList.TryGetValue( userName, out SUserToken userToken ) )
 				return false;
 
-			if ( userToken.userToken == sToken )
+			if ( userToken.userToken == token )
 			{
 				++userToken.reconnectCount;
 				if ( userToken.reconnectCount > int.MaxValue )
-					this._userTokenList.Remove( sUserName ); //最大重练次数限制
+					this._userTokenList.Remove( userName ); //最大重练次数限制
 				else
 				{
 					if ( userToken.netSessionID > 0 )
@@ -183,20 +201,15 @@ namespace GateServer.Net
 
 		public void OnUserLost( uint nsId )
 		{
-			if ( this._userTokenListByNsId.TryGetValue( nsId, out SUserToken userToken ) )
-			{
-				userToken.netSessionID = 0;
-				userToken.overTime = TimeUtils.utcTime + 60000;
-				this._userTokenListByNsId.Remove( nsId );
-			}
+			this._userTokenListByNsId.Remove( nsId );
 
 			GSToCS.UserOffLine sUserOffLineToCs = new GSToCS.UserOffLine();
 			sUserOffLineToCs.Usernetid = ( int )nsId;
 			byte[] data = sUserOffLineToCs.ToByteArray();
-			GSKernel.instance.netSessionMrg.TranMsgToSession( SessionType.ClientG2C, data, 0, data.Length, ( int )GSToCS.MsgID.EMsgToCsfromGsUserOffLine, 0, 0 );
+			GSKernel.instance.TranMsgToSession( SessionType.ClientG2C, data, 0, data.Length, ( int )GSToCS.MsgID.EMsgToCsfromGsUserOffLine, 0, 0 );
 		}
 
-		private EResult ChechUserToken( long time )
+		public EResult ChechUserToken( long time )
 		{
 			if ( time < this._lastReprot )
 				return EResult.Normal;
@@ -208,21 +221,24 @@ namespace GateServer.Net
 				if ( userToken.netSessionID == 0 &&
 					 time > userToken.overTime )//最大重练超时限制
 				{
-					this._tobeDeletes.Add( kv.Key );
+					this._tokensToDelete.Add( kv.Key );
 				}
 			}
 
-			int count = this._tobeDeletes.Count;
+			int count = this._tokensToDelete.Count;
 			if ( count > 0 )
 			{
 				for ( int i = 0; i < count; i++ )
-					this._userTokenList.Remove( this._tobeDeletes[i] );
-				this._tobeDeletes.Clear();
+					this._userTokenList.Remove( this._tokensToDelete[i] );
+				this._tokensToDelete.Clear();
 			}
 			return EResult.Normal;
 		}
 
-		private EResult ReportGsInfo( long time )
+		/// <summary>
+		/// 向负载均衡服务器报告网关服务器的状态
+		/// </summary>
+		public EResult ReportGsInfo( long time )
 		{
 			if ( this._nextReportTime > time )
 				return EResult.Normal;
@@ -230,16 +246,9 @@ namespace GateServer.Net
 
 			GSToBS.ReportAllClientInf sMsg = new GSToBS.ReportAllClientInf();
 			sMsg.TokenlistSize = ( uint )this._userTokenList.Count;
-			GSKernel.instance.netSessionMrg.SendMsgToSession( SessionType.ClientG2B, sMsg, ( int )GSToBS.MsgID.EMsgToBsfromGsReportAllClientInfo );
+			GSKernel.instance.SendMsgToSession( SessionType.ClientG2B, sMsg, ( int )GSToBS.MsgID.EMsgToBsfromGsReportAllClientInfo );
 			return EResult.Normal;
 		}
 		#endregion
-
-		public void OnHeartBeat( UpdateContext context )
-		{
-			this.PingSS( context.utcTime );
-			this.ChechUserToken( context.utcTime );
-			this.ReportGsInfo( context.utcTime );
-		}
 	}
 }

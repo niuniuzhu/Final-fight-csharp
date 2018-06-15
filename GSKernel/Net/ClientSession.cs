@@ -3,7 +3,7 @@ using Shared.Net;
 
 namespace GateServer.Net
 {
-	public abstract class ClientSession : SrvCliSession
+	public class ClientSession : SrvCliSession
 	{
 		private bool _logicInited;
 
@@ -12,19 +12,23 @@ namespace GateServer.Net
 			this._handlerContainer.Register( ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcBegin, this.MsgInitHandler );
 		}
 
+		protected override void SendInitData()
+		{
+		}
+
 		protected override void OnRealEstablish()
 		{
 			if ( this._logicInited )
 				return;
 			this._logicInited = true;
-			Logger.Log( $"client({this.id})({this.connection.socket.RemoteEndPoint}) connected." );
+			Logger.Log( $"client({this.id})({this.connection.remoteEndPoint}) connected." );
 		}
 
 		protected override void OnClose()
 		{
 			if ( this._logicInited )
 			{
-				Logger.Log( $"client({this.id})({this.connection.socket.RemoteEndPoint}) disconnected." );
+				Logger.Log( $"client({this.id})({this.connection.remoteEndPoint}) disconnected." );
 				GSKernel.instance.gsStorage.OnUserLost( this.id );
 				this._logicInited = false;
 			}

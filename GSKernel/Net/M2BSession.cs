@@ -20,7 +20,7 @@ namespace GateServer.Net
 				Gsid = GSKernel.instance.gsConfig.n32GSID,
 				Listenport = GSKernel.instance.gsConfig.n32GCListenPort
 			};
-			GSKernel.instance.netSessionMrg.SendMsgToSession( this.id, askRegister, ( int )GSToBS.MsgID.EMsgToBsfromGsAskRegister );
+			GSKernel.instance.SendMsgToSession( this.id, askRegister, ( int )GSToBS.MsgID.EMsgToBsfromGsAskRegister );
 		}
 
 		protected override void OnRealEstablish()

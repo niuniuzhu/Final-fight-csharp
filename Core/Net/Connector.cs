@@ -97,6 +97,8 @@ namespace Core.Net
 				return;
 			}
 			this.session.connection.socket = this.socket;
+			this.session.connection.localEndPoint = this.socket.LocalEndPoint;
+			this.session.connection.remoteEndPoint = this.socket.RemoteEndPoint;
 			this.session.connection.recvBufSize = this.recvBufSize;
 			this.session.connection.packetEncodeHandler = this.packetEncodeHandler;
 			this.session.connection.packetDecodeHandler = this.packetDecodeHandler;

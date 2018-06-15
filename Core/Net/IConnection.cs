@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System.Net;
+using System.Net.Sockets;
 
 namespace Core.Net
 {
@@ -8,6 +9,16 @@ namespace Core.Net
 		/// 此连接持有的Socket实例
 		/// </summary>
 		Socket socket { get; set; }
+
+		/// <summary>
+		/// 远程终端
+		/// </summary>
+		EndPoint remoteEndPoint { get; set; }
+
+		/// <summary>
+		/// 本地终端
+		/// </summary>
+		EndPoint localEndPoint { get; set; }
 
 		/// <summary>
 		/// 此连接关联的session

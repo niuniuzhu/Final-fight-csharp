@@ -45,7 +45,7 @@ namespace GateServer.Net
 		/// </summary>
 		private EResult OnMsgFromCS_OrderOpenListen( byte[] data, int offset, int size )
 		{
-			GSKernel.instance.netSessionMrg.CreateListener( GSKernel.instance.gsConfig.n32GCListenPort, 10240, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 0 );
+			GSKernel.instance.CreateListener( GSKernel.instance.gsConfig.n32GCListenPort, 10240, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 0 );
 			return EResult.Normal;
 		}
 
@@ -54,7 +54,7 @@ namespace GateServer.Net
 		/// </summary>
 		private EResult OnMsgFromCS_OrderCloseListen( byte[] data, int offset, int size )
 		{
-			GSKernel.instance.netSessionMrg.StopListener( 0 );
+			GSKernel.instance.StopListener( 0 );
 			return EResult.Normal;
 		}
 
@@ -65,7 +65,7 @@ namespace GateServer.Net
 		{
 			CSToGS.OrderKickoutGC orderKickoutGC = new CSToGS.OrderKickoutGC();
 			orderKickoutGC.MergeFrom( data, offset, size );
-			this.PostGameClientDisconnect( ( uint )orderKickoutGC.Gcnid );
+			GSKernel.instance.PostGameClientDisconnect( ( uint )orderKickoutGC.Gcnid );
 			return EResult.Normal;
 		}
 
@@ -117,11 +117,11 @@ namespace GateServer.Net
 			switch ( transID )
 			{
 				case ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc when gcNetID == 0:
-					this.BroadcastToGameClient( data, offset, size, msgID );
+					GSKernel.instance.BroadcastToGameClient( data, offset, size, msgID );
 					break;
 
 				case ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc:
-					this.PostToGameClient( gcNetID, data, offset, size, msgID );
+					GSKernel.instance.PostToGameClient( gcNetID, data, offset, size, msgID );
 					break;
 
 				default:

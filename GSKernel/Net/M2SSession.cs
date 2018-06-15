@@ -55,7 +55,7 @@ namespace GateServer.Net
 				return;
 			}
 			Logger.Info( $"SS({ssInfo.ssID}) DisConnect." );
-			//GSKernel.instance.OnEvent( EVT_ON_SS_DISCONNECT, pcSSInfo ); //todo
+			GSKernel.instance.gsStorage.OnSSClosed( ssInfo );
 			ssInfo.nsID = 0;
 		}
 

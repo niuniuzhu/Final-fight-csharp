@@ -33,9 +33,7 @@ namespace GateServer.Net
 
 			long curMilsec = TimeUtils.utcTime;
 			long tickSpan = curMilsec - pPingRet.Time;
-
 			Logger.Info( $"Ping SS {ssInfo.ssID} returned, Tick span {tickSpan}." );
-
 			return EResult.Normal;
 		}
 
@@ -47,7 +45,7 @@ namespace GateServer.Net
 			SSToGS.OrderKickoutGC orderKickoutGc = new SSToGS.OrderKickoutGC();
 			orderKickoutGc.MergeFrom( data, offset, size );
 
-			this.PostGameClientDisconnect( ( uint )orderKickoutGc.Gsnid );
+			GSKernel.instance.PostGameClientDisconnect( ( uint )orderKickoutGc.Gsnid );
 			return EResult.Normal;
 		}
 
@@ -58,11 +56,11 @@ namespace GateServer.Net
 		{
 			switch ( transID )
 			{
-				case ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc when gcNetID == 0:
-					this.BroadcastToGameClient( data, offset, size, msgID );
+				case ( int )SSToGS.MsgID.EMsgToGsfromSsOrderPostToGc when gcNetID == 0:
+					GSKernel.instance.BroadcastToGameClient( data, offset, size, msgID );
 					break;
 
-				case ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc:
+				case ( int )SSToGS.MsgID.EMsgToGsfromSsOrderPostToGc:
 					if ( msgID == ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyBattleBaseInfo )
 					{
 						//该消息的路由:ss-cs-gs-gc
@@ -70,7 +68,7 @@ namespace GateServer.Net
 						//当该消息流经gs时建立该客户端和场景信息的映射关系
 						GSKernel.instance.gsStorage.AddUserSSInfo( gcNetID, ssInfo );
 					}
-					this.PostToGameClient( gcNetID, data, offset, size, msgID );
+					GSKernel.instance.PostToGameClient( gcNetID, data, offset, size, msgID );
 					break;
 
 				default:

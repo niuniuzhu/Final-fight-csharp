@@ -86,7 +86,6 @@ namespace GateServer.Net
 				GSKernel.instance.gsStorage.ssConnectNum = 0;
 				for ( int i = 0; i < ssinfoCount; i++ )
 				{
-					// 消息解码//
 					if ( 0 == askRegisteRet.Ssinfo[i].Ssid )
 						continue;
 
@@ -98,14 +97,6 @@ namespace GateServer.Net
 					ssInfo.listenIp = askRegisteRet.Ssinfo[i].Ip.Replace( "\0", string.Empty );
 					ssInfo.listenPort = askRegisteRet.Ssinfo[i].Port;
 					ssInfo.ssNetState = ( EServerNetState )askRegisteRet.Ssinfo[i].Netstate;
-					ssInfo.nsID = 0;
-					ssInfo.connTimes = 0;
-					ssInfo.lastConnMilsec = 0;
-					ssInfo.pingTickCounter = 0;
-					ssInfo.msgReceived = 0;
-					ssInfo.msgSent = 0;
-					ssInfo.dataReceived = 0;
-					ssInfo.dataSent = 0;
 					GSKernel.instance.gsStorage.AddSSInfo( ssInfo.ssID, ssInfo );
 					if ( ssInfo.ssNetState == EServerNetState.SnsClosed )
 						continue;
@@ -130,7 +121,7 @@ namespace GateServer.Net
 			GSSSInfo pcSSInfo = GSKernel.instance.gsStorage.GetSSInfo( oneSsConnected.Ssid );
 			if ( pcSSInfo != null )
 			{
-				pcSSInfo.listenIp = oneSsConnected.Ip.Replace( "\0", string.Empty ); ;
+				pcSSInfo.listenIp = oneSsConnected.Ip.Replace( "\0", string.Empty );
 				pcSSInfo.listenPort = oneSsConnected.Port;
 				if ( pcSSInfo.ssNetState == EServerNetState.SnsClosed )
 				{

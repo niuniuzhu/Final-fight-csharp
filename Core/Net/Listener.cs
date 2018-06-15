@@ -114,18 +114,19 @@ namespace Core.Net
 
 		private void ProcessAccept( SocketAsyncEventArgs acceptEventArgs )
 		{
+			Socket acceptSocket = acceptEventArgs.AcceptSocket;
 			if ( acceptEventArgs.SocketError != SocketError.Success )
 			{
 				//网络错误
 				Logger.Error( $"process accept fail,code{acceptEventArgs.SocketError}" );
-				this.Close( acceptEventArgs.AcceptSocket );
+				this.Close( acceptSocket );
 				this.StartAccept( acceptEventArgs );
 				return;
 			}
 
 			if ( this._socket == null )
 			{
-				this.Close( acceptEventArgs.AcceptSocket );
+				this.Close( acceptSocket );
 				this.StartAccept( acceptEventArgs );
 				return;
 			}
@@ -135,11 +136,13 @@ namespace Core.Net
 			if ( session == null )
 			{
 				Logger.Error( "create session failed" );
-				this.Close( acceptEventArgs.AcceptSocket );
+				this.Close( acceptSocket );
 				this.StartAccept( acceptEventArgs );
 				return;
 			}
-			session.connection.socket = acceptEventArgs.AcceptSocket;
+			session.connection.socket = acceptSocket;
+			session.connection.localEndPoint = acceptSocket.LocalEndPoint;
+			session.connection.remoteEndPoint = acceptSocket.RemoteEndPoint;
 			session.connection.packetEncodeHandler = this.packetEncodeHandler;
 			session.connection.packetDecodeHandler = this.packetDecodeHandler;
 			session.connection.recvBufSize = this.recvBufSize;

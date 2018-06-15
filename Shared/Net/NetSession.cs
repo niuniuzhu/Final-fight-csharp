@@ -53,10 +53,7 @@ namespace Shared.Net
 			this._handlerContainer = new HandlerContainer();
 		}
 
-		public virtual void Dispose()
-		{
-			this.Close();
-		}
+		public virtual void Dispose() => this.Close();
 
 		/// <summary>
 		/// 关闭session

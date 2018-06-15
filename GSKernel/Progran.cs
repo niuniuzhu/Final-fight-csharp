@@ -11,7 +11,7 @@ namespace GateServer
 {
 	static class Progran
 	{
-		private const int HEART_BEAT_CD_TICK = 1;
+		private const int HEART_BEAT_CD_TICK = 10;
 
 		private static readonly SwitchQueue<string> INPUT_QUEUE = new SwitchQueue<string>();
 		private static bool _disposed;
