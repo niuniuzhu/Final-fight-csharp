@@ -6,7 +6,7 @@ namespace BalanceServer.Net
 {
 	public class GateSession : SrvCliSession
 	{
-		public GateSession( uint id ) : base( id )
+		protected GateSession( uint id ) : base( id )
 		{
 			this._msgHandler.Register( ( int )GSToBS.MsgID.EMsgToBsfromGsAskRegister, this.MsgAskRegister );
 			this._msgHandler.Register( ( int )GSToBS.MsgID.EMsgToBsfromGsReportAllClientInfo, this.MsgHandleReportGsInfo );
@@ -42,7 +42,7 @@ namespace BalanceServer.Net
 			int gsid = sAskRegister.Gsid;
 			int gsListener = sAskRegister.Listenport;
 
-			if ( !BS.instance.bsConfig.gAllGsInfo.TryGetValue( ( uint )this.logicID, out sOneGsInfo gsInfo ) )
+			if ( !BS.instance.bsConfig.gAllGsInfo.TryGetValue( ( uint )gsid, out sOneGsInfo gsInfo ) )
 			{
 				this.Close();
 				return true;
@@ -54,7 +54,7 @@ namespace BalanceServer.Net
 				return true;
 			}
 
-			if ( gsInfo.gs_Port != gsListener || gsInfo.gs_Ip != this.connection.remoteEndPoint.ToString() )
+			if ( gsInfo.gs_Port != gsListener || gsInfo.gs_Ip != this.connection.remoteEndPoint.ToString().Split( ':' )[0] )
 			{
 				this.Close();
 				return true;

@@ -24,7 +24,7 @@ namespace BalanceServer
 		public int gs_full_count;
 		public int gs_base_index;
 		public int gs_max_count;
-		public List<string> gs_ip_list;
+		public readonly List<string> gs_ip_list = new List<string>();
 		public int client_listen_port;
 		public string ls_ip;
 		public int ls_port;
@@ -44,18 +44,22 @@ namespace BalanceServer
 				return EResult.CfgFailed;
 			}
 
-			this.client_listen_port = json.GetInt( "ListernPortForClient" );
-			this.ls_ip = json.GetString( "LSIP" );
-			this.ls_port = json.GetInt( "LSPort" );
-			this.gs_listen_port = json.GetInt( "ListernPortForGate" );
-			this.gs_base_index = json.GetInt( "GateBaseIndex" );
-			this.gs_max_count = json.GetInt( "GateMaxCount" );
-			this.gs_full_count = json.GetInt( "GateFullCount" );
+			Hashtable mainGate = json.GetMap( "MainGate" );
+			Hashtable mainClient = json.GetMap( "MainClient" );
+			Hashtable mainLogin = json.GetMap( "MainLogin" );
+
+			this.client_listen_port = mainClient.GetInt( "ListernPortForClient" );
+			this.ls_ip = mainLogin.GetString( "LSIP" );
+			this.ls_port = mainLogin.GetInt( "LSPort" );
+			this.gs_listen_port = mainGate.GetInt( "ListernPortForGate" );
+			this.gs_base_index = mainGate.GetInt( "GateBaseIndex" );
+			this.gs_max_count = mainGate.GetInt( "GateMaxCount" );
+			this.gs_full_count = mainGate.GetInt( "GateFullCount" );
 
 			for ( int i = 1; i <= this.gs_max_count; ++i )
 			{
-				string server_address = json.GetString( $"GateServer{i}" );
-				string server_address_ex = json.GetString( $"GateServer{i}Export" );
+				string server_address = mainGate.GetString( $"GateServer{i}" );
+				string server_address_ex = mainGate.GetString( $"GateServer{i}Export" );
 				this.gs_ip_list.Add( server_address );
 				uint key = ( uint )( this.gs_base_index + i - 1 );
 				sOneGsInfo oneGsInfo = new sOneGsInfo();

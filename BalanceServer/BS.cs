@@ -11,13 +11,17 @@ namespace BalanceServer
 		private static BS _instance;
 		public static BS instance => _instance ?? ( _instance = new BS() );
 
-		public BSConfig bsConfig { get; private set; }
+		public BSConfig bsConfig { get; }
 
 		private readonly BSNetSessionMgr _netSessionMgr;
+		private readonly UpdateContext _context;
+		private long _timestamp;
 
 		private BS()
 		{
 			this._netSessionMgr = new BSNetSessionMgr();
+			this._context = new UpdateContext();
+			this.bsConfig = new BSConfig();
 		}
 
 		public void Dispose()
@@ -47,6 +51,28 @@ namespace BalanceServer
 
 		public void Update( long elapsed, long dt )
 		{
+			this._timestamp += dt;
+			while ( this._timestamp >= Consts.HEART_PACK )
+			{
+				++this._context.ticks;
+				this._context.utcTime = TimeUtils.utcTime;
+				this._context.time = elapsed;
+				this._context.deltaTime = Consts.HEART_PACK;
+				this._timestamp -= Consts.HEART_PACK;
+				EResult eResult = this.OnHeartBeat( this._context );
+				if ( EResult.Normal != eResult )
+				{
+					Logger.Error( $"fail with error code {eResult}!, please amend the error and try again!" );
+					return;
+				}
+			}
+			this._netSessionMgr.Update();
+		}
+
+		private EResult OnHeartBeat( UpdateContext context )
+		{
+			this._netSessionMgr.OnHeartBeat( context );
+			return EResult.Normal;
 		}
 	}
 }
