@@ -1,16 +1,16 @@
-﻿using System;
+﻿using Core.Math;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using Core.Misc;
 
 namespace Core.Structure
 {
-    /// <summary>
-    /// A copy of StablePriorityQueue which also has generic priority-type
-    /// </summary>
-    /// <typeparam name="TItem">The values in the queue.  Must extend the GenericPriorityQueue class</typeparam>
-    /// <typeparam name="TPriority">The priority-type.  Must extend IComparable&lt;TPriority&gt;</typeparam>
-    public sealed class GenericPriorityQueue<TItem, TPriority> : IFixedSizePriorityQueue<TItem, TPriority>
+	/// <summary>
+	/// A copy of StablePriorityQueue which also has generic priority-type
+	/// </summary>
+	/// <typeparam name="TItem">The values in the queue.  Must extend the GenericPriorityQueue class</typeparam>
+	/// <typeparam name="TPriority">The priority-type.  Must extend IComparable&lt;TPriority&gt;</typeparam>
+	public sealed class GenericPriorityQueue<TItem, TPriority> : IFixedSizePriorityQueue<TItem, TPriority>
         where TItem : GenericPriorityQueueNode<TPriority>
         where TPriority : IComparable<TPriority>
     {

@@ -1,5 +1,4 @@
-﻿using Core;
-using Core.Misc;
+﻿using Core.Misc;
 using Core.Net;
 
 namespace Shared.Net

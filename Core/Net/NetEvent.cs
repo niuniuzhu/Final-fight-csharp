@@ -1,6 +1,4 @@
-﻿using System.Net.Sockets;
-
-namespace Core.Net
+﻿namespace Core.Net
 {
 	public class NetEvent
 	{

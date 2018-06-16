@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core.Math;
+using System;
 using System.Text;
 
 namespace Core.XML
@@ -23,7 +24,7 @@ namespace Core.XML
 
 				pos1 = pos2 + 1;
 				pos2 = pos1;
-				int end = Math.Min( len, pos2 + 10 );
+				int end = MathUtils.Min( len, pos2 + 10 );
 				for ( ; pos2 < end; pos2++ )
 				{
 					if ( aSource[pos2] == ';' )

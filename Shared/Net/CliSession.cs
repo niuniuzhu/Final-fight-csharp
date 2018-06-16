@@ -1,5 +1,4 @@
-﻿using Core;
-using Core.Misc;
+﻿using Core.Misc;
 using Core.Net;
 using System.Net.Sockets;
 
@@ -52,7 +51,6 @@ namespace Shared.Net
 		{
 			Logger.Error( error );
 			this._reconFlag = true;
-			this.connector.Close();
 		}
 
 		public override void OnEstablish()

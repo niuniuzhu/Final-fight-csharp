@@ -29,13 +29,14 @@ namespace Shared.Net
 		/// <param name="socketType">套接字类型</param>
 		/// <param name="protoType">协议类型</param>
 		/// <param name="pos">在列表中的位置</param>
+		/// <param name="sessionCreateHandler">创建session的委托</param>
 		/// <returns></returns>
-		public bool CreateListener( int port, int recvsize, SocketType socketType, ProtocolType protoType, int pos )
+		public bool CreateListener( int port, int recvsize, SocketType socketType, ProtocolType protoType, int pos, SessionCreateHandler sessionCreateHandler )
 		{
 			if ( pos >= Consts.MAX_COUNT_LISTENER ) return false;
 			if ( this._listeners[pos] != null ) return false;
 			IListener listener = new Listener();
-			listener.sessionCreateHandler = this.CreateListenerSession;
+			listener.sessionCreateHandler = sessionCreateHandler;
 			listener.packetEncodeHandler = LengthEncoder.Encode;
 			listener.packetDecodeHandler = LengthEncoder.Decode;
 			listener.recvBufSize = recvsize;
@@ -73,8 +74,6 @@ namespace Shared.Net
 			if ( pos < Consts.MAX_COUNT_LISTENER )
 				this._listeners[pos].Stop();
 		}
-
-		protected abstract SrvCliSession CreateListenerSession();
 
 		protected abstract CliSession CreateConnectorSession( SessionType sessionType );
 

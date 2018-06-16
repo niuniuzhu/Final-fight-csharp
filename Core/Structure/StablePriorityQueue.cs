@@ -1,17 +1,17 @@
-﻿using System;
+﻿using Core.Math;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using Core.Misc;
 
 namespace Core.Structure
 {
-    /// <summary>
-    /// A copy of FastPriorityQueue which is also stable - that is, when two nodes are enqueued with the same priority, they
-    /// are always dequeued in the same order.
-    /// See https://github.com/BlueRaja/High-Speed-Priority-Queue-for-C-Sharp/wiki/Getting-Started for more information
-    /// </summary>
-    /// <typeparam name="T">The values in the queue.  Must extend the StablePriorityQueueNode class</typeparam>
-    public sealed class StablePriorityQueue<T> : IFixedSizePriorityQueue<T, float>
+	/// <summary>
+	/// A copy of FastPriorityQueue which is also stable - that is, when two nodes are enqueued with the same priority, they
+	/// are always dequeued in the same order.
+	/// See https://github.com/BlueRaja/High-Speed-Priority-Queue-for-C-Sharp/wiki/Getting-Started for more information
+	/// </summary>
+	/// <typeparam name="T">The values in the queue.  Must extend the StablePriorityQueueNode class</typeparam>
+	public sealed class StablePriorityQueue<T> : IFixedSizePriorityQueue<T, float>
         where T : StablePriorityQueueNode
     {
         private int _numNodes;

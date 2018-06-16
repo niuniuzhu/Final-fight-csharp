@@ -94,6 +94,7 @@ namespace Core.Net
 			if ( connectEventArgs.SocketError != SocketError.Success )
 			{
 				this.OnError( $"socket connect error, address:{this._ip}:{this._port}, code:{connectEventArgs.SocketError}" );
+				this.Close();
 				return;
 			}
 			this.session.connection.socket = this.socket;
