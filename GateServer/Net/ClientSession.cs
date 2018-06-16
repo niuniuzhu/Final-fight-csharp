@@ -9,7 +9,7 @@ namespace GateServer.Net
 
 		protected ClientSession( uint id ) : base( id )
 		{
-			this._handlerContainer.Register( ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcBegin, this.MsgInitHandler );
+			this._msgHandler.Register( ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcBegin, this.MsgInitHandler );
 		}
 
 		protected override void SendInitData()

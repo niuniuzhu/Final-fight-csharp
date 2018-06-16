@@ -9,7 +9,7 @@ namespace GateServer.Net
 	{
 		protected M2SSession( uint id ) : base( id )
 		{
-			this._handlerContainer.Register( ( int )SSToGS.MsgID.EMsgToGsfromSsAskRegisteRet, this.MsgInitHandler );
+			this._msgHandler.Register( ( int )SSToGS.MsgID.EMsgToGsfromSsAskRegisteRet, this.MsgInitHandler );
 		}
 
 		protected override void SendInitData()

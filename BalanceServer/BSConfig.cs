@@ -7,19 +7,19 @@ using System.IO;
 
 namespace BalanceServer
 {
+	public class sOneGsInfo
+	{
+		public bool gs_isLost;
+		public uint gs_nets;
+		public uint gs_gc_count;//gs 当前连接数//
+		public string gs_IpExport;//gs 对外公布地址//
+		public string gs_Ip;//gs 对内验证地址//
+		public int gs_Port;
+		public uint gs_Id;
+	}
+
 	public class BSConfig
 	{
-		public class sOneGsInfo
-		{
-			public bool gs_isLost;
-			public uint gs_nets;
-			public int gs_gc_count;//gs 当前连接数//
-			public string gs_IpExport;//gs 对外公布地址//
-			public string gs_Ip;//gs 对内验证地址//
-			public int gs_Port;
-			public uint gs_Id;
-		}
-
 		public int gs_listen_port;
 		public int gs_full_count;
 		public int gs_base_index;

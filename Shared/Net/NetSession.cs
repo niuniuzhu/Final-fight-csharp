@@ -11,7 +11,7 @@ namespace Shared.Net
 		public SessionType type { get; set; }
 		public IConnection connection { get; protected set; }
 
-		protected readonly HandlerContainer _handlerContainer;
+		protected readonly MsgHandler _msgHandler;
 
 		/// <summary>
 		/// 本地连接是否已经初始化的标记
@@ -49,7 +49,7 @@ namespace Shared.Net
 			this.connection = new Connection( this );
 
 			this._closed = true;
-			this._handlerContainer = new HandlerContainer();
+			this._msgHandler = new MsgHandler();
 		}
 
 		public virtual void Dispose() => this.Close();
@@ -128,7 +128,7 @@ namespace Shared.Net
 		{
 			if ( this._closed )
 				return;
-			if ( this._handlerContainer == null )
+			if ( this._msgHandler == null )
 				return;
 
 			//剥离第一层消息ID
@@ -136,7 +136,7 @@ namespace Shared.Net
 			offset += ByteUtils.Decode32i( data, offset, ref msgID );
 			size -= offset;
 			//检查是否注册了处理函数,否则调用未处理数据的函数
-			if ( this._handlerContainer.TryGetHandler( msgID, out MsgHandler handler ) )
+			if ( this._msgHandler.TryGetHandler( msgID, out MsgHandler.Handler handler ) )
 				handler.Invoke( data, offset, size, msgID );
 			else
 				this.HandleUnhandledMsg( data, offset, size, msgID );

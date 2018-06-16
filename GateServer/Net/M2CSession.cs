@@ -12,8 +12,8 @@ namespace GateServer.Net
 
 		protected M2CSession( uint id ) : base( id )
 		{
-			this._handlerContainer.Register( ( int )MsgID.EMsgToGsfromCsAskRegisteRet, this.MsgInitHandler );
-			this._handlerContainer.Register( ( int )MsgID.EMsgToGsfromCsOneSsconnected, this.MsgOneSSConnectedHandler );
+			this._msgHandler.Register( ( int )MsgID.EMsgToGsfromCsAskRegisteRet, this.MsgInitHandler );
+			this._msgHandler.Register( ( int )MsgID.EMsgToGsfromCsOneSsconnected, this.MsgOneSSConnectedHandler );
 		}
 
 		protected override void SendInitData()

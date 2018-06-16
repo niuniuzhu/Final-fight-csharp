@@ -2,16 +2,16 @@
 
 namespace Shared.Net
 {
-	public delegate bool MsgHandler( byte[] data, int offset, int size, int msgID );
-
 	/// <summary>
 	/// 消息处理器的容器
 	/// </summary>
-	public class HandlerContainer
+	public class MsgHandler
 	{
-		private readonly Dictionary<int, MsgHandler> _handlers = new Dictionary<int, MsgHandler>();
+		public delegate bool Handler( byte[] data, int offset, int size, int msgID );
 
-		public void Register( int msgID, MsgHandler handler )
+		private readonly Dictionary<int, Handler> _handlers = new Dictionary<int, Handler>();
+
+		public void Register( int msgID, Handler handler )
 		{
 			this._handlers[msgID] = handler;
 		}
@@ -21,7 +21,7 @@ namespace Shared.Net
 			return this._handlers.ContainsKey( msgID );
 		}
 
-		public bool TryGetHandler( int msgID, out MsgHandler handler )
+		public bool TryGetHandler( int msgID, out Handler handler )
 		{
 			return this._handlers.TryGetValue( msgID, out handler );
 		}
