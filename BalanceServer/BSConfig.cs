@@ -4,10 +4,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using Core.Net;
 
 namespace BalanceServer
 {
-	public class sOneGsInfo
+	public class OneGsInfo
 	{
 		public bool gs_isLost;
 		public uint gs_nets;
@@ -24,11 +25,11 @@ namespace BalanceServer
 		public int gs_full_count;
 		public int gs_base_index;
 		public int gs_max_count;
-		public readonly List<string> gs_ip_list = new List<string>();
 		public int client_listen_port;
 		public string ls_ip;
 		public int ls_port;
-		public readonly Dictionary<uint, sOneGsInfo> gAllGsInfo = new Dictionary<uint, sOneGsInfo>();
+		public readonly List<string> gs_ip_list = new List<string>();
+		public readonly Dictionary<uint, OneGsInfo> allGsInfo = new Dictionary<uint, OneGsInfo>();
 
 		public EResult Load()
 		{
@@ -40,7 +41,7 @@ namespace BalanceServer
 			}
 			catch ( Exception e )
 			{
-				Logger.Error( $"load GSCfg.xml failed for {e}\n" );
+				Logger.Error( $"load GSCfg failed for {e}\n" );
 				return EResult.CfgFailed;
 			}
 
@@ -62,12 +63,14 @@ namespace BalanceServer
 				string server_address_ex = mainGate.GetString( $"GateServer{i}Export" );
 				this.gs_ip_list.Add( server_address );
 				uint key = ( uint )( this.gs_base_index + i - 1 );
-				sOneGsInfo oneGsInfo = new sOneGsInfo();
-				oneGsInfo.gs_Id = key;
-				oneGsInfo.gs_nets = 0;
-				oneGsInfo.gs_isLost = true;
-				oneGsInfo.gs_gc_count = 0;
-				this.gAllGsInfo[key] = oneGsInfo;
+				OneGsInfo oneGsInfo = new OneGsInfo
+				{
+					gs_Id = key,
+					gs_nets = 0,
+					gs_isLost = true,
+					gs_gc_count = 0
+				};
+				this.allGsInfo[key] = oneGsInfo;
 				{
 					string[] pair = server_address.Split( ':' );
 					oneGsInfo.gs_Ip = pair[0];
@@ -77,9 +80,8 @@ namespace BalanceServer
 					string[] pair = server_address_ex.Split( ':' );
 					oneGsInfo.gs_IpExport = pair[0];
 					int exPos = int.Parse( pair[1] );
-					//todo
-					//if ( exPos > 0 )
-					//	gNetSessionMgr.getnetip( oneGsInfo.gs_IpExport, exPos - 1 );
+					if ( exPos > 0 )
+						Tools.GetNetIP( ref oneGsInfo.gs_IpExport, exPos - 1 );
 				}
 			}
 			return EResult.Normal;

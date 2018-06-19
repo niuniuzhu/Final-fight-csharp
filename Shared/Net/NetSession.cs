@@ -115,7 +115,7 @@ namespace Shared.Net
 		/// <summary>
 		/// 通信过程出现错误后调用
 		/// </summary>
-		public void OnError( string error )
+		public virtual void OnError( string error )
 		{
 			Logger.Error( error );
 			this.Close();

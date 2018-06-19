@@ -6,9 +6,9 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 
-namespace BalanceServer
+namespace LoginServer
 {
-	static class BSBootstrap
+	static class LSBootstrap
 	{
 		private const int HEART_BEAT_CD_TICK = 10;
 
@@ -17,20 +17,20 @@ namespace BalanceServer
 
 		static int Main( string[] args )
 		{
-			Console.Title = "bs id=1";
+			Console.Title = "ls id=1";
 
 			AssemblyName[] assemblies = Assembly.GetEntryAssembly().GetReferencedAssemblies();
 			foreach ( AssemblyName assembly in assemblies )
 				Assembly.Load( assembly );
 
-			Logger.Init( File.ReadAllText( @".\Config\BSLogCfg.xml" ), "BS" );
+			Logger.Init( File.ReadAllText( @".\Config\LSLogCfg.xml" ), "BS" );
 
 			_inputHandler = new InputHandler();
 			_inputHandler.cmdHandler = HandleInput;
 			_inputHandler.Start();
 
-			BS bs = BS.instance;
-			EResult eResult = bs.Initialize();
+			LS ls = LS.instance;
+			EResult eResult = ls.Initialize();
 
 			if ( EResult.Normal != eResult )
 			{
@@ -38,7 +38,7 @@ namespace BalanceServer
 				return 0;
 			}
 
-			eResult = bs.Start();
+			eResult = ls.Start();
 			if ( EResult.Normal != eResult )
 			{
 				Logger.Error( $"Start BS fail, error code is {eResult}" );
@@ -54,7 +54,7 @@ namespace BalanceServer
 		private static void Dispose()
 		{
 			_disposed = true;
-			BS.instance.Dispose();
+			LS.instance.Dispose();
 		}
 
 		private static void MainLoop()
@@ -65,7 +65,7 @@ namespace BalanceServer
 			while ( !_disposed )
 			{
 				long elapsed = sw.ElapsedMilliseconds;
-				BS.instance.Update( elapsed, elapsed - lastElapsed );
+				LS.instance.Update( elapsed, elapsed - lastElapsed );
 				_inputHandler.ProcessInput();
 				lastElapsed = elapsed;
 				Thread.Sleep( HEART_BEAT_CD_TICK );

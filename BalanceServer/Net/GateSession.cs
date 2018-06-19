@@ -26,7 +26,7 @@ namespace BalanceServer.Net
 
 		protected override void OnClose()
 		{
-			if ( !BS.instance.bsConfig.gAllGsInfo.TryGetValue( ( uint )this.logicID, out sOneGsInfo gsInfo ) )
+			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( ( uint )this.logicID, out OneGsInfo gsInfo ) )
 				return;
 
 			gsInfo.gs_isLost = true;
@@ -42,7 +42,7 @@ namespace BalanceServer.Net
 			int gsid = sAskRegister.Gsid;
 			int gsListener = sAskRegister.Listenport;
 
-			if ( !BS.instance.bsConfig.gAllGsInfo.TryGetValue( ( uint )gsid, out sOneGsInfo gsInfo ) )
+			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( ( uint )gsid, out OneGsInfo gsInfo ) )
 			{
 				this.Close();
 				return true;
@@ -69,7 +69,7 @@ namespace BalanceServer.Net
 
 		private bool MsgHandleReportGsInfo( byte[] data, int offset, int size, int msgid )
 		{
-			if ( !BS.instance.bsConfig.gAllGsInfo.TryGetValue( ( uint )this.logicID, out sOneGsInfo gsInfo ) )
+			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( ( uint )this.logicID, out OneGsInfo gsInfo ) )
 				return false;
 			GSToBS.ReportAllClientInf sMsg = new GSToBS.ReportAllClientInf();
 			sMsg.MergeFrom( data, offset, size );
@@ -79,7 +79,7 @@ namespace BalanceServer.Net
 
 		private bool MsgHandleOneUserLoginTokenRet( byte[] data, int offset, int size, int msgid )
 		{
-			if ( !BS.instance.bsConfig.gAllGsInfo.TryGetValue( ( uint )this.logicID, out sOneGsInfo gsInfo ) )
+			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( ( uint )this.logicID, out OneGsInfo gsInfo ) )
 			{
 				Logger.Error( "can not find GS for loginer." );
 				return false;

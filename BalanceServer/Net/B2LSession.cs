@@ -52,10 +52,10 @@ namespace BalanceServer.Net
 				this.owner.DisconnectOne( userLoginInfo.Nsid );
 			else
 			{
-				sOneGsInfo littleOne = null;
-				foreach ( KeyValuePair<uint, sOneGsInfo> kv in BS.instance.bsConfig.gAllGsInfo )
+				OneGsInfo littleOne = null;
+				foreach ( KeyValuePair<uint, OneGsInfo> kv in BS.instance.bsConfig.allGsInfo )
 				{
-					sOneGsInfo theGsInfo = kv.Value;
+					OneGsInfo theGsInfo = kv.Value;
 					if ( theGsInfo.gs_isLost )
 						continue;
 					if ( littleOne == null || theGsInfo.gs_gc_count < littleOne.gs_gc_count )

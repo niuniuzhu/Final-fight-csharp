@@ -360,7 +360,32 @@ namespace Shared
 		Ec_MailHasRecv, //邮件已经领取 
 		EC_HavedPerpetualHero,
 		EC_InvalidPara,
-	};
+	}
+
+	public enum EUserPlatform
+	{
+		//ios
+		ePlatform_PC = 0,
+		ePlatformiOS_91 = 1,
+		ePlatformiOS_TB = 2,
+		ePlatformiOS_PP = 3,
+		ePlatformiOS_CMGE = 4,
+		ePlatformiOS_UC = 5,
+		ePlatformiOS_iTools = 6,
+		ePlatformiOS_OnlineGame = 7,
+		ePlatformiOS_As = 8,
+		ePlatformiOS_XY = 9,
+		ePlatformiOS_CMGE_ZB = 10,
+
+		//android
+		ePlatformAndroid_CMGE = 104,
+		ePlatformAndroid_UC = 105,
+
+		//其他
+		ePlatformiOS_CMGEInfo = 304,
+		//RC use
+		ePlatform_All = 1000,
+	}
 
 	public static class Consts
 	{
