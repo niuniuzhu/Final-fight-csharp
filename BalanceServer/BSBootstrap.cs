@@ -17,7 +17,7 @@ namespace BalanceServer
 
 		static int Main( string[] args )
 		{
-			Console.Title = "bs id=1";
+			Console.Title = "BS";
 
 			AssemblyName[] assemblies = Assembly.GetEntryAssembly().GetReferencedAssemblies();
 			foreach ( AssemblyName assembly in assemblies )

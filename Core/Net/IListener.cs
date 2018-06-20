@@ -37,13 +37,12 @@ namespace Core.Net
 		/// <summary>
 		/// 开始监听
 		/// </summary>
-		/// <param name="ip">本地ip</param>
 		/// <param name="port">本地端口</param>
 		/// <param name="socketType">套接字类型</param>
 		/// <param name="protoType">协议类型</param>
 		/// <param name="reuseAddr">是否端口重用</param>
 		/// <returns>操作是否成功</returns>
-		bool Start( string ip, int port, SocketType socketType, ProtocolType protoType, bool reuseAddr = true );
+		bool Start( int port, SocketType socketType, ProtocolType protoType, bool reuseAddr = true );
 
 		/// <summary>
 		/// 停止监听

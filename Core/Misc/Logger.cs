@@ -5,12 +5,18 @@ using log4net.Repository;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace Core.Misc
 {
+	/// <summary>
+	/// 日志输出类
+	/// 此类不保证线程安全
+	/// </summary>
 	public static class Logger
 	{
+		private static readonly StringBuilder SB = new StringBuilder();
 		private static ILog _log;
 
 		public static void Init( string config, string domain )
@@ -30,32 +36,32 @@ namespace Core.Misc
 
 		public static void Debug( object obj )
 		{
-			_log.Debug( obj + Environment.NewLine + GetStacks() );
+			_log.Debug( $"{obj}{Environment.NewLine}{ GetStacks( 2, 100 )}" );
 		}
 
 		public static void Log( object obj )
 		{
-			_log.Debug( obj );
+			_log.Debug( $"{ GetStacks( 2, 1 )}: {obj}" );
 		}
 
 		public static void Warn( object obj )
 		{
-			_log.Warn( obj );
+			_log.Warn( $"{ GetStacks( 2, 1 )}: {obj}" );
 		}
 
 		public static void Error( object obj )
 		{
-			_log.Error( obj );
+			_log.Error( $"{ GetStacks( 2, 1 )}: {obj}" );
 		}
 
 		public static void Info( object obj )
 		{
-			_log.Info( obj );
+			_log.Info( $"{ GetStacks( 2, 1 )}: {obj}" );
 		}
 
 		public static void Fatal( object obj )
 		{
-			_log.Fatal( obj );
+			_log.Fatal( $"{obj}{Environment.NewLine}{ GetStacks( 2, 100 )}" );
 		}
 
 		private static Stream GenerateStreamFromString( string s )
@@ -68,25 +74,24 @@ namespace Core.Misc
 			return stream;
 		}
 
-		private static string GetStacks()
+		private static string GetStacks( int startFrame, int count )
 		{
 			StackTrace st = new StackTrace( true );
-			if ( st.FrameCount < 2 )
+			int endFrame = startFrame + count - 1;
+			endFrame = MathUtils.Min( st.FrameCount, endFrame );
+			if ( startFrame > endFrame )
 				return string.Empty;
 
-			StringBuilder sb = new StringBuilder();
-			int count = MathUtils.Min( st.FrameCount, 5 );
-			for ( int i = 2; i < count; i++ )
+			SB.Clear();
+			for ( int i = startFrame; i <= endFrame; i++ )
 			{
 				StackFrame sf = st.GetFrame( i );
-				string fn = sf.GetFileName();
-				int pos = fn.LastIndexOf( '\\' ) + 1;
-				fn = fn.Substring( pos, fn.Length - pos );
-				sb.Append( $" M:{sf.GetMethod()} in {fn}:{sf.GetFileLineNumber()},{sf.GetFileColumnNumber()}" );
-				if ( i != count - 1 )
-					sb.AppendLine();
+				MethodBase method = sf.GetMethod();
+				SB.Append( $"{method.DeclaringType.FullName}::{method.Name}:{sf.GetFileLineNumber()}" );
+				if ( i != endFrame )
+					SB.AppendLine();
 			}
-			return sb.ToString();
+			return SB.ToString();
 		}
 	}
 }

@@ -15,13 +15,6 @@ namespace LoginServer
 		public uint plat;
 	}
 
-	public class UserLoginData
-	{
-		public uint platFrom;
-		public string sessionid;
-		public string uin;
-	}
-
 	public class OneBsInfo
 	{
 		public bool bs_isLost;
@@ -46,7 +39,7 @@ namespace LoginServer
 		public int bs_max_count;
 		public int client_listen_port;
 		public readonly Dictionary<uint, OneBsInfo> allBsInfo = new Dictionary<uint, OneBsInfo>();
-		public readonly Dictionary<uint, ServerAddr> gAllServerAddr = new Dictionary<uint, ServerAddr>();
+		public readonly List<ServerAddr> gAllServerAddr = new List<ServerAddr>();
 
 		public EResult Load()
 		{
@@ -58,7 +51,7 @@ namespace LoginServer
 			}
 			catch ( Exception e )
 			{
-				Logger.Error( $"load GSCfg failed for {e}\n" );
+				Logger.Error( $"load LSCfg failed for {e}\n" );
 				return EResult.CfgFailed;
 			}
 
@@ -92,7 +85,7 @@ namespace LoginServer
 					oneBsInfo.bs_IpExport = pair[0];
 					int exPos = int.Parse( pair[1] );
 					if ( exPos > 0 )
-						Tools.GetNetIP( ref oneBsInfo.bs_IpExport, exPos - 1 );
+						Tools.GetNetIP( ref oneBsInfo.bs_IpExport, exPos );
 				}
 			}
 			return this.LoadServerList();
@@ -119,11 +112,13 @@ namespace LoginServer
 				string server_name = mainList.GetString( $"Name{i}" );
 				string server_addr = mainList.GetString( $"Addr{i}" );
 				string[] pair = server_addr.Split( ':' );
-				ServerAddr serveraddr = new ServerAddr();
-				this.gAllServerAddr[i] = serveraddr;
-				serveraddr.str_addr = server_name;
-				serveraddr.str_name = pair[0];
-				serveraddr.str_port = int.Parse( pair[1] );
+				ServerAddr serveraddr = new ServerAddr
+				{
+					str_name = server_name,
+					str_addr = pair[0],
+					str_port = int.Parse( pair[1] )
+				};
+				this.gAllServerAddr.Add( serveraddr );
 			}
 			return EResult.Normal;
 		}

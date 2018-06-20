@@ -9,11 +9,11 @@
         "GateServer3": "127.0.0.1:40002",
         "GateServer4": "127.0.0.1:40003",
         "GateServer5": "127.0.0.1:40004",
-        "GateServer1Export": "127.0.0.1:3",
-        "GateServer2Export": "127.0.0.1:3",
-        "GateServer3Export": "127.0.0.1:3",
-        "GateServer4Export": "127.0.0.1:3",
-        "GateServer5Export": "127.0.0.1:3"
+        "GateServer1Export": "127.0.0.1:6",
+        "GateServer2Export": "127.0.0.1:6",
+        "GateServer3Export": "127.0.0.1:6",
+        "GateServer4Export": "127.0.0.1:6",
+        "GateServer5Export": "127.0.0.1:6"
     },
     "MainClient": {
         "ListernPortForClient": 49998

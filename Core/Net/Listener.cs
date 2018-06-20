@@ -25,9 +25,9 @@ namespace Core.Net
 
 		public void SetOpt( SocketOptionName optionName, object opt ) => this._socket.SetSocketOption( SocketOptionLevel.Socket, optionName, opt );
 
-		public bool Start( string ip, int port, SocketType socketType, ProtocolType protoType, bool reuseAddr = true )
+		public bool Start( int port, SocketType socketType, ProtocolType protoType, bool reuseAddr = true )
 		{
-			Logger.Log( $"Start Listen {ip}:{port}, reuseAddr {reuseAddr}" );
+			Logger.Log( $"Start Listen {port}, reuseAddr {reuseAddr}" );
 			try
 			{
 				this._socket = new Socket( AddressFamily.InterNetwork, socketType, protoType );
@@ -41,11 +41,11 @@ namespace Core.Net
 			this._socket.NoDelay = true;
 			try
 			{
-				this._socket.Bind( new IPEndPoint( IPAddress.Parse( ip ), port ) );
+				this._socket.Bind( new IPEndPoint( IPAddress.Any, port ) );
 			}
 			catch ( SocketException e )
 			{
-				Logger.Error( $"socket bind at {ip}:{port} fail, code:{e.SocketErrorCode}" );
+				Logger.Error( $"socket bind at {port} fail, code:{e.SocketErrorCode}" );
 				return false;
 			}
 			try
@@ -54,7 +54,7 @@ namespace Core.Net
 			}
 			catch ( SocketException e )
 			{
-				Logger.Error( $"socket listen at {ip}:{port} fail, code:{e.SocketErrorCode}" );
+				Logger.Error( $"socket listen at {port} fail, code:{e.SocketErrorCode}" );
 				return false;
 			}
 			this.StartAccept( null );

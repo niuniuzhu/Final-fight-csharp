@@ -26,7 +26,7 @@ namespace BalanceServer.Net
 
 		protected override void OnClose()
 		{
-			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( ( uint )this.logicID, out OneGsInfo gsInfo ) )
+			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( this.logicID, out OneGsInfo gsInfo ) )
 				return;
 
 			gsInfo.gs_isLost = true;
@@ -34,27 +34,28 @@ namespace BalanceServer.Net
 			Logger.Info( $"GS({this.logicID}) DisConnect." );
 		}
 
-		private bool MsgAskRegister( byte[] data, int offset, int size, int msgid )
+		/// <summary>
+		/// 登记GS
+		/// </summary>
+		private bool MsgAskRegister( byte[] data, int offset, int size, int msgID )
 		{
-			GSToBS.AskRegister sAskRegister = new GSToBS.AskRegister();
-			sAskRegister.MergeFrom( data, offset, size );
+			GSToBS.AskRegister askRegister = new GSToBS.AskRegister();
+			askRegister.MergeFrom( data, offset, size );
 
-			int gsid = sAskRegister.Gsid;
-			int gsListener = sAskRegister.Listenport;
+			//GS的分配号
+			int gsid = askRegister.Gsid;
+			int gsListener = askRegister.Listenport;
 
-			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( ( uint )gsid, out OneGsInfo gsInfo ) )
+			//找到对应分配号的GS信息
+			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( gsid, out OneGsInfo gsInfo ) )
 			{
 				this.Close();
 				return true;
 			}
 
-			if ( !gsInfo.gs_isLost )
-			{
-				this.Close();
-				return true;
-			}
-
-			if ( gsInfo.gs_Port != gsListener || gsInfo.gs_Ip != this.connection.remoteEndPoint.ToString().Split( ':' )[0] )
+			if ( !gsInfo.gs_isLost ||
+				 gsInfo.gs_Port != gsListener ||
+				 gsInfo.gs_Ip != this.connection.remoteEndPoint.ToString().Split( ':' )[0] )
 			{
 				this.Close();
 				return true;
@@ -67,34 +68,34 @@ namespace BalanceServer.Net
 			return true;
 		}
 
-		private bool MsgHandleReportGsInfo( byte[] data, int offset, int size, int msgid )
+		private bool MsgHandleReportGsInfo( byte[] data, int offset, int size, int msgID )
 		{
-			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( ( uint )this.logicID, out OneGsInfo gsInfo ) )
+			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( this.logicID, out OneGsInfo gsInfo ) )
 				return false;
-			GSToBS.ReportAllClientInf sMsg = new GSToBS.ReportAllClientInf();
-			sMsg.MergeFrom( data, offset, size );
-			gsInfo.gs_gc_count = sMsg.TokenlistSize;
+			GSToBS.ReportAllClientInf msg = new GSToBS.ReportAllClientInf();
+			msg.MergeFrom( data, offset, size );
+			gsInfo.gs_gc_count = msg.TokenlistSize;
 			return true;
 		}
 
-		private bool MsgHandleOneUserLoginTokenRet( byte[] data, int offset, int size, int msgid )
+		private bool MsgHandleOneUserLoginTokenRet( byte[] data, int offset, int size, int msgID )
 		{
-			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( ( uint )this.logicID, out OneGsInfo gsInfo ) )
+			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( this.logicID, out OneGsInfo _ ) )
 			{
 				Logger.Error( "can not find GS for loginer." );
 				return false;
 			}
 
-			BSToGS.OneUserLoginToken sMsg = new BSToGS.OneUserLoginToken();
-			sMsg.MergeFrom( data, offset, size );
-			BSToGC.AskGateAddressRet sMsgSend = new BSToGC.AskGateAddressRet
+			BSToGS.OneUserLoginToken msg = new BSToGS.OneUserLoginToken();
+			msg.MergeFrom( data, offset, size );
+			BSToGC.AskGateAddressRet msgSend = new BSToGC.AskGateAddressRet
 			{
-				UserName = sMsg.UserName,
-				Token = sMsg.Token,
-				Ip = sMsg.Ip,
-				Port = sMsg.Port
+				UserName = msg.UserName,
+				Token = msg.Token,
+				Ip = msg.Ip,
+				Port = msg.Port
 			};
-			this.owner.SendMsgToSession( ( uint )sMsg.Gateclient, sMsgSend, ( int )BSToGC.MsgID.EMsgToGcfromBsAskGateAddressRet );
+			this.owner.SendMsgToSession( ( uint )msg.Gateclient, msgSend, ( int )BSToGC.MsgID.EMsgToGcfromBsAskGateAddressRet );
 			return true;
 		}
 

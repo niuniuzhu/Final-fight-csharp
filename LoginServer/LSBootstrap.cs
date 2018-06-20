@@ -17,7 +17,7 @@ namespace LoginServer
 
 		static int Main( string[] args )
 		{
-			Console.Title = "ls id=1";
+			Console.Title = "LS";
 
 			AssemblyName[] assemblies = Assembly.GetEntryAssembly().GetReferencedAssemblies();
 			foreach ( AssemblyName assembly in assemblies )

@@ -1,4 +1,5 @@
-﻿using BalanceServer.Net;
+﻿using System;
+using BalanceServer.Net;
 using Core.Misc;
 using Core.Net;
 using Shared;
@@ -35,6 +36,7 @@ namespace BalanceServer
 			EResult eResult = this.bsConfig.Load();
 			if ( EResult.Normal == eResult )
 				Logger.Info( "BS Initialize success" );
+			Console.Title = $"BS({this.bsConfig.client_listen_port})";
 			return eResult;
 		}
 

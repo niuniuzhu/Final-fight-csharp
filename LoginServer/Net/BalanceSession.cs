@@ -38,36 +38,38 @@ namespace LoginServer.Net
 			return true;
 		}
 
+		/// <summary>
+		/// BS请求验证登陆的用户是否合法
+		/// </summary>
 		private bool MsgHandleOneClientLoginCheck( byte[] data, int offset, int size, int msgid )
 		{
-			GCToBS.OneClinetLogin sOneClientLogin = new GCToBS.OneClinetLogin();
-			sOneClientLogin.MergeFrom( data, offset, size );
+			GCToBS.OneClinetLogin oneClientLogin = new GCToBS.OneClinetLogin();
+			oneClientLogin.MergeFrom( data, offset, size );
 
 			string sessionid = string.Empty;
-			if ( sOneClientLogin.Plat == ( uint )EUserPlatform.ePlatform_PC )
+			if ( oneClientLogin.Plat == ( uint )EUserPlatform.ePlatform_PC )
 			{
-				sessionid += sOneClientLogin.Plat;
-				sessionid += sOneClientLogin.Uin;
+				sessionid += oneClientLogin.Plat;
+				sessionid += oneClientLogin.Uin;
 			}
 			else
-				sessionid = sOneClientLogin.Sessionid;
+				sessionid = oneClientLogin.Sessionid;
 
 			LoginUserInfo loginUserInfo = LS.instance.sdkConnector.GetLoginUserInfo( sessionid );
 			if ( loginUserInfo != null )
 			{
-				sOneClientLogin.LoginSuccess = 1;
-				sOneClientLogin.Uin = loginUserInfo.uin;
+				oneClientLogin.LoginSuccess = 1;
+				oneClientLogin.Uin = loginUserInfo.uin;
 				LS.instance.sdkConnector.RemoveLoginUserInfo( sessionid );
-				Logger.Log( $"Erase uid:{sOneClientLogin.Uin}" );
+				Logger.Log( $"vaild uid:{oneClientLogin.Uin}" );
 			}
 			else
 			{
-				Logger.Warn( $"Fail With User with uin({sOneClientLogin.Uin}) Not Find." );
-				sOneClientLogin.LoginSuccess = 0;
+				Logger.Warn( $"fail! user with uin({oneClientLogin.Uin}) not found." );
+				oneClientLogin.LoginSuccess = 0;
 			}
-
-			this.owner.SendMsgToSession( this.id, sOneClientLogin, ( int )LSToBS.MsgID.EMsgToBsfromLsOneClinetLoginCheckRet );
-
+			//回应BS该登陆的用户是否合法
+			this.owner.SendMsgToSession( this.id, oneClientLogin, ( int )LSToBS.MsgID.EMsgToBsfromLsOneClinetLoginCheckRet );
 			return true;
 		}
 

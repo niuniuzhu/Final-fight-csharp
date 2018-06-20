@@ -22,9 +22,14 @@ namespace LoginServer.Net
 		{
 		}
 
+		public override void OnError( string error )
+		{
+			this.Close();
+		}
+
 		private bool MsgInitHandler( byte[] data, int offset, int size, int msgid )
 		{
-			// 收到第1消息：请求登录，放入登录队列
+			//收到第1消息：请求登录，放入登录队列
 			GCToLS.AskLogin login = new GCToLS.AskLogin();
 			login.MergeFrom( data, offset, size );
 

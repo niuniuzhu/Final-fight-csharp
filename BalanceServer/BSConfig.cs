@@ -16,7 +16,7 @@ namespace BalanceServer
 		public string gs_IpExport;//gs 对外公布地址//
 		public string gs_Ip;//gs 对内验证地址//
 		public int gs_Port;
-		public uint gs_Id;
+		public int gs_Id;
 	}
 
 	public class BSConfig
@@ -29,7 +29,7 @@ namespace BalanceServer
 		public string ls_ip;
 		public int ls_port;
 		public readonly List<string> gs_ip_list = new List<string>();
-		public readonly Dictionary<uint, OneGsInfo> allGsInfo = new Dictionary<uint, OneGsInfo>();
+		public readonly Dictionary<int, OneGsInfo> allGsInfo = new Dictionary<int, OneGsInfo>();
 
 		public EResult Load()
 		{
@@ -62,7 +62,7 @@ namespace BalanceServer
 				string server_address = mainGate.GetString( $"GateServer{i}" );
 				string server_address_ex = mainGate.GetString( $"GateServer{i}Export" );
 				this.gs_ip_list.Add( server_address );
-				uint key = ( uint )( this.gs_base_index + i - 1 );
+				int key = this.gs_base_index + i - 1;
 				OneGsInfo oneGsInfo = new OneGsInfo
 				{
 					gs_Id = key,
@@ -81,7 +81,7 @@ namespace BalanceServer
 					oneGsInfo.gs_IpExport = pair[0];
 					int exPos = int.Parse( pair[1] );
 					if ( exPos > 0 )
-						Tools.GetNetIP( ref oneGsInfo.gs_IpExport, exPos - 1 );
+						Tools.GetNetIP( ref oneGsInfo.gs_IpExport, exPos );
 				}
 			}
 			return EResult.Normal;

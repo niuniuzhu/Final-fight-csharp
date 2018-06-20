@@ -41,7 +41,7 @@ namespace Shared.Net
 			listener.packetDecodeHandler = LengthEncoder.Decode;
 			listener.recvBufSize = recvsize;
 			this._listeners[pos] = listener;
-			return this._listeners[pos].Start( "0", port, socketType, protoType );
+			return this._listeners[pos].Start( port, socketType, protoType );
 		}
 
 		/// <summary>

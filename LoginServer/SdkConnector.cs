@@ -1,7 +1,7 @@
 ﻿using Core.Misc;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+using Core.Structure;
 using Shared;
+using System.Collections.Generic;
 
 namespace LoginServer
 {
@@ -9,7 +9,7 @@ namespace LoginServer
 	{
 		private readonly Dictionary<string, LoginUserInfo> _allLoginUserInfo = new Dictionary<string, LoginUserInfo>();
 		private readonly ThreadSafeObejctPool<SDKBuffer> _dbCallbackQueuePool = new ThreadSafeObejctPool<SDKBuffer>();
-		private readonly ConcurrentQueue<SDKBuffer> _dbCallbackQueue = new ConcurrentQueue<SDKBuffer>();
+		private readonly SwitchQueue<SDKBuffer> _dbCallbackQueue = new SwitchQueue<SDKBuffer>();
 
 		public LoginUserInfo GetLoginUserInfo( string sessionID )
 		{
@@ -24,84 +24,95 @@ namespace LoginServer
 
 		public void Update()
 		{
-			while ( !this._dbCallbackQueue.IsEmpty )
+			this._dbCallbackQueue.Switch();
+			while ( !this._dbCallbackQueue.isEmpty )
 			{
-				this._dbCallbackQueue.TryDequeue( out SDKBuffer pBuffer );
-				if ( pBuffer.data == 1 )
+				SDKBuffer sdkBuffer = this._dbCallbackQueue.Pop();
+				if ( sdkBuffer.data == 1 )
 				{
-					int gcnetid = pBuffer.ReadInt();
-					string uid = pBuffer.ReadUTF8();
-					string uin = pBuffer.ReadUTF8();
-					string sessionid = pBuffer.ReadUTF8();
-					uint platform = pBuffer.ReadUInt();
-
-					LoginUserInfo pLoginUserInfo = new LoginUserInfo();
-					pLoginUserInfo.sessionid = sessionid;
-					pLoginUserInfo.uin = uin;
-					pLoginUserInfo.plat = platform;
-
+					uint gcnetid = sdkBuffer.ReadUInt();
+					uint platform = sdkBuffer.ReadUInt();
+					string uid = sdkBuffer.ReadUTF8();
+					string uin = sdkBuffer.ReadUTF8();
+					string sessionid = sdkBuffer.ReadUTF8E();
+					LoginUserInfo pLoginUserInfo = new LoginUserInfo
+					{
+						sessionid = sessionid,
+						uin = uin,
+						plat = platform
+					};
 					this._allLoginUserInfo[sessionid] = pLoginUserInfo;
-					Logger.Log( $"Add uid:{uid}, sessionid{sessionid}" );
+					Logger.Log( $"Add uid:{uid}, sessionid:{sessionid}" );
 
-					this.PostMsgToGC_NotifyServerList( ( uint )gcnetid );
+					this.PostMsgToGC_NotifyServerList( gcnetid );
 				}
-				else if ( pBuffer.data == 2 )
+				else if ( sdkBuffer.data == 2 )
 				{
-					int gcnetid = pBuffer.ReadInt();
-					int errorcode = pBuffer.ReadInt();
+					uint gcnetid = sdkBuffer.ReadUInt();
+					int errorcode = sdkBuffer.ReadInt();
 					Logger.Log( $"User Login Fail with netid:{gcnetid}, errorcode:{errorcode}." );
-					this.PostMsgToGC_NotifyLoginFail( errorcode, ( uint )gcnetid );
+					this.PostMsgToGC_NotifyLoginFail( errorcode, gcnetid );
 				}
-
-				this._dbCallbackQueuePool.Push( pBuffer );
+				sdkBuffer.position = 0;
+				this._dbCallbackQueuePool.Push( sdkBuffer );
 			}
 		}
 
-		public void SendToInsertData( string uid, LoginUserInfo loginInfo, int gcnetid )
+		/// <summary>
+		/// 该方法为异步方法
+		/// </summary>
+		public void SendToInsertData( string uid, LoginUserInfo loginInfo, uint gcnetID )
 		{
-			SDKBuffer pBuffer = this._dbCallbackQueuePool.Pop();
-			pBuffer.Write( gcnetid );
-			pBuffer.WriteUTF8( uid );
-			pBuffer.WriteUTF8( loginInfo.uin );
-			pBuffer.WriteUTF8( loginInfo.sessionid );
-			pBuffer.Write( loginInfo.plat );
-			pBuffer.data = 1;
-			this._dbCallbackQueue.Enqueue( pBuffer );
+			SDKBuffer sdkBuffer = this._dbCallbackQueuePool.Pop();
+			sdkBuffer.Write( gcnetID );
+			sdkBuffer.Write( loginInfo.plat );
+			sdkBuffer.WriteUTF8( uid );
+			sdkBuffer.WriteUTF8( loginInfo.uin );
+			sdkBuffer.WriteUTF8E( loginInfo.sessionid );
+			sdkBuffer.position = 0;
+			sdkBuffer.data = 1;
+			this._dbCallbackQueue.Push( sdkBuffer );
 		}
 
+		/// <summary>
+		/// 该方法为异步方法
+		/// </summary>
 		public void SendToFailData( ErrorCode errorcode, uint gcnetID )
 		{
-			SDKBuffer pBuffer = this._dbCallbackQueuePool.Pop();
-			pBuffer.Write( gcnetID );
-			pBuffer.Write( ( int )errorcode );
-			pBuffer.data = 2;
+			SDKBuffer sdkBuffer = this._dbCallbackQueuePool.Pop();
+			sdkBuffer.Write( gcnetID );
+			sdkBuffer.Write( ( int )errorcode );
+			sdkBuffer.position = 0;
+			sdkBuffer.data = 2;
 			Logger.Log( $"User Login Fail with netid:{gcnetID}, errorcode:{errorcode}." );
-			this._dbCallbackQueue.Enqueue( pBuffer );
+			this._dbCallbackQueue.Push( sdkBuffer );
 		}
 
-		private void PostMsgToGC_NotifyServerList( uint gcnetid )
+		private void PostMsgToGC_NotifyServerList( uint gcnetID )
 		{
-			// 发送第2消息：登录成功，bs服务器列表
-			LSToGC.ServerBSAddr ServerList = new LSToGC.ServerBSAddr();
-			Dictionary<uint, ServerAddr> serverAddr = LS.instance.lsConfig.gAllServerAddr;
-			foreach ( KeyValuePair<uint, ServerAddr> kv in serverAddr )
+			//发送第2消息：登录成功，下发BS服务器列表
+			LSToGC.ServerBSAddr serverList = new LSToGC.ServerBSAddr();
+			List<ServerAddr> serverAddrs = LS.instance.lsConfig.gAllServerAddr;
+			foreach ( ServerAddr serverAddr in serverAddrs )
 			{
-				LSToGC.ServerInfo pInfo = new LSToGC.ServerInfo();
-				pInfo.ServerName = kv.Value.str_name;
-				pInfo.ServerAddr = kv.Value.str_addr;
-				pInfo.ServerPort = kv.Value.str_port;
-				ServerList.Serverinfo.Add( pInfo );
+				LSToGC.ServerInfo info = new LSToGC.ServerInfo
+				{
+					ServerName = serverAddr.str_name,
+					ServerAddr = serverAddr.str_addr,
+					ServerPort = serverAddr.str_port
+				};
+				serverList.Serverinfo.Add( info );
 			}
 			Logger.Log( "Post Server List To User." );
-			LS.instance.netSessionMgr.SendMsgToSession( gcnetid, ServerList, ( int )LSToGC.MsgID.EMsgToGcfromLsNotifyServerBsaddr );
+			LS.instance.netSessionMgr.SendMsgToSession( gcnetID, serverList, ( int )LSToGC.MsgID.EMsgToGcfromLsNotifyServerBsaddr );
 		}
 
-		private void PostMsgToGC_NotifyLoginFail( int errorcode, uint gcnetid )
+		private void PostMsgToGC_NotifyLoginFail( int errorcode, uint gcnetID )
 		{
 			// 发送第1消息：登录失败
-			LSToGC.LoginResult sMsg = new LSToGC.LoginResult();
-			sMsg.Result = errorcode;
-			LS.instance.netSessionMgr.SendMsgToSession( gcnetid, sMsg, ( int )LSToGC.MsgID.EMsgToGcfromLsNotifyLoginResult );
+			LSToGC.LoginResult msg = new LSToGC.LoginResult();
+			msg.Result = errorcode;
+			LS.instance.netSessionMgr.SendMsgToSession( gcnetID, msg, ( int )LSToGC.MsgID.EMsgToGcfromLsNotifyLoginResult );
 		}
 	}
 }

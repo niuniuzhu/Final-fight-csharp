@@ -40,6 +40,9 @@ namespace GateServer.Net
 			return true;
 		}
 
+		/// <summary>
+		/// BS通知有玩家登陆
+		/// </summary>
 		private bool MsgOneUserLoginTokenHandler( byte[] data, int offset, int size, int msgID )
 		{
 			BSToGS.OneUserLoginToken reportAllClientInf = new BSToGS.OneUserLoginToken();

@@ -30,6 +30,7 @@ namespace LoginServer
 
 		public void Dispose()
 		{
+			this.sdkAsynHandler.Dispose();
 			this.netSessionMgr.Dispose();
 			NetSessionPool.instance.Dispose();
 		}
@@ -38,7 +39,7 @@ namespace LoginServer
 		{
 			EResult eResult = this.lsConfig.Load();
 			if ( EResult.Normal == eResult )
-				Logger.Info( "BS Initialize success" );
+				Logger.Info( "LS Initialize success" );
 			return eResult;
 		}
 

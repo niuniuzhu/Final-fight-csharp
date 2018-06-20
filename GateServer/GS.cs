@@ -1,4 +1,5 @@
-﻿using Core.Misc;
+﻿using System;
+using Core.Misc;
 using Core.Net;
 using GateServer.Net;
 using Google.Protobuf;
@@ -39,6 +40,7 @@ namespace GateServer
 			EResult eResult = this.gsConfig.Load();
 			if ( EResult.Normal == eResult )
 				Logger.Info( "GS Initialize success" );
+			Console.Title = $"GS({this.gsConfig.n32GSID})";
 			return eResult;
 		}
 

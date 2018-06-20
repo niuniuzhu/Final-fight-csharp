@@ -36,12 +36,15 @@ namespace BalanceServer.Net
 			return true;
 		}
 
+		/// <summary>
+		/// LS回应BS的检查登陆合法性
+		/// </summary>
 		private bool MsgUserLogin( byte[] data, int offset, int size, int msgid )
 		{
 			GCToBS.OneClinetLogin userLoginInfo = new GCToBS.OneClinetLogin();
 			userLoginInfo.MergeFrom( data, offset, size );
 
-			// 发送第3消息：用户验证是否成功，如果验证成功，请求分配gs给用户
+			//发送第3消息：用户验证是否成功，如果验证成功，请求分配gs给用户
 			BSToGC.ClinetLoginCheckRet msg = new BSToGC.ClinetLoginCheckRet();
 			msg.LoginSuccess = userLoginInfo.LoginSuccess;
 			this.owner.SendMsgToSession( userLoginInfo.Nsid, msg, ( int )BSToGC.MsgID.EMsgToGcfromBsOneClinetLoginCheckRet );
@@ -52,8 +55,9 @@ namespace BalanceServer.Net
 				this.owner.DisconnectOne( userLoginInfo.Nsid );
 			else
 			{
+				//找到最空闲的网关服务器
 				OneGsInfo littleOne = null;
-				foreach ( KeyValuePair<uint, OneGsInfo> kv in BS.instance.bsConfig.allGsInfo )
+				foreach ( KeyValuePair<int, OneGsInfo> kv in BS.instance.bsConfig.allGsInfo )
 				{
 					OneGsInfo theGsInfo = kv.Value;
 					if ( theGsInfo.gs_isLost )
@@ -64,21 +68,19 @@ namespace BalanceServer.Net
 
 				if ( littleOne == null )
 					return false;
-				++littleOne.gs_gc_count;//only ++ as cache.
+				++littleOne.gs_gc_count;//仅仅作为缓存,GS会定时汇报服务器的状态
 
-				string guid = GuidHash.GetString();
-				BSToGS.OneUserLoginToken sOneUserLoginToken =
-					new BSToGS.OneUserLoginToken
-					{
-						Gateclient = ( int )userLoginInfo.Nsid,
-						Token = guid,
-						UserName = userLoginInfo.Uin,
-						Ip = littleOne.gs_IpExport,
-						Port = littleOne.gs_Port
-					};
-				this.owner.SendMsgToSession( littleOne.gs_nets, sOneUserLoginToken, ( int )BSToGS.MsgID.EMsgToGsfromBsOneUserLoginToken );
+				BSToGS.OneUserLoginToken oneUserLoginToken = new BSToGS.OneUserLoginToken
+				{
+					Gateclient = ( int )userLoginInfo.Nsid,
+					Token = GuidHash.GetString(),
+					UserName = userLoginInfo.Uin,
+					Ip = littleOne.gs_IpExport,
+					Port = littleOne.gs_Port
+				};
+				//通知网关服务器有玩家登陆
+				this.owner.SendMsgToSession( littleOne.gs_nets, oneUserLoginToken, ( int )BSToGS.MsgID.EMsgToGsfromBsOneUserLoginToken );
 			}
-
 			return true;
 		}
 

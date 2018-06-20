@@ -25,20 +25,19 @@ namespace BalanceServer.Net
 
 		public override void OnError( string error )
 		{
-			Logger.Log( error );
 			this.Close();
 		}
 
-		private bool MSGOneClientLogin( byte[] data, int offset, int size, int msgid )
+		private bool MSGOneClientLogin( byte[] data, int offset, int size, int msgID )
 		{
-			// 收到第2消息：客户端连接bs，bs向ls请求用户是否合法连接
-			GCToBS.OneClinetLogin sOneClientLogin = new GCToBS.OneClinetLogin();
-			sOneClientLogin.MergeFrom( data, offset, size );
+			//收到第2消息：客户端连接BS，向LS请求用户是否合法连接
+			GCToBS.OneClinetLogin oneClientLogin = new GCToBS.OneClinetLogin();
+			oneClientLogin.MergeFrom( data, offset, size );
 
-			Logger.Log( $"user({sOneClientLogin.Uin})({sOneClientLogin.Sessionid})({this.id}) ask login bs" );
-			sOneClientLogin.Nsid = this.id;
+			Logger.Log( $"user({oneClientLogin.Uin})({oneClientLogin.Sessionid})({this.id}) ask login bs" );
+			oneClientLogin.Nsid = this.id;
 
-			this.owner.SendMsgToSession( SessionType.ClientB2L, sOneClientLogin, ( int )BSToLS.MsgID.EMsgToLsfromBcOneClinetLoginCheck );
+			this.owner.SendMsgToSession( SessionType.ClientB2L, oneClientLogin, ( int )BSToLS.MsgID.EMsgToLsfromBcOneClinetLoginCheck );
 
 			return true;
 		}
