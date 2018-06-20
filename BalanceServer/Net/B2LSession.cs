@@ -70,11 +70,13 @@ namespace BalanceServer.Net
 					return false;
 				++littleOne.gs_gc_count;//仅仅作为缓存,GS会定时汇报服务器的状态
 
+				//这条消息的路由:BS-GS-BS-GC
 				BSToGS.OneUserLoginToken oneUserLoginToken = new BSToGS.OneUserLoginToken
 				{
 					Gateclient = ( int )userLoginInfo.Nsid,
 					Token = GuidHash.GetString(),
 					UserName = userLoginInfo.Uin,
+					//这里ip和port最终会到达GC
 					Ip = littleOne.gs_IpExport,
 					Port = littleOne.gs_Port
 				};

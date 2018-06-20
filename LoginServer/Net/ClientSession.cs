@@ -7,6 +7,15 @@ namespace LoginServer.Net
 	{
 		protected ClientSession( uint id ) : base( id )
 		{
+			//完整登陆流程:
+			//1,客户端连接LS,请求登陆
+			//2,LS下发BS列表
+			//3,客户端连接BS,请求登陆
+			//4,BS请求LS验证登陆合法性
+			//5,LS返回验证结果
+			//6,BS处理结果,不合法则断开连接,合法则找出空闲GS,发送玩家登陆信息
+			//7,GS回应BS玩家已登陆
+			//8,BS通知客户端GS地址
 			this._msgHandler.Register( ( int )GCToLS.MsgID.EMsgToLsfromGcAskLogin, this.MsgInitHandler );
 		}
 

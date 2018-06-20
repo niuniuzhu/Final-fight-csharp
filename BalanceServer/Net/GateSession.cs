@@ -68,6 +68,9 @@ namespace BalanceServer.Net
 			return true;
 		}
 
+		/// <summary>
+		/// 向BS汇报GS的状态
+		/// </summary>
 		private bool MsgHandleReportGsInfo( byte[] data, int offset, int size, int msgID )
 		{
 			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( this.logicID, out OneGsInfo gsInfo ) )
@@ -78,6 +81,9 @@ namespace BalanceServer.Net
 			return true;
 		}
 
+		/// <summary>
+		/// GS回应玩家已登陆
+		/// </summary>
 		private bool MsgHandleOneUserLoginTokenRet( byte[] data, int offset, int size, int msgID )
 		{
 			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( this.logicID, out OneGsInfo _ ) )
@@ -92,9 +98,11 @@ namespace BalanceServer.Net
 			{
 				UserName = msg.UserName,
 				Token = msg.Token,
+				//这是网关的地址
 				Ip = msg.Ip,
 				Port = msg.Port
 			};
+			//通知客户端GS的地址
 			this.owner.SendMsgToSession( ( uint )msg.Gateclient, msgSend, ( int )BSToGC.MsgID.EMsgToGcfromBsAskGateAddressRet );
 			return true;
 		}

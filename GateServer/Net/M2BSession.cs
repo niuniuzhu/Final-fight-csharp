@@ -49,6 +49,7 @@ namespace GateServer.Net
 			reportAllClientInf.MergeFrom( data, offset, size );
 
 			GS.instance.gsStorage.AddUserToken( reportAllClientInf.UserName, reportAllClientInf.Token );
+			//回应BS玩家已经登陆GS
 			this.owner.SendMsgToSession( this.id, reportAllClientInf, ( int )GSToBS.MsgID.EMsgToBsfromGsOneUserLoginTokenRet );
 			return true;
 		}
