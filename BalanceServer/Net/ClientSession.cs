@@ -30,7 +30,7 @@ namespace BalanceServer.Net
 
 		private bool MSGOneClientLogin( byte[] data, int offset, int size, int msgID )
 		{
-			//收到第2消息：客户端连接BS，向LS请求用户是否合法连接
+			//收到第2消息：客户端连接BS，向LS请求客户端是否合法登陆
 			GCToBS.OneClinetLogin oneClientLogin = new GCToBS.OneClinetLogin();
 			oneClientLogin.MergeFrom( data, offset, size );
 

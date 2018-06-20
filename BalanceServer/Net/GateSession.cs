@@ -82,7 +82,7 @@ namespace BalanceServer.Net
 		}
 
 		/// <summary>
-		/// GS回应玩家已登陆
+		/// GS回应客户端已登陆
 		/// </summary>
 		private bool MsgHandleOneUserLoginTokenRet( byte[] data, int offset, int size, int msgID )
 		{

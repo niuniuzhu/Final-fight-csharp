@@ -39,7 +39,7 @@ namespace LoginServer.Net
 		}
 
 		/// <summary>
-		/// BS请求验证登陆的用户是否合法
+		/// BS请求验证登陆的客户端是否合法
 		/// </summary>
 		private bool MsgHandleOneClientLoginCheck( byte[] data, int offset, int size, int msgid )
 		{
@@ -68,7 +68,7 @@ namespace LoginServer.Net
 				Logger.Warn( $"fail! user with uin({oneClientLogin.Uin}) not found." );
 				oneClientLogin.LoginSuccess = 0;
 			}
-			//回应BS该登陆的用户是否合法
+			//回应BS该登陆的客户端是否合法
 			this.owner.SendMsgToSession( this.id, oneClientLogin, ( int )LSToBS.MsgID.EMsgToBsfromLsOneClinetLoginCheckRet );
 			return true;
 		}

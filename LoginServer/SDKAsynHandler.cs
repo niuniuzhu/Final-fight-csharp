@@ -70,7 +70,7 @@ namespace LoginServer
 			{
 				if ( this.m_UserLoginDataMap.ContainsKey( gcnetID ) )
 				{
-					Logger.Warn( $"玩家({askLogin.Uin})多次登录！！但服务器数据还没返回数据给客户端" );
+					Logger.Warn( $"客户端({askLogin.Uin})多次登录！！但服务器数据还没返回数据给客户端" );
 					return EResult.Normal;
 				}
 				this.m_UserLoginDataMap[gcnetID] = loginData;

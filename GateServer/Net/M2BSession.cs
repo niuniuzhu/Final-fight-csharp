@@ -41,7 +41,7 @@ namespace GateServer.Net
 		}
 
 		/// <summary>
-		/// BS通知有玩家登陆
+		/// BS通知有客户端登陆
 		/// </summary>
 		private bool MsgOneUserLoginTokenHandler( byte[] data, int offset, int size, int msgID )
 		{
@@ -49,7 +49,7 @@ namespace GateServer.Net
 			reportAllClientInf.MergeFrom( data, offset, size );
 
 			GS.instance.gsStorage.AddUserToken( reportAllClientInf.UserName, reportAllClientInf.Token );
-			//回应BS玩家已经登陆GS
+			//回应BS客户端家已经登陆GS
 			this.owner.SendMsgToSession( this.id, reportAllClientInf, ( int )GSToBS.MsgID.EMsgToBsfromGsOneUserLoginTokenRet );
 			return true;
 		}

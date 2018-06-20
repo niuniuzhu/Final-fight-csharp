@@ -44,7 +44,7 @@ namespace BalanceServer.Net
 			GCToBS.OneClinetLogin userLoginInfo = new GCToBS.OneClinetLogin();
 			userLoginInfo.MergeFrom( data, offset, size );
 
-			//发送第3消息：用户验证是否成功，如果验证成功，请求分配gs给用户
+			//发送第3消息：验证登陆是否成功，如果成功，请求分配GS给客户端
 			BSToGC.ClinetLoginCheckRet msg = new BSToGC.ClinetLoginCheckRet();
 			msg.LoginSuccess = userLoginInfo.LoginSuccess;
 			this.owner.SendMsgToSession( userLoginInfo.Nsid, msg, ( int )BSToGC.MsgID.EMsgToGcfromBsOneClinetLoginCheckRet );
@@ -80,7 +80,7 @@ namespace BalanceServer.Net
 					Ip = littleOne.gs_IpExport,
 					Port = littleOne.gs_Port
 				};
-				//通知网关服务器有玩家登陆
+				//通知网关服务器有客户端登陆
 				this.owner.SendMsgToSession( littleOne.gs_nets, oneUserLoginToken, ( int )BSToGS.MsgID.EMsgToGsfromBsOneUserLoginToken );
 			}
 			return true;

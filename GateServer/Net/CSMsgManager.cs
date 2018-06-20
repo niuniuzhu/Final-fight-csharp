@@ -69,7 +69,7 @@ namespace GateServer.Net
 		}
 
 		/// <summary>
-		/// 中心服务器通知场景服务器内的玩家信息
+		/// 中心服务器通知场景服务器内的客户端信息
 		/// </summary>
 		private EResult OnMsgFromCS_UserConnectedToSS( byte[] data, int offset, int size )
 		{
@@ -83,7 +83,7 @@ namespace GateServer.Net
 				return EResult.Normal;
 			}
 
-			//玩家id和场景服务器信息建立映射关系
+			//客户端id和场景服务器信息建立映射关系
 			int count = userConnectedSS.Gcnid.Count;
 			for ( int i = 0; i < count; ++i )
 			{
@@ -95,7 +95,7 @@ namespace GateServer.Net
 		}
 
 		/// <summary>
-		/// 中心服务器通知玩家和场景服务器的连接断开
+		/// 中心服务器通知客户端和场景服务器的连接断开
 		/// </summary>
 		private EResult OnMsgFromCS_UserDisConnectedToSS( byte[] data, int offset, int size )
 		{
