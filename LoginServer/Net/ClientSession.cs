@@ -16,6 +16,8 @@ namespace LoginServer.Net
 			//6,BS处理结果,不合法则断开连接,合法则找出空闲GS,发送登陆信息
 			//7,GS回应BS客户端已登陆
 			//8,BS通知客户端GS地址
+			//9,客户端连接GS
+			//10,GS把登陆信息转发到CS
 			this._msgHandler.Register( ( int )GCToLS.MsgID.EMsgToLsfromGcAskLogin, this.MsgInitHandler );
 		}
 
