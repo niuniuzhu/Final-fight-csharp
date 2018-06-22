@@ -411,5 +411,7 @@ namespace Shared
 		/// 重连检测的时间间隔
 		/// </summary>
 		public const long RECONN_DETECT_INTERVAL = 10000;
+
+		public const int MAX_BATTLE_IN_SS = 200;
 	}
 }

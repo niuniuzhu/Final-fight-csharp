@@ -8,7 +8,7 @@ using System.Net;
 
 namespace GateServer.Net
 {
-	public class GCMsgManager : MsgManager
+	public class GCMsgManager
 	{
 		private delegate EResult MsgHandler( uint nsID, byte[] data, int offset, int size, int msgID );
 

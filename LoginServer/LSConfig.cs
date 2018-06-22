@@ -47,7 +47,7 @@ namespace LoginServer
 			}
 			catch ( Exception e )
 			{
-				Logger.Error( $"load LSCfg failed for {e}\n" );
+				Logger.Error( $"load LSCfg failed for {e}" );
 				return EResult.CfgFailed;
 			}
 

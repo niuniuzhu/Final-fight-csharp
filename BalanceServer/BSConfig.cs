@@ -41,7 +41,7 @@ namespace BalanceServer
 			}
 			catch ( Exception e )
 			{
-				Logger.Error( $"load GSCfg failed for {e}\n" );
+				Logger.Error( $"load GSCfg failed for {e}" );
 				return EResult.CfgFailed;
 			}
 

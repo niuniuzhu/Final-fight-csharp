@@ -32,7 +32,7 @@ namespace GateServer
 			}
 			catch ( Exception e )
 			{
-				Logger.Error( $"load GSCfg.xml failed for {e}\n" );
+				Logger.Error( $"load GSCfg.xml failed for {e}" );
 				return EResult.CfgFailed;
 			}
 

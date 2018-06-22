@@ -55,7 +55,7 @@ namespace Shared.Net
 		/// <param name="recvsize">接受缓冲区大小</param>
 		/// <param name="logicId">逻辑id(目前仅用于连接场景服务器时记下连接器和逻辑id的映射)</param>
 		/// <returns></returns>
-		public bool CreateConnector( SessionType sessionType, string ip, int port, SocketType socketType, ProtocolType protoType, int recvsize, int logicId )
+		public virtual bool CreateConnector( SessionType sessionType, string ip, int port, SocketType socketType, ProtocolType protoType, int recvsize, int logicId )
 		{
 			CliSession session = this.CreateConnectorSession( sessionType );
 			this.AddSession( session );

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace GateServer.Net
 {
-	public class CSMsgManager : MsgManager
+	public class CSMsgManager
 	{
 		private delegate EResult MsgHandler( byte[] data, int offset, int size );
 

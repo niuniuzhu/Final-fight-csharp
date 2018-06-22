@@ -8,7 +8,7 @@ namespace BalanceServer.Net
 	{
 		internal SrvCliSession CreateGateSession()
 		{
-			GateSession session = NetSessionPool.instance.Pop<GateSession>();
+			SrvCliSession session = NetSessionPool.instance.Pop<GateSession>();
 			session.owner = this;
 			session.type = SessionType.ServerGS;
 			return session;
@@ -16,7 +16,7 @@ namespace BalanceServer.Net
 
 		internal SrvCliSession CreateClientSession()
 		{
-			ClientSession session = NetSessionPool.instance.Pop<ClientSession>();
+			SrvCliSession session = NetSessionPool.instance.Pop<ClientSession>();
 			session.owner = this;
 			session.type = SessionType.ServerGS;
 			return session;
