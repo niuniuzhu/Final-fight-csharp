@@ -35,22 +35,22 @@ namespace LoginServer
 			NetSessionPool.instance.Dispose();
 		}
 
-		public EResult Initialize()
+		public ErrorCode Initialize()
 		{
-			EResult eResult = this.lsConfig.Load();
-			if ( EResult.Normal == eResult )
+			ErrorCode eResult = this.lsConfig.Load();
+			if ( ErrorCode.Success == eResult )
 				Logger.Info( "LS Initialize success" );
 			return eResult;
 		}
 
-		public EResult Start()
+		public ErrorCode Start()
 		{
 			this.netSessionMgr.CreateListener( this.lsConfig.bs_listen_port, 102400, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE,
 												0, this.netSessionMgr.CreateBlanceSession );//GS端口长连接
 			this.netSessionMgr.CreateListener( this.lsConfig.client_listen_port, 102400, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE,
 												1, this.netSessionMgr.CreateClientSession );//GC端口短连接
 			this.sdkAsynHandler.Init();
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		public void Update( long elapsed, long dt )
@@ -63,8 +63,8 @@ namespace LoginServer
 				this._context.time = elapsed;
 				this._context.deltaTime = Consts.HEART_PACK;
 				this._timestamp -= Consts.HEART_PACK;
-				EResult eResult = this.OnHeartBeat( this._context );
-				if ( EResult.Normal != eResult )
+				ErrorCode eResult = this.OnHeartBeat( this._context );
+				if ( ErrorCode.Success != eResult )
 				{
 					Logger.Error( $"fail with error code {eResult}!, please amend the error and try again!" );
 					return;
@@ -74,10 +74,10 @@ namespace LoginServer
 			this.netSessionMgr.Update();
 		}
 
-		private EResult OnHeartBeat( UpdateContext context )
+		private ErrorCode OnHeartBeat( UpdateContext context )
 		{
 			this.netSessionMgr.OnHeartBeat( context );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 	}
 }

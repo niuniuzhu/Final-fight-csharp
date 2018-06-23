@@ -1,5 +1,6 @@
 ﻿using Core.Misc;
 using Google.Protobuf;
+using Shared;
 using Shared.Net;
 
 namespace BalanceServer.Net
@@ -37,7 +38,7 @@ namespace BalanceServer.Net
 		/// <summary>
 		/// 登记GS
 		/// </summary>
-		private bool MsgAskRegister( byte[] data, int offset, int size, int msgID )
+		private ErrorCode MsgAskRegister( byte[] data, int offset, int size, int msgID )
 		{
 			GSToBS.AskRegister askRegister = new GSToBS.AskRegister();
 			askRegister.MergeFrom( data, offset, size );
@@ -50,7 +51,7 @@ namespace BalanceServer.Net
 			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( gsid, out OneGsInfo gsInfo ) )
 			{
 				this.Close();
-				return true;
+				return ErrorCode.InvalidGSID;
 			}
 
 			if ( !gsInfo.gs_isLost ||
@@ -58,38 +59,41 @@ namespace BalanceServer.Net
 				 gsInfo.gs_Ip != this.connection.remoteEndPoint.ToString().Split( ':' )[0] )
 			{
 				this.Close();
-				return true;
+				return ErrorCode.GSNotFound;
 			}
 
 			gsInfo.gs_isLost = false;
 			gsInfo.gs_nets = this.id;
 			this.logicID = gsid;
 			this.SetInited( true, true );
-			return true;
+
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// 向BS汇报GS的状态
 		/// </summary>
-		private bool MsgHandleReportGsInfo( byte[] data, int offset, int size, int msgID )
+		private ErrorCode MsgHandleReportGsInfo( byte[] data, int offset, int size, int msgID )
 		{
 			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( this.logicID, out OneGsInfo gsInfo ) )
-				return false;
+				return ErrorCode.GSNotFound;
+
 			GSToBS.ReportAllClientInf msg = new GSToBS.ReportAllClientInf();
 			msg.MergeFrom( data, offset, size );
 			gsInfo.gs_gc_count = msg.TokenlistSize;
-			return true;
+
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// GS回应客户端已登陆
 		/// </summary>
-		private bool MsgHandleOneUserLoginTokenRet( byte[] data, int offset, int size, int msgID )
+		private ErrorCode MsgHandleOneUserLoginTokenRet( byte[] data, int offset, int size, int msgID )
 		{
 			if ( !BS.instance.bsConfig.allGsInfo.TryGetValue( this.logicID, out OneGsInfo _ ) )
 			{
 				Logger.Error( "can not find GS for loginer." );
-				return false;
+				return ErrorCode.GSNotFound;
 			}
 
 			BSToGS.OneUserLoginToken msg = new BSToGS.OneUserLoginToken();
@@ -104,12 +108,13 @@ namespace BalanceServer.Net
 			};
 			//通知客户端GS的地址
 			this.owner.SendMsgToSession( ( uint )msg.Gateclient, msgSend, ( int )BSToGC.MsgID.EMsgToGcfromBsAskGateAddressRet );
-			return true;
+
+			return ErrorCode.Success;
 		}
 
-		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
+		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
-			return true;
+			return ErrorCode.Success;
 		}
 	}
 }

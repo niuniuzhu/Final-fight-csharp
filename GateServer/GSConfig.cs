@@ -22,7 +22,7 @@ namespace GateServer
 		public int n32BSListenPort;//负载监听端口	
 		public int n32SkipBalance;//是否跳过BS认证
 
-		public EResult Load()
+		public ErrorCode Load()
 		{
 			Hashtable json;
 			try
@@ -33,7 +33,7 @@ namespace GateServer
 			catch ( Exception e )
 			{
 				Logger.Error( $"load GSCfg.xml failed for {e}" );
-				return EResult.CfgFailed;
+				return ErrorCode.CfgFailed;
 			}
 
 			this.sCSIP = json.GetString( "IP" );
@@ -49,7 +49,7 @@ namespace GateServer
 			this.n32BSListenPort = json.GetInt( "BSPort" );
 			this.n32SkipBalance = json.GetInt( "IfSkipBS" );
 
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 	}
 }

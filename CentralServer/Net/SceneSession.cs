@@ -1,10 +1,11 @@
-﻿using Shared.Net;
+﻿using Shared;
+using Shared.Net;
 
 namespace CentralServer.Net
 {
 	public class SceneSession : SrvCliSession
 	{
-		public SceneSession( uint id ) : base( id )
+		protected SceneSession( uint id ) : base( id )
 		{
 		}
 
@@ -23,7 +24,7 @@ namespace CentralServer.Net
 			throw new System.NotImplementedException();
 		}
 
-		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
+		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
 			throw new System.NotImplementedException();
 		}

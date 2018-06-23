@@ -36,12 +36,12 @@ namespace Shared.Net
 		/// <summary>
 		/// 建立连接的时间戳
 		/// </summary>
-		protected long _activeTime;
+		private long _activeTime;
 
 		/// <summary>
 		/// 关闭连接的时间戳
 		/// </summary>
-		protected long _deactiveTime;
+		private long _deactiveTime;
 
 		protected NetSession( uint id )
 		{
@@ -170,7 +170,7 @@ namespace Shared.Net
 		/// 处理此实例未处理的消息(通常该消息是一条转发消息)
 		/// </summary>
 		/// <returns></returns>
-		protected abstract bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID );
+		protected abstract ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID );
 
 		/// <summary>
 		/// 每次心跳调用

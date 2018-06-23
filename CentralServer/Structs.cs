@@ -41,7 +41,7 @@ namespace CentralServer
 		public long m_tLastPingMilSec;
 		public int m_n32BattleNum;
 
-		public EResult AddBattleNum( int n32AddNum )
+		public ErrorCode AddBattleNum( int n32AddNum )
 		{
 			this.m_n32BattleNum += n32AddNum;
 			if ( 0 > this.m_n32BattleNum )
@@ -60,7 +60,7 @@ namespace CentralServer
 			{
 				this.m_eSSNetState = EServerNetState.SnsFull;
 			}
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		void ResetPing()
@@ -78,8 +78,8 @@ namespace CentralServer
 		public string m_sListenIP;
 		public int m_n32ListenPort;
 		//property from local.
-		EServerNetState m_eGSNetState;
-		public int m_n32NSID;
+		public EServerNetState m_eGSNetState;
+		public uint m_n32NSID;
 		public uint m_un32ConnTimes;
 		public long m_tLastConnMilsec;
 		public long m_tLastPingMilSec;
@@ -102,19 +102,19 @@ namespace CentralServer
 
 	public class SSNetInfo
 	{
-		long tConnMilsec;
-		CSSSInfo pcSSInfo;
+		public long tConnMilsec;
+		public CSSSInfo pcSSInfo;
 	}
 
 	public class RCNetInfo
 	{
-		long tConnMilsec;
-		CSRCInfo cRCInfo;
+		public long tConnMilsec;
+		public CSRCInfo cRCInfo;
 	}
 
 	public class GSNetInfo
 	{
-		long tConnMilsec;
-		CSGSInfo pcGSInfo;
+		public long tConnMilsec;
+		public CSGSInfo pcGSInfo;
 	}
 }

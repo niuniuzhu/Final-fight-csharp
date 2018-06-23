@@ -7,7 +7,7 @@ namespace Shared.Net
 	/// </summary>
 	public class MsgHandler
 	{
-		public delegate bool Handler( byte[] data, int offset, int size, int msgID );
+		public delegate ErrorCode Handler( byte[] data, int offset, int size, int msgID );
 
 		private readonly Dictionary<int, Handler> _handlers = new Dictionary<int, Handler>();
 

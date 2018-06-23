@@ -30,16 +30,16 @@ namespace LoginServer
 			_inputHandler.Start();
 
 			LS ls = LS.instance;
-			EResult eResult = ls.Initialize();
+			ErrorCode eResult = ls.Initialize();
 
-			if ( EResult.Normal != eResult )
+			if ( ErrorCode.Success != eResult )
 			{
 				Logger.Error( $"Initialize BS fail, error code is {eResult}" );
 				return 0;
 			}
 
 			eResult = ls.Start();
-			if ( EResult.Normal != eResult )
+			if ( ErrorCode.Success != eResult )
 			{
 				Logger.Error( $"Start BS fail, error code is {eResult}" );
 				return 0;

@@ -37,7 +37,7 @@ namespace LoginServer
 		public int client_listen_port;
 		public readonly List<ServerAddr> gAllServerAddr = new List<ServerAddr>();
 
-		public EResult Load()
+		public ErrorCode Load()
 		{
 			Hashtable json;
 			try
@@ -48,7 +48,7 @@ namespace LoginServer
 			catch ( Exception e )
 			{
 				Logger.Error( $"load LSCfg failed for {e}" );
-				return EResult.CfgFailed;
+				return ErrorCode.CfgFailed;
 			}
 
 			Hashtable mainGC = json.GetMap( "MainGC" );
@@ -59,7 +59,7 @@ namespace LoginServer
 			return this.LoadServerList();
 		}
 
-		private EResult LoadServerList()
+		private ErrorCode LoadServerList()
 		{
 			Hashtable json;
 			try
@@ -70,7 +70,7 @@ namespace LoginServer
 			catch ( Exception e )
 			{
 				Logger.Error( $"load SrvList failed for {e}\n" );
-				return EResult.CfgFailed;
+				return ErrorCode.CfgFailed;
 			}
 
 			Hashtable mainList = json.GetMap( "MainList" );
@@ -88,7 +88,7 @@ namespace LoginServer
 				};
 				this.gAllServerAddr.Add( serveraddr );
 			}
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 	}
 }

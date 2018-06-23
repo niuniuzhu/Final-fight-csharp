@@ -59,14 +59,13 @@ namespace GateServer.Net
 		}
 
 		#region msg handlers
-		private bool MsgInitHandler( byte[] data, int offset, int size, int msgID )
+		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgID )
 		{
-			// don't send any message until it init success.
 			GSSSInfo ssInfo = GS.instance.gsStorage.GetSSInfo( this.logicID );
 			if ( ssInfo == null || data == null )
 			{
 				Logger.Error( string.Empty );
-				return false;
+				return ErrorCode.InvaildLogicID;
 			}
 
 			offset += 2 * sizeof( int );
@@ -74,20 +73,20 @@ namespace GateServer.Net
 			SSToGS.AskRegisteRet askRegisteRet = new SSToGS.AskRegisteRet();
 			askRegisteRet.MergeFrom( data, offset, size );
 
-			if ( ( int )EResult.Normal != askRegisteRet.State )
+			if ( ( int )ErrorCode.Success != askRegisteRet.State )
 			{
 				Logger.Warn( $"register to SS {ssInfo.ssID} Fail with error code {askRegisteRet.State}." );
-				return false;
+				return ( ErrorCode )askRegisteRet.State;
 			}
 
 			ssInfo.ssNetState = EServerNetState.SnsFree;
 			Logger.Info( $"register to SS {ssInfo.ssID} success at session {ssInfo.nsID}." );
 			this.SetInited( true, true );
 
-			return true;
+			return ErrorCode.Success;
 		}
 
-		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
+		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
 			int realMsgID = 0;
 			uint gcNetID = 0;
@@ -97,7 +96,7 @@ namespace GateServer.Net
 			GSSSInfo ssInfo = GS.instance.gsStorage.GetSSInfo( this.logicID );
 			if ( ssInfo != null )
 				GS.instance.ssMsgManager.HandleUnhandledMsg( ssInfo, data, offset, size, realMsgID, msgID, gcNetID );
-			return true;
+			return ErrorCode.Success;
 		}
 		#endregion
 	}

@@ -44,10 +44,10 @@ namespace CentralServer
 			NetSessionPool.instance.Dispose();
 		}
 
-		public EResult Initialize()
+		public ErrorCode Initialize()
 		{
-			EResult eResult = this.LoadCfg();
-			if ( EResult.Normal == eResult )
+			ErrorCode eResult = this.LoadCfg();
+			if ( ErrorCode.Success == eResult )
 				Logger.Info( "CS Initialize success" );
 
 			this.m_psSSNetInfoList = new SSNetInfo[this.m_sCSKernelCfg.un32MaxSSNum];
@@ -60,7 +60,7 @@ namespace CentralServer
 		}
 
 		#region load config
-		private EResult LoadCfg()
+		private ErrorCode LoadCfg()
 		{
 			Hashtable json;
 			try
@@ -71,7 +71,7 @@ namespace CentralServer
 			catch ( Exception e )
 			{
 				Logger.Error( $"load CSCfg.xml failed for {e}" );
-				return EResult.CfgFailed;
+				return ErrorCode.CfgFailed;
 			}
 			this.m_sCSKernelCfg.unCSId = json.GetUInt( "GameWorldID" );
 			this.m_sCSKernelCfg.ipaddress = json.GetString( "CSIP" );
@@ -91,8 +91,14 @@ namespace CentralServer
 
 			string ssIndexStr = json.GetString( "AllSSIndex" );
 			string[] ssIndexVec = ssIndexStr.Split( ';' );
-			this.m_pcSSInfoList = new CSSSInfo[ssIndexVec.Length];
 
+			if ( ssIndexVec.Length > 100000 )
+			{
+				Logger.Warn( $"too many ss!" );
+				return ErrorCode.CfgFailed;
+			}
+
+			this.m_pcSSInfoList = new CSSSInfo[ssIndexVec.Length];
 			for ( int i = 0; i != ssIndexVec.Length; ++i )
 			{
 				string[] ssInfoVec = ssIndexVec[i].Split( ',' );
@@ -128,11 +134,11 @@ namespace CentralServer
 			this.m_sCSKernelCfg.n32RCNetListenerPort = json.GetInt( "RSPort" );
 			this.m_szRemoteConsolekey = json.GetString( "RSKey" );
 
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 		#endregion
 
-		public EResult Start()
+		public ErrorCode Start()
 		{
 			this.netSessionMgr.CreateListener( this.m_sCSKernelCfg.n32GSNetListenerPort, 1024000, Consts.SOCKET_TYPE,
 											   Consts.PROTOCOL_TYPE, 0, this.netSessionMgr.CreateGateSession );
@@ -160,13 +166,25 @@ namespace CentralServer
 													102400, 0 );
 			}
 
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		public void Update( long elapsed, long dt )
 		{
 			//todo
 			this.netSessionMgr.Update();
+		}
+
+		public CSGSInfo GetCGSInfoByNSID( uint nsID )
+		{
+			for ( int i = 0; i < this.m_sCSKernelCfg.un32MaxGSNum; ++i )
+			{
+				CSGSInfo pcInfo = this.m_psGSNetInfoList[i].pcGSInfo;
+				if ( null == pcInfo ) continue;
+				if ( pcInfo.m_n32NSID == nsID )
+					return pcInfo;
+			}
+			return null;
 		}
 	}
 }

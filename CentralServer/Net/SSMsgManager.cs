@@ -5,7 +5,7 @@ namespace CentralServer.Net
 {
 	public class SSMsgManager
 	{
-		private delegate EResult MsgHandler( CSSSInfo cpiGSInfo, byte[] data, int offset, int size );
+		private delegate ErrorCode MsgHandler( CSSSInfo cpiGSInfo, byte[] data, int offset, int size );
 
 		private readonly Dictionary<int, MsgHandler> _handlers = new Dictionary<int, MsgHandler>();
 
@@ -16,7 +16,7 @@ namespace CentralServer.Net
 			#endregion
 		}
 
-		private EResult OnMsgFromSSAskPing( CSSSInfo cpigsinfo, byte[] data, int offset, int size )
+		private ErrorCode OnMsgFromSSAskPing( CSSSInfo cpigsinfo, byte[] data, int offset, int size )
 		{
 			throw new System.NotImplementedException();
 		}

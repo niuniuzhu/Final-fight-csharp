@@ -35,10 +35,10 @@ namespace GateServer
 			this.gsConfig = new GSConfig();
 		}
 
-		public EResult Initialize()
+		public ErrorCode Initialize()
 		{
-			EResult eResult = this.gsConfig.Load();
-			if ( EResult.Normal == eResult )
+			ErrorCode eResult = this.gsConfig.Load();
+			if ( ErrorCode.Success == eResult )
 				Logger.Info( "GS Initialize success" );
 			Console.Title = $"GS({this.gsConfig.n32GSID})";
 			return eResult;
@@ -50,14 +50,14 @@ namespace GateServer
 			NetSessionPool.instance.Dispose();
 		}
 
-		public EResult Start()
+		public ErrorCode Start()
 		{
 			this.CreateListener( this.gsConfig.n32GCListenPort, 10240, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 0 );
 			this.CreateConnector( SessionType.ClientG2C, this.gsConfig.sCSIP, this.gsConfig.n32CSPort,
 												Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 10240000, 0 );
 			this._netSessionMgr.CreateConnector( SessionType.ClientG2B, this.gsConfig.sBSListenIP, this.gsConfig.n32BSListenPort,
 												Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 1024000, 0 );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		public void Update( long elapsed, long dt )
@@ -70,8 +70,8 @@ namespace GateServer
 				this._context.time = elapsed;
 				this._context.deltaTime = Consts.HEART_PACK;
 				this._timestamp -= Consts.HEART_PACK;
-				EResult eResult = this.OnHeartBeat( this._context );
-				if ( EResult.Normal != eResult )
+				ErrorCode eResult = this.OnHeartBeat( this._context );
+				if ( ErrorCode.Success != eResult )
 				{
 					Logger.Error( $"fail with error code {eResult}!, please amend the error and try again!" );
 					return;
@@ -80,13 +80,13 @@ namespace GateServer
 			this._netSessionMgr.Update();
 		}
 
-		private EResult OnHeartBeat( UpdateContext context )
+		private ErrorCode OnHeartBeat( UpdateContext context )
 		{
 			this._netSessionMgr.OnHeartBeat( context );
 			this.gsStorage.PingSS( context.utcTime );
 			this.gsStorage.ChechUserToken( context.utcTime );
 			this.gsStorage.ReportGsInfo( context.utcTime );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>

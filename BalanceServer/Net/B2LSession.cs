@@ -1,5 +1,6 @@
 ﻿using Core.Misc;
 using Google.Protobuf;
+using Shared;
 using Shared.Net;
 using System.Collections.Generic;
 
@@ -30,16 +31,16 @@ namespace BalanceServer.Net
 			Logger.Info( "LS DisConnect." );
 		}
 
-		private bool MsgInitHandler( byte[] data, int offset, int size, int msgid )
+		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgid )
 		{
 			this.SetInited( true, true );
-			return true;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// LS回应BS的检查登陆合法性
 		/// </summary>
-		private bool MsgUserLogin( byte[] data, int offset, int size, int msgid )
+		private ErrorCode MsgUserLogin( byte[] data, int offset, int size, int msgid )
 		{
 			GCToBS.OneClinetLogin userLoginInfo = new GCToBS.OneClinetLogin();
 			userLoginInfo.MergeFrom( data, offset, size );
@@ -67,7 +68,8 @@ namespace BalanceServer.Net
 				}
 
 				if ( littleOne == null )
-					return false;
+					return ErrorCode.GSNotFound;
+
 				++littleOne.gs_gc_count;//仅仅作为缓存,GS会定时汇报服务器的状态
 
 				//这条消息的路由:BS-GS-BS-GC
@@ -83,12 +85,12 @@ namespace BalanceServer.Net
 				//通知网关服务器有客户端登陆
 				this.owner.SendMsgToSession( littleOne.gs_nets, oneUserLoginToken, ( int )BSToGS.MsgID.EMsgToGsfromBsOneUserLoginToken );
 			}
-			return true;
+			return ErrorCode.Success;
 		}
 
-		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
+		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
-			return true;
+			return ErrorCode.Success;
 		}
 	}
 }

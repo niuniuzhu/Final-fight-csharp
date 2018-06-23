@@ -54,32 +54,26 @@ namespace GateServer.Net
 		}
 
 		#region msg handlers
-		private bool MsgInitHandler( byte[] data, int offset, int size, int msgID )
+		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgID )
 		{
 			offset += 2 * sizeof( int );
 			size -= 2 * sizeof( int );
 
-			//don't send any message until it init success.
 			AskRegisteRet askRegisteRet = new AskRegisteRet();
 			askRegisteRet.MergeFrom( data, offset, size );
 
-			if ( ( int )EResult.Normal != askRegisteRet.Registe )
+			if ( ( int )ErrorCode.Success != askRegisteRet.Registe )
 			{
 				Logger.Warn( $"CS Register Error(ret={askRegisteRet.Registe})!" );
-				return false;
+				return ( ErrorCode ) askRegisteRet.Registe;
 			}
 
 			long csMilsec = askRegisteRet.Curtime;
 			long selfMilsec = TimeUtils.utcTime;
 			GS.instance.gsStorage.csTimeError = csMilsec - selfMilsec;
 			GS.instance.gsStorage.ssBaseIdx = askRegisteRet.Ssbaseid;
-			int ssinfoCount = askRegisteRet.Ssinfo.Count;
-			if ( ssinfoCount > 100000 )
-			{
-				Logger.Warn( $"CS Register Error(ss max={ssinfoCount})!" );
-				return false;
-			}
 
+			int ssinfoCount = askRegisteRet.Ssinfo.Count;
 			if ( 0 < ssinfoCount )
 			{
 				GS.instance.gsStorage.ssConnectNum = 0;
@@ -106,10 +100,10 @@ namespace GateServer.Net
 				}
 			}
 			this.SetInited( true, true );
-			return true;
+			return ErrorCode.Success;
 		}
 
-		private bool MsgOneSSConnectedHandler( byte[] data, int offset, int size, int msgID )
+		private ErrorCode MsgOneSSConnectedHandler( byte[] data, int offset, int size, int msgID )
 		{
 			offset += 2 * sizeof( int );
 			size -= 2 * sizeof( int );
@@ -130,20 +124,20 @@ namespace GateServer.Net
 												Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 10240, oneSsConnected.Ssid );
 				}
 			}
-			return true;
+			return ErrorCode.Success;
 		}
 
-		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
+		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
 			int realMsgID = 0;
 			uint gcNetID = 0;
-			//剥离第二层数据ID
+			//剥离第二层消息ID
 			offset += ByteUtils.Decode32i( data, offset, ref realMsgID );
 			//剥离客户端网络ID
 			offset += ByteUtils.Decode32u( data, offset, ref gcNetID );
 			size -= 2 * sizeof( int );
 			GS.instance.csMsgManager.HandleUnhandledMsg( data, offset, size, realMsgID, msgID, gcNetID );
-			return true;
+			return ErrorCode.Success;
 		}
 		#endregion
 	}

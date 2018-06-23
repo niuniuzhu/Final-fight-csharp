@@ -120,10 +120,10 @@ namespace GateServer.Net
 		/// <summary>
 		/// 向每个场景服务器发送ping
 		/// </summary>
-		public EResult PingSS( long utcTime )
+		public ErrorCode PingSS( long utcTime )
 		{
 			if ( this._GSSSInfoMap.Count == 0 )
-				return EResult.Normal;
+				return ErrorCode.Success;
 
 			foreach ( KeyValuePair<int, GSSSInfo> kv in this._GSSSInfoMap )
 			{
@@ -139,7 +139,7 @@ namespace GateServer.Net
 				GS.instance.TranMsgToSession( ssInfo.nsID, data, 0, data.Length, ( int )GSToSS.MsgID.EMsgToSsfromGsAskPing, 0, 0 );
 				ssInfo.pingTickCounter = utcTime;
 			}
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 		#endregion
 
@@ -209,10 +209,10 @@ namespace GateServer.Net
 			GS.instance.TranMsgToSession( SessionType.ClientG2C, data, 0, data.Length, ( int )GSToCS.MsgID.EMsgToCsfromGsUserOffLine, 0, 0 );
 		}
 
-		public EResult ChechUserToken( long time )
+		public ErrorCode ChechUserToken( long time )
 		{
 			if ( time < this._lastReprot )
-				return EResult.Normal;
+				return ErrorCode.Success;
 
 			this._lastReprot = time + 2000;
 			foreach ( KeyValuePair<string, SUserToken> kv in this._userTokenList )
@@ -232,22 +232,22 @@ namespace GateServer.Net
 					this._userTokenList.Remove( this._tokensToDelete[i] );
 				this._tokensToDelete.Clear();
 			}
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// 向负载均衡服务器报告网关服务器的状态
 		/// </summary>
-		public EResult ReportGsInfo( long time )
+		public ErrorCode ReportGsInfo( long time )
 		{
 			if ( this._nextReportTime > time )
-				return EResult.Normal;
+				return ErrorCode.Success;
 			this._nextReportTime = time + 2000;
 
 			GSToBS.ReportAllClientInf sMsg = new GSToBS.ReportAllClientInf();
 			sMsg.TokenlistSize = ( uint )this._userTokenList.Count;
 			GS.instance.SendMsgToSession( SessionType.ClientG2B, sMsg, ( int )GSToBS.MsgID.EMsgToBsfromGsReportAllClientInfo );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 		#endregion
 	}

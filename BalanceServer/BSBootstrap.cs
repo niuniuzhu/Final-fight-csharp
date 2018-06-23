@@ -30,16 +30,16 @@ namespace BalanceServer
 			_inputHandler.Start();
 
 			BS bs = BS.instance;
-			EResult eResult = bs.Initialize();
+			ErrorCode eResult = bs.Initialize();
 
-			if ( EResult.Normal != eResult )
+			if ( ErrorCode.Success != eResult )
 			{
 				Logger.Error( $"Initialize BS fail, error code is {eResult}" );
 				return 0;
 			}
 
 			eResult = bs.Start();
-			if ( EResult.Normal != eResult )
+			if ( ErrorCode.Success != eResult )
 			{
 				Logger.Error( $"Start BS fail, error code is {eResult}" );
 				return 0;

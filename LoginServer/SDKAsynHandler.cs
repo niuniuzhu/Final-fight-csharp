@@ -57,7 +57,7 @@ namespace LoginServer
 			}
 		}
 
-		public EResult CheckLogin( GCToLS.AskLogin askLogin, int msgID, uint gcnetID )
+		public ErrorCode CheckLogin( GCToLS.AskLogin askLogin, int msgID, uint gcnetID )
 		{
 			EUserPlatform platform = ( EUserPlatform )askLogin.Platform;
 			UserLoginData loginData = new UserLoginData
@@ -71,7 +71,7 @@ namespace LoginServer
 				if ( this.m_UserLoginDataMap.ContainsKey( gcnetID ) )
 				{
 					Logger.Warn( $"客户端({askLogin.Uin})多次登录！！但服务器数据还没返回数据给客户端" );
-					return EResult.Normal;
+					return ErrorCode.Success;
 				}
 				this.m_UserLoginDataMap[gcnetID] = loginData;
 			}
@@ -80,12 +80,12 @@ namespace LoginServer
 			string sendData = string.Empty;
 			switch ( platform )
 			{
-				case EUserPlatform.ePlatform_PC:
+				case EUserPlatform.Platform_PC:
 					sendData = "PCTest";
 					break;
 
 				default:
-					this.PostToLoginFailQueue( ErrorCode.EC_UnknowPlatform, gcnetID );
+					this.PostToLoginFailQueue( ErrorCode.UnknowPlatform, gcnetID );
 					break;
 			}
 			Logger.Log( $"{sendData}" );
@@ -111,14 +111,14 @@ namespace LoginServer
 			{
 				if ( !this.m_UserLoginDataMap.TryGetValue( gcnetID, out sUserData ) )
 				{
-					this.PostToLoginFailQueue( ErrorCode.EC_UserNotExist, gcnetID );
+					this.PostToLoginFailQueue( ErrorCode.UserNotExist, gcnetID );
 					return;
 				}
 				this.m_UserLoginDataMap.Remove( gcnetID );
 			}
 
 			string temp = string.Empty;
-			if ( sUserData.platFrom == ( uint )EUserPlatform.ePlatform_PC )
+			if ( sUserData.platFrom == ( uint )EUserPlatform.Platform_PC )
 			{
 				temp += sUserData.platFrom;
 				temp += sUserData.uin;
@@ -145,9 +145,9 @@ namespace LoginServer
 		{
 			switch ( eplat )
 			{
-				case EUserPlatform.ePlatform_PC:
-				case EUserPlatform.ePlatformAndroid_UC:
-				case EUserPlatform.ePlatformiOS_OnlineGame:
+				case EUserPlatform.Platform_PC:
+				case EUserPlatform.PlatformAndroid_UC:
+				case EUserPlatform.PlatformiOS_OnlineGame:
 					return true;
 				default:
 					return false;

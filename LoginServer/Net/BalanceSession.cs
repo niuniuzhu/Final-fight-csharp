@@ -32,22 +32,22 @@ namespace LoginServer.Net
 			Logger.Info( $"BS({this.logicID}) DisConnected." );
 		}
 
-		private bool MsgInitHandler( byte[] data, int offset, int size, int msgid )
+		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgid )
 		{
 			this.SetInited( true, true );
-			return true;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// BS请求验证登陆的客户端是否合法
 		/// </summary>
-		private bool MsgHandleOneClientLoginCheck( byte[] data, int offset, int size, int msgid )
+		private ErrorCode MsgHandleOneClientLoginCheck( byte[] data, int offset, int size, int msgid )
 		{
 			GCToBS.OneClinetLogin oneClientLogin = new GCToBS.OneClinetLogin();
 			oneClientLogin.MergeFrom( data, offset, size );
 
 			string sessionid = string.Empty;
-			if ( oneClientLogin.Plat == ( uint )EUserPlatform.ePlatform_PC )
+			if ( oneClientLogin.Plat == ( uint )EUserPlatform.Platform_PC )
 			{
 				sessionid += oneClientLogin.Plat;
 				sessionid += oneClientLogin.Uin;
@@ -70,12 +70,12 @@ namespace LoginServer.Net
 			}
 			//回应BS该登陆的客户端是否合法
 			this.owner.SendMsgToSession( this.id, oneClientLogin, ( int )LSToBS.MsgID.EMsgToBsfromLsOneClinetLoginCheckRet );
-			return true;
+			return ErrorCode.Success;
 		}
 
-		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
+		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
-			return true;
+			return ErrorCode.Success;
 		}
 	}
 }

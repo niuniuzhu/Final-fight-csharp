@@ -7,7 +7,7 @@ namespace GateServer.Net
 {
 	public class SSMsgManager
 	{
-		private delegate EResult MsgHandler( GSSSInfo ssInfo, byte[] data, int offset, int size );
+		private delegate ErrorCode MsgHandler( GSSSInfo ssInfo, byte[] data, int offset, int size );
 
 		private readonly Dictionary<int, MsgHandler> _handlers = new Dictionary<int, MsgHandler>();
 
@@ -22,10 +22,10 @@ namespace GateServer.Net
 		/// <summary>
 		/// 处理场景服务器返回的ping消息
 		/// </summary>
-		private EResult OnMsgFromSS_AskPingRet( GSSSInfo ssInfo, byte[] data, int offset, int size )
+		private ErrorCode OnMsgFromSS_AskPingRet( GSSSInfo ssInfo, byte[] data, int offset, int size )
 		{
 			if ( null == ssInfo )
-				return EResult.NullPointer;
+				return ErrorCode.NullPointer;
 
 			SSToGS.AskPingRet pPingRet = new SSToGS.AskPingRet();
 			pPingRet.MergeFrom( data, offset, size );
@@ -33,19 +33,19 @@ namespace GateServer.Net
 			long curMilsec = TimeUtils.utcTime;
 			long tickSpan = curMilsec - pPingRet.Time;
 			Logger.Info( $"Ping SS {ssInfo.ssID} returned, Tick span {tickSpan}." );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// 场景服务器通知踢走客户端
 		/// </summary>
-		private EResult OnMsgFromSS_OrderKickoutGC( GSSSInfo ssInfo, byte[] data, int offset, int size )
+		private ErrorCode OnMsgFromSS_OrderKickoutGC( GSSSInfo ssInfo, byte[] data, int offset, int size )
 		{
 			SSToGS.OrderKickoutGC orderKickoutGc = new SSToGS.OrderKickoutGC();
 			orderKickoutGc.MergeFrom( data, offset, size );
 
 			GS.instance.PostGameClientDisconnect( ( uint )orderKickoutGc.Gsnid );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
@@ -75,10 +75,10 @@ namespace GateServer.Net
 					if ( this._handlers.TryGetValue( transID, out MsgHandler handler ) )
 						handler( ssInfo, data, offset, size );
 					else
-						return ErrorCode.EC_InvalidMsgProtocalID;
+						return ErrorCode.InvalidMsgProtocalID;
 					break;
 			}
-			return ErrorCode.EC_Success;
+			return ErrorCode.Success;
 		}
 	}
 }

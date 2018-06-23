@@ -1,5 +1,6 @@
 ﻿using Core.Misc;
 using Google.Protobuf;
+using Shared;
 using Shared.Net;
 
 namespace GateServer.Net
@@ -34,16 +35,16 @@ namespace GateServer.Net
 		}
 
 		#region msg handlers
-		private bool MsgInitHandler( byte[] data, int offset, int size, int msgID )
+		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgID )
 		{
 			this.SetInited( true, true );
-			return true;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// BS通知有客户端登陆
 		/// </summary>
-		private bool MsgOneUserLoginTokenHandler( byte[] data, int offset, int size, int msgID )
+		private ErrorCode MsgOneUserLoginTokenHandler( byte[] data, int offset, int size, int msgID )
 		{
 			BSToGS.OneUserLoginToken reportAllClientInf = new BSToGS.OneUserLoginToken();
 			reportAllClientInf.MergeFrom( data, offset, size );
@@ -51,12 +52,12 @@ namespace GateServer.Net
 			GS.instance.gsStorage.AddUserToken( reportAllClientInf.UserName, reportAllClientInf.Token );
 			//回应BS客户端家已经登陆GS
 			this.owner.SendMsgToSession( this.id, reportAllClientInf, ( int )GSToBS.MsgID.EMsgToBsfromGsOneUserLoginTokenRet );
-			return true;
+			return ErrorCode.Success;
 		}
 
-		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
+		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
-			return true;
+			return ErrorCode.Success;
 		}
 		#endregion
 	}

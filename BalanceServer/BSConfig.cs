@@ -31,7 +31,7 @@ namespace BalanceServer
 		public readonly List<string> gs_ip_list = new List<string>();
 		public readonly Dictionary<int, OneGsInfo> allGsInfo = new Dictionary<int, OneGsInfo>();
 
-		public EResult Load()
+		public ErrorCode Load()
 		{
 			Hashtable json;
 			try
@@ -42,7 +42,7 @@ namespace BalanceServer
 			catch ( Exception e )
 			{
 				Logger.Error( $"load GSCfg failed for {e}" );
-				return EResult.CfgFailed;
+				return ErrorCode.CfgFailed;
 			}
 
 			Hashtable mainGate = json.GetMap( "MainGate" );
@@ -84,7 +84,7 @@ namespace BalanceServer
 						Tools.GetNetIP( ref oneGsInfo.gs_IpExport, exPos );
 				}
 			}
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 	}
 }

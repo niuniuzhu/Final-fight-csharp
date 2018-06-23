@@ -121,6 +121,12 @@ namespace Shared.Net
 			this.Send( sessionId, buffer );
 		}
 
+		public void TranMsgToSession( uint sessionId, IMessage msg, int msgID, int transID, uint gcNet )
+		{
+			byte[] data = msg.ToByteArray();
+			this.TranMsgToSession( sessionId, data, 0, data.Length, msgID, transID, gcNet );
+		}
+
 		/// <summary>
 		/// 发送消息到指定session,通常该消息是一条转发消息
 		/// </summary>

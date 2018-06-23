@@ -7,7 +7,7 @@ namespace GateServer.Net
 {
 	public class CSMsgManager
 	{
-		private delegate EResult MsgHandler( byte[] data, int offset, int size );
+		private delegate ErrorCode MsgHandler( byte[] data, int offset, int size );
 
 		private readonly Dictionary<int, MsgHandler> _handlers = new Dictionary<int, MsgHandler>();
 
@@ -26,7 +26,7 @@ namespace GateServer.Net
 		/// <summary>
 		/// 处理中心服务器返回的ping消息
 		/// </summary>
-		private EResult OnMsgFromCS_AskPingRet( byte[] data, int offset, int size )
+		private ErrorCode OnMsgFromCS_AskPingRet( byte[] data, int offset, int size )
 		{
 			CSToGS.AskPing pingRet = new CSToGS.AskPing();
 			pingRet.MergeFrom( data, offset, size );
@@ -36,42 +36,42 @@ namespace GateServer.Net
 
 			Logger.Info( $"Ping CS returned, tick span {tickSpan}." );
 
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// 中心服务器通知开服
 		/// </summary>
-		private EResult OnMsgFromCS_OrderOpenListen( byte[] data, int offset, int size )
+		private ErrorCode OnMsgFromCS_OrderOpenListen( byte[] data, int offset, int size )
 		{
 			GS.instance.CreateListener( GS.instance.gsConfig.n32GCListenPort, 10240, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 0 );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// 中心服务器通知关服
 		/// </summary>
-		private EResult OnMsgFromCS_OrderCloseListen( byte[] data, int offset, int size )
+		private ErrorCode OnMsgFromCS_OrderCloseListen( byte[] data, int offset, int size )
 		{
 			GS.instance.StopListener( 0 );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// 中心服务器通知强制客户端下线
 		/// </summary>
-		private EResult OnMsgFromCS_OrderKickoutGC( byte[] data, int offset, int size )
+		private ErrorCode OnMsgFromCS_OrderKickoutGC( byte[] data, int offset, int size )
 		{
 			CSToGS.OrderKickoutGC orderKickoutGC = new CSToGS.OrderKickoutGC();
 			orderKickoutGC.MergeFrom( data, offset, size );
 			GS.instance.PostGameClientDisconnect( ( uint )orderKickoutGC.Gcnid );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// 中心服务器通知场景服务器内的客户端信息
 		/// </summary>
-		private EResult OnMsgFromCS_UserConnectedToSS( byte[] data, int offset, int size )
+		private ErrorCode OnMsgFromCS_UserConnectedToSS( byte[] data, int offset, int size )
 		{
 			CSToGS.UserConnectedSS userConnectedSS = new CSToGS.UserConnectedSS();
 			userConnectedSS.MergeFrom( data, offset, size );
@@ -80,7 +80,7 @@ namespace GateServer.Net
 			if ( null == ssInfo )
 			{
 				Logger.Error( $"ssInfo is null with ssid({userConnectedSS.Ssid})" );
-				return EResult.Normal;
+				return ErrorCode.Success;
 			}
 
 			//客户端id和场景服务器信息建立映射关系
@@ -91,13 +91,13 @@ namespace GateServer.Net
 				GS.instance.gsStorage.AddUserSSInfo( gcNetID, ssInfo );
 				Logger.Log( $"user netID({gcNetID}) connect with SS({ssInfo.ssID})" );
 			}
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// 中心服务器通知客户端和场景服务器的连接断开
 		/// </summary>
-		private EResult OnMsgFromCS_UserDisConnectedToSS( byte[] data, int offset, int size )
+		private ErrorCode OnMsgFromCS_UserDisConnectedToSS( byte[] data, int offset, int size )
 		{
 			CSToGS.UserDisConnectedSS userConnectedSS = new CSToGS.UserDisConnectedSS();
 			userConnectedSS.MergeFrom( data, offset, size );
@@ -105,7 +105,7 @@ namespace GateServer.Net
 			int count = userConnectedSS.Gcnid.Count;
 			for ( int i = 0; i < count; ++i )
 				GS.instance.gsStorage.RemoveUserSSInfo( ( uint )userConnectedSS.Gcnid[i] );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
@@ -128,10 +128,10 @@ namespace GateServer.Net
 					if ( this._handlers.TryGetValue( transID, out MsgHandler handler ) )
 						handler( data, offset, size );
 					else
-						return ErrorCode.EC_InvalidMsgProtocalID;
+						return ErrorCode.InvalidMsgProtocalID;
 					break;
 			}
-			return ErrorCode.EC_Success;
+			return ErrorCode.Success;
 		}
 	}
 }

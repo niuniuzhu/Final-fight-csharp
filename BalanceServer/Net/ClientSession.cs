@@ -1,5 +1,6 @@
 ﻿using Core.Misc;
 using Google.Protobuf;
+using Shared;
 using Shared.Net;
 
 namespace BalanceServer.Net
@@ -28,7 +29,7 @@ namespace BalanceServer.Net
 			this.Close();
 		}
 
-		private bool MSGOneClientLogin( byte[] data, int offset, int size, int msgID )
+		private ErrorCode MSGOneClientLogin( byte[] data, int offset, int size, int msgID )
 		{
 			//收到第2消息：客户端连接BS，向LS请求客户端是否合法登陆
 			GCToBS.OneClinetLogin oneClientLogin = new GCToBS.OneClinetLogin();
@@ -39,12 +40,12 @@ namespace BalanceServer.Net
 
 			this.owner.SendMsgToSession( SessionType.ClientB2L, oneClientLogin, ( int )BSToLS.MsgID.EMsgToLsfromBcOneClinetLoginCheck );
 
-			return true;
+			return ErrorCode.Success;
 		}
 
-		protected override bool HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
+		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
 		{
-			return true;
+			return ErrorCode.Success;
 		}
 	}
 }

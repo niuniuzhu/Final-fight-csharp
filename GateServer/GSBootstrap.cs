@@ -28,16 +28,16 @@ namespace GateServer
 			_inputHandler.Start();
 
 			GS kernel = GS.instance;
-			EResult eResult = kernel.Initialize();
+			ErrorCode eResult = kernel.Initialize();
 
-			if ( EResult.Normal != eResult )
+			if ( ErrorCode.Success != eResult )
 			{
 				Logger.Error( $"Initialize GS fail, error code is {eResult}" );
 				return 0;
 			}
 
 			eResult = kernel.Start();
-			if ( EResult.Normal != eResult )
+			if ( ErrorCode.Success != eResult )
 			{
 				Logger.Error( $"Start GS fail, error code is {eResult}" );
 				return 0;

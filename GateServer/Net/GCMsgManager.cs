@@ -10,7 +10,7 @@ namespace GateServer.Net
 {
 	public class GCMsgManager
 	{
-		private delegate EResult MsgHandler( uint nsID, byte[] data, int offset, int size, int msgID );
+		private delegate ErrorCode MsgHandler( uint nsID, byte[] data, int offset, int size, int msgID );
 
 		private readonly Dictionary<int, MsgHandler> _handlers = new Dictionary<int, MsgHandler>();
 
@@ -26,7 +26,7 @@ namespace GateServer.Net
 		/// <summary>
 		/// 客户端请求登录网关服务器
 		/// </summary>
-		private EResult OnMsgToGstoCsfromGcAskLogin( uint nsID, byte[] data, int offset, int size, int msgID )
+		private ErrorCode OnMsgToGstoCsfromGcAskLogin( uint nsID, byte[] data, int offset, int size, int msgID )
 		{
 			bool logMsgFlag = false;
 			GCToCS.Login loginMsg = new GCToCS.Login();
@@ -44,7 +44,7 @@ namespace GateServer.Net
 				//断开连接
 				GS.instance.PostToGameClient( nsID, msg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyNetClash );
 				GS.instance.PostGameClientDisconnect( nsID );
-				return EResult.Normal;
+				return ErrorCode.Success;
 			}
 			//获取IP
 			INetSession pClient = GS.instance.GetSession( nsID );
@@ -55,7 +55,7 @@ namespace GateServer.Net
 				{
 					Logger.Error( $"user {login.Name} can't login with IP is null" );
 					GS.instance.PostGameClientDisconnect( nsID );
-					return EResult.Normal;
+					return ErrorCode.Success;
 				}
 				logMsgFlag = true;
 				loginMsg.Platform = login.Platform;
@@ -68,13 +68,13 @@ namespace GateServer.Net
 			}
 			//把登录信息转发到中心服务器
 			this.TransToCS( nsID, data, offset, size, msgID, logMsgFlag, loginMsg );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		/// <summary>
 		/// 客户端请求重新登录
 		/// </summary>
-		private EResult OnMsgToGstoCsfromGcAskReconnectGame( uint nsID, byte[] data, int offset, int size, int msgID )
+		private ErrorCode OnMsgToGstoCsfromGcAskReconnectGame( uint nsID, byte[] data, int offset, int size, int msgID )
 		{
 			GCToCS.ReconnectToGame reconnectToGame = new GCToCS.ReconnectToGame();
 			reconnectToGame.MergeFrom( data, offset, size );
@@ -86,10 +86,10 @@ namespace GateServer.Net
 				GS.instance.PostToGameClient( nsID, msg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyNetClash );
 				GS.instance.PostGameClientDisconnect( nsID );
 			}
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
-		private EResult OnMsgToGstoSsfromGcAskPingSs( uint nsID, byte[] data, int offset, int size, int msgID )
+		private ErrorCode OnMsgToGstoSsfromGcAskPingSs( uint nsID, byte[] data, int offset, int size, int msgID )
 		{
 			GCToSS.AskPingSS msgPing = new GCToSS.AskPingSS();
 			msgPing.MergeFrom( data, offset, size );
@@ -99,7 +99,7 @@ namespace GateServer.Net
 				Flag = 1
 			};
 			GS.instance.PostToGameClient( nsID, retMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsGcaskPingRet );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		private void TransToCS( uint nsID, byte[] data, int offset, int size, int msgID, bool logMsgFlag, GCToCS.Login loginMsg )
@@ -148,10 +148,10 @@ namespace GateServer.Net
 				else
 				{
 					Logger.Error( $"unknown msg with protocal id:{msgID}, offset:{offset}, size:{size}, nsID:{nsID}" );
-					return ErrorCode.EC_InvalidMsgProtocalID;
+					return ErrorCode.InvalidMsgProtocalID;
 				}
 			}
-			return ErrorCode.EC_Success;
+			return ErrorCode.Success;
 		}
 	}
 }

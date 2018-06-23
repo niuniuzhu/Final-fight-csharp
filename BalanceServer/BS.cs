@@ -31,16 +31,16 @@ namespace BalanceServer
 			NetSessionPool.instance.Dispose();
 		}
 
-		public EResult Initialize()
+		public ErrorCode Initialize()
 		{
-			EResult eResult = this.bsConfig.Load();
-			if ( EResult.Normal == eResult )
+			ErrorCode eResult = this.bsConfig.Load();
+			if ( ErrorCode.Success == eResult )
 				Logger.Info( "BS Initialize success" );
 			Console.Title = $"BS({this.bsConfig.client_listen_port})";
 			return eResult;
 		}
 
-		public EResult Start()
+		public ErrorCode Start()
 		{
 			this._netSessionMgr.CreateListener( this.bsConfig.gs_listen_port, 102400, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE,
 												0, this._netSessionMgr.CreateGateSession );
@@ -48,7 +48,7 @@ namespace BalanceServer
 												Consts.PROTOCOL_TYPE, 1, this._netSessionMgr.CreateClientSession );
 			this._netSessionMgr.CreateConnector( SessionType.ClientB2L, this.bsConfig.ls_ip, this.bsConfig.ls_port,
 												 Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 102400, 0 );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 
 		public void Update( long elapsed, long dt )
@@ -61,8 +61,8 @@ namespace BalanceServer
 				this._context.time = elapsed;
 				this._context.deltaTime = Consts.HEART_PACK;
 				this._timestamp -= Consts.HEART_PACK;
-				EResult eResult = this.OnHeartBeat( this._context );
-				if ( EResult.Normal != eResult )
+				ErrorCode eResult = this.OnHeartBeat( this._context );
+				if ( ErrorCode.Success != eResult )
 				{
 					Logger.Error( $"fail with error code {eResult}!, please amend the error and try again!" );
 					return;
@@ -71,10 +71,10 @@ namespace BalanceServer
 			this._netSessionMgr.Update();
 		}
 
-		private EResult OnHeartBeat( UpdateContext context )
+		private ErrorCode OnHeartBeat( UpdateContext context )
 		{
 			this._netSessionMgr.OnHeartBeat( context );
-			return EResult.Normal;
+			return ErrorCode.Success;
 		}
 	}
 }
