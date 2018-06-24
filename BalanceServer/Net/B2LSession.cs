@@ -31,7 +31,7 @@ namespace BalanceServer.Net
 			Logger.Info( "LS DisConnect." );
 		}
 
-		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgid )
+		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgID )
 		{
 			this.SetInited( true, true );
 			return ErrorCode.Success;
@@ -40,7 +40,7 @@ namespace BalanceServer.Net
 		/// <summary>
 		/// LS回应BS的检查登陆合法性
 		/// </summary>
-		private ErrorCode MsgUserLogin( byte[] data, int offset, int size, int msgid )
+		private ErrorCode MsgUserLogin( byte[] data, int offset, int size, int msgID )
 		{
 			GCToBS.OneClinetLogin userLoginInfo = new GCToBS.OneClinetLogin();
 			userLoginInfo.MergeFrom( data, offset, size );
@@ -85,11 +85,6 @@ namespace BalanceServer.Net
 				//通知网关服务器有客户端登陆
 				this.owner.SendMsgToSession( littleOne.gs_nets, oneUserLoginToken, ( int )BSToGS.MsgID.EMsgToGsfromBsOneUserLoginToken );
 			}
-			return ErrorCode.Success;
-		}
-
-		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
-		{
 			return ErrorCode.Success;
 		}
 	}

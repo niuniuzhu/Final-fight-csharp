@@ -1,10 +1,10 @@
-﻿using System;
-using Core.Misc;
+﻿using Core.Misc;
 using Core.Net;
 using GateServer.Net;
 using Google.Protobuf;
 using Shared;
 using Shared.Net;
+using System;
 using System.Net.Sockets;
 
 namespace GateServer
@@ -16,9 +16,6 @@ namespace GateServer
 
 		public GSConfig gsConfig { get; }
 		public GSStorage gsStorage { get; }
-		public CSMsgManager csMsgManager { get; }
-		public SSMsgManager ssMsgManager { get; }
-		public GCMsgManager gcMsgManager { get; }
 
 		private readonly GSNetSessionMgr _netSessionMgr;
 		private readonly UpdateContext _context;
@@ -26,9 +23,6 @@ namespace GateServer
 
 		private GS()
 		{
-			this.csMsgManager = new CSMsgManager();
-			this.ssMsgManager = new SSMsgManager();
-			this.gcMsgManager = new GCMsgManager();
 			this.gsStorage = new GSStorage();
 			this._netSessionMgr = new GSNetSessionMgr();
 			this._context = new UpdateContext();

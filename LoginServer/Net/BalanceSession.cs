@@ -32,7 +32,7 @@ namespace LoginServer.Net
 			Logger.Info( $"BS({this.logicID}) DisConnected." );
 		}
 
-		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgid )
+		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgID )
 		{
 			this.SetInited( true, true );
 			return ErrorCode.Success;
@@ -41,7 +41,7 @@ namespace LoginServer.Net
 		/// <summary>
 		/// BS请求验证登陆的客户端是否合法
 		/// </summary>
-		private ErrorCode MsgHandleOneClientLoginCheck( byte[] data, int offset, int size, int msgid )
+		private ErrorCode MsgHandleOneClientLoginCheck( byte[] data, int offset, int size, int msgID )
 		{
 			GCToBS.OneClinetLogin oneClientLogin = new GCToBS.OneClinetLogin();
 			oneClientLogin.MergeFrom( data, offset, size );
@@ -70,11 +70,6 @@ namespace LoginServer.Net
 			}
 			//回应BS该登陆的客户端是否合法
 			this.owner.SendMsgToSession( this.id, oneClientLogin, ( int )LSToBS.MsgID.EMsgToBsfromLsOneClinetLoginCheckRet );
-			return ErrorCode.Success;
-		}
-
-		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
-		{
 			return ErrorCode.Success;
 		}
 	}

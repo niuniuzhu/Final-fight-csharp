@@ -356,7 +356,8 @@ namespace Shared
 
 		CfgFailed,
 		InvaildLogicID,
-		GSNotFound
+		GSNotFound,
+		SSNotFound
 	}
 
 	public enum EUserPlatform

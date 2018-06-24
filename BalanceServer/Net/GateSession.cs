@@ -112,9 +112,5 @@ namespace BalanceServer.Net
 			return ErrorCode.Success;
 		}
 
-		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
-		{
-			return ErrorCode.Success;
-		}
 	}
 }

@@ -24,11 +24,6 @@ namespace BalanceServer.Net
 		{
 		}
 
-		public override void OnError( string error )
-		{
-			this.Close();
-		}
-
 		private ErrorCode MSGOneClientLogin( byte[] data, int offset, int size, int msgID )
 		{
 			//收到第2消息：客户端连接BS，向LS请求客户端是否合法登陆
@@ -40,11 +35,6 @@ namespace BalanceServer.Net
 
 			this.owner.SendMsgToSession( SessionType.ClientB2L, oneClientLogin, ( int )BSToLS.MsgID.EMsgToLsfromBcOneClinetLoginCheck );
 
-			return ErrorCode.Success;
-		}
-
-		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
-		{
 			return ErrorCode.Success;
 		}
 	}

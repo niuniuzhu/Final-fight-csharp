@@ -54,11 +54,6 @@ namespace GateServer.Net
 			this.owner.SendMsgToSession( this.id, reportAllClientInf, ( int )GSToBS.MsgID.EMsgToBsfromGsOneUserLoginTokenRet );
 			return ErrorCode.Success;
 		}
-
-		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
-		{
-			return ErrorCode.Success;
-		}
 		#endregion
 	}
 }

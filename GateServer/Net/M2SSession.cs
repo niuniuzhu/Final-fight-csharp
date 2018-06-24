@@ -10,6 +10,9 @@ namespace GateServer.Net
 		protected M2SSession( uint id ) : base( id )
 		{
 			this._msgHandler.Register( ( int )SSToGS.MsgID.EMsgToGsfromSsAskRegisteRet, this.MsgInitHandler );
+			this._msgHandler.Register( ( int )SSToGS.MsgID.EMsgToGsfromSsAskPingRet, this.OnMsgFromSSAskPingRet );
+			this._msgHandler.Register( ( int )SSToGS.MsgID.EMsgToGsfromSsOrderKickoutGc, this.OnMsgFromSSOrderKickoutGC );
+			this._transHandler.Register( ( int )SSToGS.MsgID.EMsgToGsfromSsOrderPostToGc, this.OnMsgToGsfromSsOrderPostToGc );
 		}
 
 		protected override void SendInitData()
@@ -86,16 +89,54 @@ namespace GateServer.Net
 			return ErrorCode.Success;
 		}
 
-		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
+		/// <summary>
+		/// 处理场景服务器返回的ping消息
+		/// </summary>
+		private ErrorCode OnMsgFromSSAskPingRet( byte[] data, int offset, int size, int msgID )
 		{
-			int realMsgID = 0;
-			uint gcNetID = 0;
-			offset += ByteUtils.Decode32i( data, offset, ref realMsgID );
-			offset += ByteUtils.Decode32u( data, offset, ref gcNetID );
-			size -= 2 * sizeof( int );
 			GSSSInfo ssInfo = GS.instance.gsStorage.GetSSInfo( this.logicID );
-			if ( ssInfo != null )
-				GS.instance.ssMsgManager.HandleUnhandledMsg( ssInfo, data, offset, size, realMsgID, msgID, gcNetID );
+			if ( ssInfo == null )
+				return ErrorCode.SSNotFound;
+
+			SSToGS.AskPingRet pPingRet = new SSToGS.AskPingRet();
+			pPingRet.MergeFrom( data, offset, size );
+
+			long curMilsec = TimeUtils.utcTime;
+			long tickSpan = curMilsec - pPingRet.Time;
+			Logger.Info( $"Ping SS {ssInfo.ssID} returned, Tick span {tickSpan}." );
+			return ErrorCode.Success;
+		}
+
+		/// <summary>
+		/// 场景服务器通知踢走客户端
+		/// </summary>
+		private ErrorCode OnMsgFromSSOrderKickoutGC( byte[] data, int offset, int size, int msgID )
+		{
+			SSToGS.OrderKickoutGC orderKickoutGc = new SSToGS.OrderKickoutGC();
+			orderKickoutGc.MergeFrom( data, offset, size );
+
+			GS.instance.PostGameClientDisconnect( ( uint )orderKickoutGc.Gsnid );
+			return ErrorCode.Success;
+		}
+
+		private ErrorCode OnMsgToGsfromSsOrderPostToGc( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
+		{
+			if ( gcNetID == 0 )
+				GS.instance.BroadcastToGameClient( data, offset, size, msgID );
+			else
+			{
+				if ( msgID == ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyBattleBaseInfo )
+				{
+					GSSSInfo ssInfo = GS.instance.gsStorage.GetSSInfo( this.logicID );
+					if ( ssInfo == null )
+						return ErrorCode.SSNotFound;
+					//该消息的路由:ss-cs-gs-gc
+					//该消息从ss发出,目标端是网络id为gcNetID的客户端,消息体是场景信息
+					//当该消息流经gs时建立该客户端和场景信息的映射关系
+					GS.instance.gsStorage.AddUserSSInfo( gcNetID, ssInfo );
+				}
+				GS.instance.PostToGameClient( gcNetID, data, offset, size, msgID );
+			}
 			return ErrorCode.Success;
 		}
 		#endregion

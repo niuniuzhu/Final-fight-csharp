@@ -34,12 +34,7 @@ namespace LoginServer.Net
 		{
 		}
 
-		public override void OnError( string error )
-		{
-			this.Close();
-		}
-
-		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgid )
+		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgID )
 		{
 			//收到第1消息：请求登录，放入登录队列
 			GCToLS.AskLogin login = new GCToLS.AskLogin();
@@ -47,11 +42,6 @@ namespace LoginServer.Net
 
 			LS.instance.sdkAsynHandler.CheckLogin( login, ( int )GCToLS.MsgID.EMsgToLsfromGcAskLogin, this.id );
 			this.SetInited( true, true );
-			return ErrorCode.Success;
-		}
-
-		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
-		{
 			return ErrorCode.Success;
 		}
 	}

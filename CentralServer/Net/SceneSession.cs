@@ -23,10 +23,5 @@ namespace CentralServer.Net
 		{
 			throw new System.NotImplementedException();
 		}
-
-		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
-		{
-			throw new System.NotImplementedException();
-		}
 	}
 }

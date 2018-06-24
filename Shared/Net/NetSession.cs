@@ -9,9 +9,10 @@ namespace Shared.Net
 		public uint id { get; }
 		public int logicID { get; set; }
 		public SessionType type { get; set; }
-		public IConnection connection { get; protected set; }
+		public IConnection connection { get; }
 
 		protected readonly MsgHandler _msgHandler;
+		protected readonly TransHandler _transHandler;
 
 		/// <summary>
 		/// 本地连接是否已经初始化的标记
@@ -50,6 +51,7 @@ namespace Shared.Net
 
 			this._closed = true;
 			this._msgHandler = new MsgHandler();
+			this._transHandler = new TransHandler();
 		}
 
 		public virtual void Dispose() => this.Close();
@@ -117,7 +119,7 @@ namespace Shared.Net
 		/// </summary>
 		public virtual void OnError( string error )
 		{
-			Logger.Error( error );
+			//Logger.Error( error );
 			this.Close();
 		}
 
@@ -138,8 +140,19 @@ namespace Shared.Net
 			//检查是否注册了处理函数,否则调用未处理数据的函数
 			if ( this._msgHandler.TryGetHandler( msgID, out MsgHandler.Handler handler ) )
 				handler.Invoke( data, offset, size, msgID );
+			else if ( this._transHandler.TryGetHandler( msgID, out TransHandler.Handler handler2 ) )
+			{
+				int transID = msgID;
+				uint gcNetID = 0;
+				//剥离第二层消息ID
+				offset += ByteUtils.Decode32i( data, offset, ref msgID );
+				//剥离客户端网络ID
+				offset += ByteUtils.Decode32u( data, offset, ref gcNetID );
+				size -= 2 * sizeof( int );
+				handler2.Invoke( data, offset, size, transID, msgID, gcNetID );
+			}
 			else
-				this.HandleUnhandledMsg( data, offset, size, msgID );
+				Logger.Warn( $"invalid msg:{msgID}." );
 		}
 
 		/// <summary>
@@ -165,12 +178,6 @@ namespace Shared.Net
 		/// 关闭连接后调用
 		/// </summary>
 		protected abstract void OnClose();
-
-		/// <summary>
-		/// 处理此实例未处理的消息(通常该消息是一条转发消息)
-		/// </summary>
-		/// <returns></returns>
-		protected abstract ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID );
 
 		/// <summary>
 		/// 每次心跳调用

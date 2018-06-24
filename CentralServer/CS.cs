@@ -21,9 +21,6 @@ namespace CentralServer
 		public string m_szRemoteConsolekey;
 
 		public CSNetSessionMgr netSessionMgr { get; }
-		public GCMsgManager gcMsgManager { get; }
-		public GSMsgManager gsMsgManager { get; }
-		public RCMsgManager rcMsgManager { get; }
 
 		public SSNetInfo[] m_psSSNetInfoList { get; private set; }//场景列表信息
 		public GSNetInfo[] m_psGSNetInfoList { get; private set; }//网关列表信息
@@ -33,9 +30,6 @@ namespace CentralServer
 		{
 			this.m_sCSKernelCfg = new SCSKernelCfg();
 			this.netSessionMgr = new CSNetSessionMgr();
-			this.gcMsgManager = new GCMsgManager();
-			this.gsMsgManager = new GSMsgManager();
-			this.rcMsgManager = new RCMsgManager();
 		}
 
 		public void Dispose()

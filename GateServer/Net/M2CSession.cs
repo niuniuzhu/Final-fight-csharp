@@ -1,5 +1,4 @@
 ﻿using Core.Misc;
-using CSToGS;
 using Google.Protobuf;
 using Shared;
 using Shared.Net;
@@ -12,8 +11,15 @@ namespace GateServer.Net
 
 		protected M2CSession( uint id ) : base( id )
 		{
-			this._msgHandler.Register( ( int )MsgID.EMsgToGsfromCsAskRegisteRet, this.MsgInitHandler );
-			this._msgHandler.Register( ( int )MsgID.EMsgToGsfromCsOneSsconnected, this.MsgOneSSConnectedHandler );
+			this._msgHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsAskRegisteRet, this.MsgInitHandler );
+			this._msgHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOneSsconnected, this.MsgOneSSConnectedHandler );
+			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsAskPingRet, this.OnMsgFromCSAskPingRet );
+			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderOpenListen, this.OnMsgFromCSOrderOpenListen );
+			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderCloseListen, this.OnMsgFromCSOrderCloseListen );
+			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderKickoutGc, this.OnMsgFromCSOrderKickoutGC );
+			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsUserConnectedSs, this.OnMsgFromCSUserConnectedToSS );
+			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsUserDisConnectedSs, this.OnMsgFromCSUserDisConnectedToSS );
+			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc, this.OnMsgToGsfromCsOrderPostToGc );
 		}
 
 		protected override void SendInitData()
@@ -59,13 +65,13 @@ namespace GateServer.Net
 			offset += 2 * sizeof( int );
 			size -= 2 * sizeof( int );
 
-			AskRegisteRet askRegisteRet = new AskRegisteRet();
+			CSToGS.AskRegisteRet askRegisteRet = new CSToGS.AskRegisteRet();
 			askRegisteRet.MergeFrom( data, offset, size );
 
 			if ( ( int )ErrorCode.Success != askRegisteRet.Registe )
 			{
 				Logger.Warn( $"CS Register Error(ret={askRegisteRet.Registe})!" );
-				return ( ErrorCode ) askRegisteRet.Registe;
+				return ( ErrorCode )askRegisteRet.Registe;
 			}
 
 			long csMilsec = askRegisteRet.Curtime;
@@ -108,7 +114,7 @@ namespace GateServer.Net
 			offset += 2 * sizeof( int );
 			size -= 2 * sizeof( int );
 
-			OneSSConnected oneSsConnected = new OneSSConnected();
+			CSToGS.OneSSConnected oneSsConnected = new CSToGS.OneSSConnected();
 			oneSsConnected.MergeFrom( data, offset, size );
 
 			GSSSInfo pcSSInfo = GS.instance.gsStorage.GetSSInfo( oneSsConnected.Ssid );
@@ -127,16 +133,97 @@ namespace GateServer.Net
 			return ErrorCode.Success;
 		}
 
-		protected override ErrorCode HandleUnhandledMsg( byte[] data, int offset, int size, int msgID )
+		/// <summary>
+		/// 处理中心服务器返回的ping消息
+		/// </summary>
+		private ErrorCode OnMsgFromCSAskPingRet( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
 		{
-			int realMsgID = 0;
-			uint gcNetID = 0;
-			//剥离第二层消息ID
-			offset += ByteUtils.Decode32i( data, offset, ref realMsgID );
-			//剥离客户端网络ID
-			offset += ByteUtils.Decode32u( data, offset, ref gcNetID );
-			size -= 2 * sizeof( int );
-			GS.instance.csMsgManager.HandleUnhandledMsg( data, offset, size, realMsgID, msgID, gcNetID );
+			CSToGS.AskPing pingRet = new CSToGS.AskPing();
+			pingRet.MergeFrom( data, offset, size );
+
+			long curMilsec = TimeUtils.utcTime;
+			long tickSpan = curMilsec - pingRet.Time;
+
+			Logger.Info( $"Ping CS returned, tick span {tickSpan}." );
+
+			return ErrorCode.Success;
+		}
+
+		/// <summary>
+		/// 中心服务器通知开服
+		/// </summary>
+		private ErrorCode OnMsgFromCSOrderOpenListen( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
+		{
+			GS.instance.CreateListener( GS.instance.gsConfig.n32GCListenPort, 10240, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 0 );
+			return ErrorCode.Success;
+		}
+
+		/// <summary>
+		/// 中心服务器通知关服
+		/// </summary>
+		private ErrorCode OnMsgFromCSOrderCloseListen( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
+		{
+			GS.instance.StopListener( 0 );
+			return ErrorCode.Success;
+		}
+
+		/// <summary>
+		/// 中心服务器通知强制客户端下线
+		/// </summary>
+		private ErrorCode OnMsgFromCSOrderKickoutGC( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
+		{
+			CSToGS.OrderKickoutGC orderKickoutGC = new CSToGS.OrderKickoutGC();
+			orderKickoutGC.MergeFrom( data, offset, size );
+			GS.instance.PostGameClientDisconnect( ( uint )orderKickoutGC.Gcnid );
+			return ErrorCode.Success;
+		}
+
+		/// <summary>
+		/// 中心服务器通知场景服务器内的客户端信息
+		/// </summary>
+		private ErrorCode OnMsgFromCSUserConnectedToSS( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
+		{
+			CSToGS.UserConnectedSS userConnectedSS = new CSToGS.UserConnectedSS();
+			userConnectedSS.MergeFrom( data, offset, size );
+
+			GSSSInfo ssInfo = GS.instance.gsStorage.GetSSInfo( userConnectedSS.Ssid );
+			if ( null == ssInfo )
+			{
+				Logger.Error( $"ssInfo is null with ssid({userConnectedSS.Ssid})" );
+				return ErrorCode.SSNotFound;
+			}
+
+			//客户端id和场景服务器信息建立映射关系
+			int count = userConnectedSS.Gcnid.Count;
+			for ( int i = 0; i < count; ++i )
+			{
+				uint gc = ( uint )userConnectedSS.Gcnid[i];
+				GS.instance.gsStorage.AddUserSSInfo( gc, ssInfo );
+				Logger.Log( $"user netID({gc}) connect with SS({ssInfo.ssID})" );
+			}
+			return ErrorCode.Success;
+		}
+
+		/// <summary>
+		/// 中心服务器通知客户端和场景服务器的连接断开
+		/// </summary>
+		private ErrorCode OnMsgFromCSUserDisConnectedToSS( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
+		{
+			CSToGS.UserDisConnectedSS userConnectedSS = new CSToGS.UserDisConnectedSS();
+			userConnectedSS.MergeFrom( data, offset, size );
+
+			int count = userConnectedSS.Gcnid.Count;
+			for ( int i = 0; i < count; ++i )
+				GS.instance.gsStorage.RemoveUserSSInfo( ( uint )userConnectedSS.Gcnid[i] );
+			return ErrorCode.Success;
+		}
+
+		private ErrorCode OnMsgToGsfromCsOrderPostToGc( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
+		{
+			if ( gcNetID == 0 )
+				GS.instance.BroadcastToGameClient( data, offset, size, msgID );
+			else
+				GS.instance.PostToGameClient( gcNetID, data, offset, size, msgID );
 			return ErrorCode.Success;
 		}
 		#endregion
