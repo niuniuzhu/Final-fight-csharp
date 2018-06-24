@@ -9,10 +9,10 @@ namespace CentralServer.Net
 	{
 		protected GateSession( uint id ) : base( id )
 		{
-			this._msgHandler.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.MsgHandleInit );
-			//this._msgHandler.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.OnMsgFromGSAskRegiste );
-			//this._msgHandler.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskPing, this.OnMsgFromGSAskPing );
-			//this._msgHandler.Register(( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, this.OnMsgFromGSReportGCMsg);
+			this._transHandler.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.MsgHandleInit );
+			//this._transHandler.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.OnMsgFromGSAskRegiste );
+			this._transHandler.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskPing, this.OnMsgFromGSAskPing );
+			this._transHandler.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, this.OnMsgFromGSReportGCMsg );
 		}
 
 		protected override void SendInitData()
@@ -62,16 +62,8 @@ namespace CentralServer.Net
 			CS.instance.m_psGSNetInfoList[pos].pcGSInfo = null;
 		}
 
-		private ErrorCode MsgHandleInit( byte[] data, int offset, int size, int msgID1 )
+		private ErrorCode MsgHandleInit( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
 		{
-			int msgID = 0;
-			uint gcNetID = 0;
-			//剥离第二层消息ID
-			offset += ByteUtils.Decode32i( data, offset, ref msgID );
-			//剥离客户端网络ID
-			offset += ByteUtils.Decode32u( data, offset, ref gcNetID );
-			size -= 2 * sizeof( int );
-
 			GSToCS.AskRegiste msg = new GSToCS.AskRegiste();
 			msg.MergeFrom( data, offset, size );
 
@@ -194,14 +186,29 @@ namespace CentralServer.Net
 			return ErrorCode.Success;
 		}
 
-		private ErrorCode OnMsgFromGSAskPing( CSGSInfo cpigsinfo, byte[] data, int offset, int size )
+		private ErrorCode OnMsgFromGSAskPing( byte[] data, int offset, int size, int transID, int msgID, uint gcNetIDID )
 		{
-			throw new System.NotImplementedException();
+			GSToCS.Asking sAskPing = new GSToCS.Asking();
+			sAskPing.MergeFrom( data, offset, size );
+
+			CSToGS.AskPing sMsg = new CSToGS.AskPing();
+			sMsg.Time = sAskPing.Time;
+
+			CSGSInfo pcGSInfo = CS.instance.GetCGSInfoByNSID( this.id );
+			if ( pcGSInfo == null )
+				return ErrorCode.GSNotFound;
+			this.owner.TranMsgToSession( pcGSInfo.m_n32NSID, sMsg, ( int )CSToGS.MsgID.EMsgToGsfromCsAskPingRet, 0, 0 );
+
+			return ErrorCode.Success;
 		}
 
-		private ErrorCode OnMsgFromGSReportGCMsg( CSGSInfo cpigsinfo, byte[] data, int offset, int size )
+		private ErrorCode OnMsgFromGSReportGCMsg( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
 		{
-			throw new System.NotImplementedException();
+			GSToCS.ReportGCMsg pReportGCMsg = new GSToCS.ReportGCMsg();
+			pReportGCMsg.MergeFrom( data, offset, size );
+
+			//todo
+			return ErrorCode.Success;
 		}
 	}
 }

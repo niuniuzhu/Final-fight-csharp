@@ -45,7 +45,13 @@ namespace CentralServer
 				Logger.Info( "CS Initialize success" );
 
 			this.m_psSSNetInfoList = new SSNetInfo[this.m_sCSKernelCfg.un32MaxSSNum];
+			for ( int i = 0; i < this.m_sCSKernelCfg.un32MaxSSNum; i++ )
+				this.m_psSSNetInfoList[i] = new SSNetInfo();
+
 			this.m_psGSNetInfoList = new GSNetInfo[this.m_sCSKernelCfg.un32MaxGSNum];
+			for ( int i = 0; i < this.m_sCSKernelCfg.un32MaxGSNum; i++ )
+				this.m_psGSNetInfoList[i] = new GSNetInfo();
+
 			this.m_psRCNetInfoList = new RCNetInfo[10];
 
 			//todo addtimer
@@ -101,16 +107,16 @@ namespace CentralServer
 					Logger.Error( "load CSCfg.xml failed." );
 					continue;
 				}
-
-				this.m_pcSSInfoList[i].m_n32SSID = int.Parse( ssInfoVec[0] );
-				this.m_pcSSInfoList[i].m_szName = ssInfoVec[1];
-				this.m_pcSSInfoList[i].m_szUserPwd = ssInfoVec[2];
+				CSSSInfo csssInfo = new CSSSInfo();
+				csssInfo.m_n32SSID = int.Parse( ssInfoVec[0] );
+				csssInfo.m_szName = ssInfoVec[1];
+				csssInfo.m_szUserPwd = ssInfoVec[2];
+				this.m_pcSSInfoList[i] = csssInfo;
 			}
 
 			string gsIndexStr = json.GetString( "AllGSIndex" );
 			string[] gsIndexVec = gsIndexStr.Split( ';' );
 			this.m_pcGSInfoList = new CSGSInfo[gsIndexVec.Length];
-
 			for ( int i = 0; i != gsIndexVec.Length; ++i )
 			{
 				string[] gsInfoVec = gsIndexVec[i].Split( ',' );
@@ -119,10 +125,11 @@ namespace CentralServer
 					Logger.Error( "load CSCfg.xml failed." );
 					continue;
 				}
-
-				this.m_pcGSInfoList[i].m_n32GSID = int.Parse( gsInfoVec[0] );
-				this.m_pcGSInfoList[i].m_szName = gsInfoVec[1];
-				this.m_pcGSInfoList[i].m_szUserPwd = gsInfoVec[2];
+				CSGSInfo csgsInfo = new CSGSInfo();
+				csgsInfo.m_n32GSID = int.Parse( gsInfoVec[0] );
+				csgsInfo.m_szName = gsInfoVec[1];
+				csgsInfo.m_szUserPwd = gsInfoVec[2];
+				this.m_pcGSInfoList[i] = csgsInfo;
 			}
 
 			this.m_sCSKernelCfg.n32RCNetListenerPort = json.GetInt( "RSPort" );
@@ -140,7 +147,7 @@ namespace CentralServer
 											   Consts.PROTOCOL_TYPE, 0, this.netSessionMgr.CreateSceneSession );
 			this.netSessionMgr.CreateListener( this.m_sCSKernelCfg.n32RCNetListenerPort, 1024000, Consts.SOCKET_TYPE,
 											   Consts.PROTOCOL_TYPE, 0, this.netSessionMgr.CreateRemoteConsoleSession );
-			this.netSessionMgr.CreateConnector( SessionType.ClientG2B, this.m_sCSKernelCfg.LogAddress,
+			this.netSessionMgr.CreateConnector( SessionType.ClientC2Log, this.m_sCSKernelCfg.LogAddress,
 												this.m_sCSKernelCfg.LogPort, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 102400,
 												0 );
 
