@@ -9,8 +9,8 @@ namespace GateServer.Net
 	{
 		protected M2BSession( uint id ) : base( id )
 		{
-			this._msgHandler.Register( ( int )BSToGS.MsgID.EMsgToGsfromBsAskRegisterRet, this.MsgInitHandler );
-			this._msgHandler.Register( ( int )BSToGS.MsgID.EMsgToGsfromBsOneUserLoginToken, this.MsgOneUserLoginTokenHandler );
+			this._msgCenter.Register( ( int )BSToGS.MsgID.EMsgToGsfromBsAskRegisterRet, this.MsgInitHandler );
+			this._msgCenter.Register( ( int )BSToGS.MsgID.EMsgToGsfromBsOneUserLoginToken, this.MsgOneUserLoginTokenHandler );
 		}
 
 		protected override void SendInitData()

@@ -11,15 +11,15 @@ namespace GateServer.Net
 
 		protected M2CSession( uint id ) : base( id )
 		{
-			this._msgHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsAskRegisteRet, this.MsgInitHandler );
-			this._msgHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOneSsconnected, this.MsgOneSSConnectedHandler );
-			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsAskPingRet, this.OnMsgFromCSAskPingRet );
-			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderOpenListen, this.OnMsgFromCSOrderOpenListen );
-			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderCloseListen, this.OnMsgFromCSOrderCloseListen );
-			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderKickoutGc, this.OnMsgFromCSOrderKickoutGC );
-			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsUserConnectedSs, this.OnMsgFromCSUserConnectedToSS );
-			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsUserDisConnectedSs, this.OnMsgFromCSUserDisConnectedToSS );
-			this._transHandler.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc, this.OnMsgToGsfromCsOrderPostToGc );
+			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsAskRegisteRet, this.MsgInitHandler );
+			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOneSsconnected, this.MsgOneSSConnectedHandler );
+			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsAskPingRet, this.OnMsgFromCSAskPingRet );
+			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderOpenListen, this.OnMsgFromCSOrderOpenListen );
+			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderCloseListen, this.OnMsgFromCSOrderCloseListen );
+			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderKickoutGc, this.OnMsgFromCSOrderKickoutGC );
+			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsUserConnectedSs, this.OnMsgFromCSUserConnectedToSS );
+			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsUserDisConnectedSs, this.OnMsgFromCSUserDisConnectedToSS );
+			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc, this.OnMsgToGsfromCsOrderPostToGc );
 		}
 
 		protected override void SendInitData()
@@ -60,11 +60,8 @@ namespace GateServer.Net
 		}
 
 		#region msg handlers
-		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int msgID )
+		private ErrorCode MsgInitHandler( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
 		{
-			offset += 2 * sizeof( int );
-			size -= 2 * sizeof( int );
-
 			CSToGS.AskRegisteRet askRegisteRet = new CSToGS.AskRegisteRet();
 			askRegisteRet.MergeFrom( data, offset, size );
 

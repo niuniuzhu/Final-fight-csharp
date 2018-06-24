@@ -19,7 +19,7 @@ namespace LoginServer.Net
 			//8,BS通知客户端GS地址
 			//9,客户端连接GS
 			//10,GS把登陆信息转发到CS
-			this._msgHandler.Register( ( int )GCToLS.MsgID.EMsgToLsfromGcAskLogin, this.MsgInitHandler );
+			 this._msgCenter.Register( ( int )GCToLS.MsgID.EMsgToLsfromGcAskLogin, this.MsgInitHandler );
 		}
 
 		protected override void SendInitData()

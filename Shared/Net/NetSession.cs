@@ -11,8 +11,7 @@ namespace Shared.Net
 		public SessionType type { get; set; }
 		public IConnection connection { get; }
 
-		protected readonly MsgHandler _msgHandler;
-		protected readonly TransHandler _transHandler;
+		protected MsgCenter _msgCenter { get; private set; }
 
 		/// <summary>
 		/// 本地连接是否已经初始化的标记
@@ -48,10 +47,8 @@ namespace Shared.Net
 		{
 			this.id = id;
 			this.connection = new Connection( this );
-
+			this._msgCenter = new MsgCenter();
 			this._closed = true;
-			this._msgHandler = new MsgHandler();
-			this._transHandler = new TransHandler();
 		}
 
 		public virtual void Dispose() => this.Close();
@@ -130,17 +127,15 @@ namespace Shared.Net
 		{
 			if ( this._closed )
 				return;
-			if ( this._msgHandler == null )
-				return;
 
 			//剥离第一层消息ID
 			int msgID = 0;
 			offset += ByteUtils.Decode32i( data, offset, ref msgID );
 			size -= offset;
 			//检查是否注册了处理函数,否则调用未处理数据的函数
-			if ( this._msgHandler.TryGetHandler( msgID, out MsgHandler.Handler handler ) )
-				handler.Invoke( data, offset, size, msgID );
-			else if ( this._transHandler.TryGetHandler( msgID, out TransHandler.Handler handler2 ) )
+			if ( this._msgCenter.TryGetHandler( msgID, out MsgCenter.MsgHandler msgHandler ) )
+				msgHandler.Invoke( data, offset, size, msgID );
+			else if ( this._msgCenter.TryGetHandler( msgID, out MsgCenter.TransHandler transHandler ) )
 			{
 				int transID = msgID;
 				uint gcNetID = 0;
@@ -149,7 +144,7 @@ namespace Shared.Net
 				//剥离客户端网络ID
 				offset += ByteUtils.Decode32u( data, offset, ref gcNetID );
 				size -= 2 * sizeof( int );
-				handler2.Invoke( data, offset, size, transID, msgID, gcNetID );
+				transHandler.Invoke( data, offset, size, transID, msgID, gcNetID );
 			}
 			else
 				Logger.Warn( $"invalid msg:{msgID}." );
