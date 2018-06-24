@@ -9,7 +9,7 @@ namespace BalanceServer.Net
 	{
 		protected ClientSession( uint id ) : base( id )
 		{
-			 this._msgCenter.Register( ( int )GCToBS.MsgNum.EMsgToBsfromGcOneClinetLogin, this.MSGOneClientLogin );
+			 this.msgCenter.Register( ( int )GCToBS.MsgNum.EMsgToBsfromGcOneClinetLogin, this.MSGOneClientLogin );
 		}
 
 		protected override void SendInitData()

@@ -9,10 +9,10 @@ namespace CentralServer.Net
 	{
 		protected GateSession( uint id ) : base( id )
 		{
-			 this._msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.MsgHandleInit );
+			 this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.MsgHandleInit );
 			// this._msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.OnMsgFromGSAskRegiste );
-			 this._msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskPing, this.OnMsgFromGSAskPing );
-			 this._msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, this.OnMsgFromGSReportGCMsg );
+			 this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskPing, this.OnMsgFromGSAskPing );
+			 this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, this.OnMsgFromGSReportGCMsg );
 		}
 
 		protected override void SendInitData()

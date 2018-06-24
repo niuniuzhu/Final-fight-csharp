@@ -9,9 +9,9 @@ namespace BalanceServer.Net
 	{
 		protected GateSession( uint id ) : base( id )
 		{
-			 this._msgCenter.Register( ( int )GSToBS.MsgID.EMsgToBsfromGsAskRegister, this.MsgAskRegister );
-			 this._msgCenter.Register( ( int )GSToBS.MsgID.EMsgToBsfromGsReportAllClientInfo, this.MsgHandleReportGsInfo );
-			 this._msgCenter.Register( ( int )GSToBS.MsgID.EMsgToBsfromGsOneUserLoginTokenRet, this.MsgHandleOneUserLoginTokenRet );
+			 this.msgCenter.Register( ( int )GSToBS.MsgID.EMsgToBsfromGsAskRegister, this.MsgAskRegister );
+			 this.msgCenter.Register( ( int )GSToBS.MsgID.EMsgToBsfromGsReportAllClientInfo, this.MsgHandleReportGsInfo );
+			 this.msgCenter.Register( ( int )GSToBS.MsgID.EMsgToBsfromGsOneUserLoginTokenRet, this.MsgHandleOneUserLoginTokenRet );
 		}
 
 		protected override void SendInitData()

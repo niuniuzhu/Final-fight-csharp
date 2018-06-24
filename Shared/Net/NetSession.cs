@@ -10,8 +10,7 @@ namespace Shared.Net
 		public int logicID { get; set; }
 		public SessionType type { get; set; }
 		public IConnection connection { get; }
-
-		protected MsgCenter _msgCenter { get; private set; }
+		public MsgCenter msgCenter { get; }
 
 		/// <summary>
 		/// 本地连接是否已经初始化的标记
@@ -47,7 +46,7 @@ namespace Shared.Net
 		{
 			this.id = id;
 			this.connection = new Connection( this );
-			this._msgCenter = new MsgCenter();
+			this.msgCenter = new MsgCenter();
 			this._closed = true;
 		}
 
@@ -133,9 +132,9 @@ namespace Shared.Net
 			offset += ByteUtils.Decode32i( data, offset, ref msgID );
 			size -= offset;
 			//检查是否注册了处理函数,否则调用未处理数据的函数
-			if ( this._msgCenter.TryGetHandler( msgID, out MsgCenter.MsgHandler msgHandler ) )
+			if ( this.msgCenter.TryGetHandler( msgID, out MsgCenter.MsgHandler msgHandler ) )
 				msgHandler.Invoke( data, offset, size, msgID );
-			else if ( this._msgCenter.TryGetHandler( msgID, out MsgCenter.TransHandler transHandler ) )
+			else if ( this.msgCenter.TryGetHandler( msgID, out MsgCenter.TransHandler transHandler ) )
 			{
 				int transID = msgID;
 				uint gcNetID = 0;

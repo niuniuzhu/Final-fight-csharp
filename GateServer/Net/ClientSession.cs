@@ -13,17 +13,17 @@ namespace GateServer.Net
 
 		protected ClientSession( uint id ) : base( id )
 		{
-			this._msgCenter.Register( ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskLogin, this.OnMsgToGstoCsfromGcAskLogin );
-			this._msgCenter.Register( ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskReconnectGame, this.OnMsgToGstoCsfromGcAskReconnectGame );
-			this._msgCenter.Register( ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcAskPingSs, this.OnMsgToGstoSsfromGcAskPingSs );
+			this.msgCenter.Register( ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskLogin, this.OnMsgToGstoCsfromGcAskLogin );
+			this.msgCenter.Register( ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskReconnectGame, this.OnMsgToGstoCsfromGcAskReconnectGame );
+			this.msgCenter.Register( ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcAskPingSs, this.OnMsgToGstoSsfromGcAskPingSs );
 			int start = ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcBegin + 1;
 			int end = ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcEnd;
 			for ( int i = start; i < end; ++i )
-				this._msgCenter.Register( i, this.OnTransToCS );
+				this.msgCenter.Register( i, this.OnTransToCS );
 			start = ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcBegin;
 			end = ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcEnd;
 			for ( int i = start; i < end; ++i )
-				this._msgCenter.Register( i, this.OnTransToSS );
+				this.msgCenter.Register( i, this.OnTransToSS );
 		}
 
 		protected override void SendInitData()

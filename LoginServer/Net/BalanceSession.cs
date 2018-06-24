@@ -12,8 +12,8 @@ namespace LoginServer.Net
 
 		protected BalanceSession( uint id ) : base( id )
 		{
-			this._msgCenter.Register( ( int )BSToLS.MsgID.EMsgToLsfromBsAskRegister, this.MsgInitHandler );
-			this._msgCenter.Register( ( int )BSToLS.MsgID.EMsgToLsfromBcOneClinetLoginCheck, this.MsgHandleOneClientLoginCheck );
+			this.msgCenter.Register( ( int )BSToLS.MsgID.EMsgToLsfromBsAskRegister, this.MsgInitHandler );
+			this.msgCenter.Register( ( int )BSToLS.MsgID.EMsgToLsfromBcOneClinetLoginCheck, this.MsgHandleOneClientLoginCheck );
 		}
 
 		protected override void SendInitData()

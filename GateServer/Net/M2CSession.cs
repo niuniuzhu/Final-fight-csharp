@@ -11,15 +11,15 @@ namespace GateServer.Net
 
 		protected M2CSession( uint id ) : base( id )
 		{
-			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsAskRegisteRet, this.MsgInitHandler );
-			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOneSsconnected, this.MsgOneSSConnectedHandler );
-			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsAskPingRet, this.OnMsgFromCSAskPingRet );
-			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderOpenListen, this.OnMsgFromCSOrderOpenListen );
-			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderCloseListen, this.OnMsgFromCSOrderCloseListen );
-			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderKickoutGc, this.OnMsgFromCSOrderKickoutGC );
-			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsUserConnectedSs, this.OnMsgFromCSUserConnectedToSS );
-			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsUserDisConnectedSs, this.OnMsgFromCSUserDisConnectedToSS );
-			this._msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc, this.OnMsgToGsfromCsOrderPostToGc );
+			this.msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsAskRegisteRet, this.MsgInitHandler );
+			this.msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOneSsconnected, this.MsgOneSSConnectedHandler );
+			this.msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsAskPingRet, this.OnMsgFromCSAskPingRet );
+			this.msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderOpenListen, this.OnMsgFromCSOrderOpenListen );
+			this.msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderCloseListen, this.OnMsgFromCSOrderCloseListen );
+			this.msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderKickoutGc, this.OnMsgFromCSOrderKickoutGC );
+			this.msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsUserConnectedSs, this.OnMsgFromCSUserConnectedToSS );
+			this.msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsUserDisConnectedSs, this.OnMsgFromCSUserDisConnectedToSS );
+			this.msgCenter.Register( ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc, this.OnMsgToGsfromCsOrderPostToGc );
 		}
 
 		protected override void SendInitData()

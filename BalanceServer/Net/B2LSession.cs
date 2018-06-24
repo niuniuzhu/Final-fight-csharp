@@ -10,8 +10,8 @@ namespace BalanceServer.Net
 	{
 		protected B2LSession( uint id ) : base( id )
 		{
-			this._msgCenter.Register( ( int )LSToBS.MsgID.EMsgToBsfromLsAskRegisterRet, this.MsgInitHandler );
-			this._msgCenter.Register( ( int )LSToBS.MsgID.EMsgToBsfromLsOneClinetLoginCheckRet, this.MsgUserLogin );
+			this.msgCenter.Register( ( int )LSToBS.MsgID.EMsgToBsfromLsAskRegisterRet, this.MsgInitHandler );
+			this.msgCenter.Register( ( int )LSToBS.MsgID.EMsgToBsfromLsOneClinetLoginCheckRet, this.MsgUserLogin );
 		}
 
 		protected override void SendInitData()
