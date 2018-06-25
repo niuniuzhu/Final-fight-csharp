@@ -9,10 +9,10 @@ namespace CentralServer.Net
 	{
 		protected GateSession( uint id ) : base( id )
 		{
-			 this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.MsgHandleInit );
+			this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.MsgHandleInit );
 			// this._msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.OnMsgFromGSAskRegiste );
-			 this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskPing, this.OnMsgFromGSAskPing );
-			 this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, this.OnMsgFromGSReportGCMsg );
+			this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskPing, this.OnMsgFromGSAskPing );
+			this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, this.OnMsgFromGSReportGCMsg );
 		}
 
 		protected override void SendInitData()
@@ -43,21 +43,21 @@ namespace CentralServer.Net
 
 		protected override void OnRealEstablish()
 		{
-			CSGSInfo pcGSInfo = CS.instance.GetCGSInfoByNSID( this.id );
-			if ( pcGSInfo != null )
-				Logger.Info( $"GS({pcGSInfo.m_n32GSID}) Connected" );
+			CSGSInfo csgsInfo = CS.instance.GetCGSInfoByNSID( this.id );
+			if ( csgsInfo != null )
+				Logger.Info( $"GS({csgsInfo.m_n32GSID}) Connected" );
 		}
 
 		protected override void OnClose()
 		{
-			CSGSInfo pcGSInfo = CS.instance.GetCGSInfoByNSID( this.id );
-			if ( pcGSInfo == null )
+			CSGSInfo csgsInfo = CS.instance.GetCGSInfoByNSID( this.id );
+			if ( csgsInfo == null )
 				return;
-			Logger.Info( $"GS({pcGSInfo.m_n32GSID}) DisConnected" );
-			int pos = ( int )( pcGSInfo.m_n32GSID - CS.instance.m_sCSKernelCfg.un32GSBaseIdx );
-			pcGSInfo.m_eGSNetState = EServerNetState.SnsClosed;
-			pcGSInfo.m_n32NSID = 0;
-			pcGSInfo.m_tLastConnMilsec = 0;
+			Logger.Info( $"GS({csgsInfo.m_n32GSID}) DisConnected" );
+			int pos = ( int )( csgsInfo.m_n32GSID - CS.instance.m_sCSKernelCfg.un32GSBaseIdx );
+			csgsInfo.m_eGSNetState = EServerNetState.SnsClosed;
+			csgsInfo.m_n32NSID = 0;
+			csgsInfo.m_tLastConnMilsec = 0;
 			CS.instance.m_psGSNetInfoList[pos].tConnMilsec = 0;
 			CS.instance.m_psGSNetInfoList[pos].pcGSInfo = null;
 		}
@@ -188,27 +188,26 @@ namespace CentralServer.Net
 
 		private ErrorCode OnMsgFromGSAskPing( byte[] data, int offset, int size, int transID, int msgID, uint gcNetIDID )
 		{
-			GSToCS.Asking sAskPing = new GSToCS.Asking();
-			sAskPing.MergeFrom( data, offset, size );
+			GSToCS.Asking askPing = new GSToCS.Asking();
+			askPing.MergeFrom( data, offset, size );
 
-			CSToGS.AskPing sMsg = new CSToGS.AskPing();
-			sMsg.Time = sAskPing.Time;
+			CSToGS.AskPing msg = new CSToGS.AskPing { Time = askPing.Time };
 
-			CSGSInfo pcGSInfo = CS.instance.GetCGSInfoByNSID( this.id );
-			if ( pcGSInfo == null )
+			CSGSInfo csgsInfo = CS.instance.GetCGSInfoByNSID( this.id );
+			if ( csgsInfo == null )
 				return ErrorCode.GSNotFound;
-			this.owner.TranMsgToSession( pcGSInfo.m_n32NSID, sMsg, ( int )CSToGS.MsgID.EMsgToGsfromCsAskPingRet, 0, 0 );
+			this.owner.TranMsgToSession( csgsInfo.m_n32NSID, msg, ( int )CSToGS.MsgID.EMsgToGsfromCsAskPingRet, 0, 0 );
 
 			return ErrorCode.Success;
 		}
 
 		private ErrorCode OnMsgFromGSReportGCMsg( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
 		{
-			GSToCS.ReportGCMsg pReportGCMsg = new GSToCS.ReportGCMsg();
-			pReportGCMsg.MergeFrom( data, offset, size );
+			GSToCS.ReportGCMsg reportGCMsg = new GSToCS.ReportGCMsg();
+			reportGCMsg.MergeFrom( data, offset, size );
 
-			//todo
-			return ErrorCode.Success;
+			CSGSInfo csgsInfo = CS.instance.GetCGSInfoByNSID( this.id );
+			return CS.instance.InvokeGCMsg( csgsInfo, msgID, gcNetID, data, offset, size );
 		}
 	}
 }

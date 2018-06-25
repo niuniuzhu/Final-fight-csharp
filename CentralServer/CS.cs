@@ -6,6 +6,7 @@ using Shared.Net;
 using System;
 using System.Collections;
 using System.IO;
+using CentralServer.UserModule;
 
 namespace CentralServer
 {
@@ -21,6 +22,7 @@ namespace CentralServer
 		public string m_szRemoteConsolekey;
 
 		public CSNetSessionMgr netSessionMgr { get; }
+		public UserMsgMgr userMsgMgr { get; }
 
 		public SSNetInfo[] m_psSSNetInfoList { get; private set; }//场景列表信息
 		public GSNetInfo[] m_psGSNetInfoList { get; private set; }//网关列表信息
@@ -30,6 +32,7 @@ namespace CentralServer
 		{
 			this.m_sCSKernelCfg = new SCSKernelCfg();
 			this.netSessionMgr = new CSNetSessionMgr();
+			this.userMsgMgr = new UserMsgMgr();
 		}
 
 		public void Dispose()
@@ -186,6 +189,11 @@ namespace CentralServer
 					return pcInfo;
 			}
 			return null;
+		}
+
+		public ErrorCode InvokeGCMsg( CSGSInfo csgsInfo, int msgID, uint gcNetID, byte[] data, int offset, int size )
+		{
+			return this.userMsgMgr.Invoke( csgsInfo, msgID, gcNetID, data, offset, size );
 		}
 	}
 }
