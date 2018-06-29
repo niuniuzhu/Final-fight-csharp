@@ -322,6 +322,7 @@ namespace Shared
 		InvalidNSID,
 		GUIDCollision,
 		InvalidUserName,
+		AddUserNameFailed,
 		InvalidMailId,
 		UserOfflineOrNullUser,
 		UserWasPlaying,
@@ -357,7 +358,8 @@ namespace Shared
 		CfgFailed,
 		InvaildLogicID,
 		GSNotFound,
-		SSNotFound
+		SSNotFound,
+		RedisReplyNil
 	}
 
 	public enum EUserPlatform
@@ -383,6 +385,71 @@ namespace Shared
 		PlatformiOS_CMGEInfo = 304,
 		//RC use
 		Platform_All = 1000,
+	}
+
+	public enum ERelationShip
+	{
+		eRSType_None,
+		eRSType_Friends,
+		eRSType_Detestation,
+	}
+
+	public class SUserNetInfo
+	{
+		public int n32GSID { get; }
+		public uint n32GCNSID { get; }
+
+		public SUserNetInfo( int n32GSID, uint n32GCNSID )
+		{
+			this.n32GSID = n32GSID;
+			this.n32GCNSID = n32GCNSID;
+		}
+
+		private bool Equals( SUserNetInfo other )
+		{
+			return this.n32GSID == other.n32GSID && this.n32GCNSID == other.n32GCNSID;
+		}
+
+		public override bool Equals( object obj )
+		{
+			if ( ReferenceEquals( null, obj ) ) return false;
+			if ( ReferenceEquals( this, obj ) ) return true;
+			if ( obj.GetType() != this.GetType() ) return false;
+			return this.Equals( ( SUserNetInfo )obj );
+		}
+
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				return ( this.n32GSID * 397 ) ^ ( int )this.n32GCNSID;
+			}
+		}
+
+		public static bool operator ==( SUserNetInfo a, SUserNetInfo b )
+		{
+			bool aNull = ( a as object ) == null;
+			bool bNull = ( b as object ) == null;
+
+			if ( aNull && bNull )
+				return true;
+
+			if ( aNull || bNull )
+				return false;
+
+			return a.n32GSID == b.n32GSID && a.n32GCNSID == b.n32GCNSID;
+		}
+
+
+		public static bool operator !=( SUserNetInfo a, SUserNetInfo b )
+		{
+			return !( a == b );
+		}
+
+		public bool IsValid()
+		{
+			return this.n32GCNSID > 0 && this.n32GSID > 0;
+		}
 	}
 
 	public static class Consts
@@ -411,5 +478,11 @@ namespace Shared
 		public const long RECONN_DETECT_INTERVAL = 10000;
 
 		public const int MAX_BATTLE_IN_SS = 200;
+
+		public const int DEFAULT_NAME_LEN = 30;
+		public const int DEFAULT_NICK_NAME_LEN = 32;
+		public const int DEFAULT_DEVICE_KEY_LEN = DEFAULT_NAME_LEN * 5;
+		public const int PROJECTILE_MAX_CHILD_PROJECTILE_TYPE = 3;
+		public const int DEFAULT_REMOVE_CONSOLE_KEY_LEN = 65;
 	}
 }

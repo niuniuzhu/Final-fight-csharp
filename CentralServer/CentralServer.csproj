@@ -9,6 +9,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="protobuf-net" Version="2.3.13" />
+	  <PackageReference Include="StackExchange.Redis" Version="1.2.6" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\Core\Core.csproj" />
 		<ProjectReference Include="..\Protocol\Protocol.csproj" />
 		<ProjectReference Include="..\Shared\Shared.csproj" />

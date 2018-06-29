@@ -6,23 +6,29 @@ using Shared.Net;
 using System;
 using System.Collections;
 using System.IO;
+using CentralServer.Tools;
 using CentralServer.UserModule;
+using StackExchange.Redis;
 
 namespace CentralServer
 {
+
+	public delegate void HeartbeatCallback( long curTime, long tickSpan );
 
 	public class CS
 	{
 		private static CS _instance;
 		public static CS instance => _instance ?? ( _instance = new CS() );
 
-		public SCSKernelCfg m_sCSKernelCfg;
+		public readonly SCSKernelCfg m_sCSKernelCfg;
 		public CSSSInfo[] m_pcSSInfoList;
 		public CSGSInfo[] m_pcGSInfoList;
 		public string m_szRemoteConsolekey;
+		private ConnectionMultiplexer _userDBredisAsyncContext;
 
 		public CSNetSessionMgr netSessionMgr { get; }
-		public UserMsgMgr userMsgMgr { get; }
+		public CSUserMgr csUserMgr { get; }
+		public BattleTimer battleTimer { get; }
 
 		public SSNetInfo[] m_psSSNetInfoList { get; private set; }//场景列表信息
 		public GSNetInfo[] m_psGSNetInfoList { get; private set; }//网关列表信息
@@ -32,7 +38,8 @@ namespace CentralServer
 		{
 			this.m_sCSKernelCfg = new SCSKernelCfg();
 			this.netSessionMgr = new CSNetSessionMgr();
-			this.userMsgMgr = new UserMsgMgr();
+			this.csUserMgr = new CSUserMgr();
+			this.battleTimer = new BattleTimer();
 		}
 
 		public void Dispose()
@@ -154,13 +161,17 @@ namespace CentralServer
 												this.m_sCSKernelCfg.LogPort, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 102400,
 												0 );
 
-			//连接redis 6379
-			if ( this.m_sCSKernelCfg.redisAddress != "0" )
+			ConfigurationOptions config = new ConfigurationOptions
 			{
-				this.netSessionMgr.CreateConnector( SessionType.ClientC2R, this.m_sCSKernelCfg.redisAddress,
-													this.m_sCSKernelCfg.redisPort, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 102400,
-													0 );
-			}
+				EndPoints =
+				{
+					{ "localhost", 7000 }
+				},
+				KeepAlive = 180,
+				AbortOnConnectFail = false,
+				Password = "159753"
+			};
+			this._userDBredisAsyncContext = ConnectionMultiplexer.Connect( config );
 
 			//连接redis 6380，也是redis？
 			if ( this.m_sCSKernelCfg.redisLogicAddress != "0" )
@@ -191,9 +202,14 @@ namespace CentralServer
 			return null;
 		}
 
-		public ErrorCode InvokeGCMsg( CSGSInfo csgsInfo, int msgID, uint gcNetID, byte[] data, int offset, int size )
-		{
-			return this.userMsgMgr.Invoke( csgsInfo, msgID, gcNetID, data, offset, size );
-		}
+		public ErrorCode InvokeGCMsg( CSGSInfo csgsInfo, int msgID, uint gcNetID, byte[] data, int offset, int size ) =>
+			this.csUserMgr.Invoke( csgsInfo, msgID, gcNetID, data, offset, size );
+
+		public ConnectionMultiplexer GetUserDBCacheRedisHandler() => this._userDBredisAsyncContext;
+
+		public long AddTimer( HeartbeatCallback pHeartbeatCallback, long interval, bool ifPersist ) =>
+			this.battleTimer.AddTimer( pHeartbeatCallback, interval, ifPersist );
+
+		public void RemoveTimer( long timerID ) => this.battleTimer.RemoveTimer( timerID );
 	}
 }
