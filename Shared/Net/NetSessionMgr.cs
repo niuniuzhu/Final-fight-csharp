@@ -188,6 +188,22 @@ namespace Shared.Net
 		/// 发送消息到指定session,通常该消息是一条转发消息
 		/// </summary>
 		/// <param name="sessionType">session类型</param>
+		/// <param name="msg">消息</param>
+		/// <param name="msgID">中介端需要处理的消息id</param>
+		/// <param name="transID">目标端需要处理的消息id</param>
+		/// <param name="gcNet">目标端的网络id</param>
+		/// <param name="once">在查询消息类型时是否只对第一个结果生效</param>
+		public void TranMsgToSession( SessionType sessionType, IMessage msg, int msgID, int transID,
+									  uint gcNet, bool once = true )
+		{
+			byte[] data = msg.ToByteArray();
+			this.TranMsgToSession( sessionType, data, 0, data.Length, msgID, transID, gcNet, once );
+		}
+
+		/// <summary>
+		/// 发送消息到指定session,通常该消息是一条转发消息
+		/// </summary>
+		/// <param name="sessionType">session类型</param>
 		/// <param name="data">需要发送的数据</param>
 		/// <param name="offset">data的偏移量</param>
 		/// <param name="size">data的有用的数据长度</param>

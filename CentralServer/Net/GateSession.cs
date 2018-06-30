@@ -43,14 +43,14 @@ namespace CentralServer.Net
 
 		protected override void OnRealEstablish()
 		{
-			CSGSInfo csgsInfo = CS.instance.GetCGSInfoByNSID( this.id );
+			CSGSInfo csgsInfo = CS.instance.GetGSInfoByNSID( this.id );
 			if ( csgsInfo != null )
 				Logger.Info( $"GS({csgsInfo.m_n32GSID}) Connected" );
 		}
 
 		protected override void OnClose()
 		{
-			CSGSInfo csgsInfo = CS.instance.GetCGSInfoByNSID( this.id );
+			CSGSInfo csgsInfo = CS.instance.GetGSInfoByNSID( this.id );
 			if ( csgsInfo == null )
 				return;
 			Logger.Info( $"GS({csgsInfo.m_n32GSID}) DisConnected" );
@@ -193,7 +193,7 @@ namespace CentralServer.Net
 
 			CSToGS.AskPing msg = new CSToGS.AskPing { Time = askPing.Time };
 
-			CSGSInfo csgsInfo = CS.instance.GetCGSInfoByNSID( this.id );
+			CSGSInfo csgsInfo = CS.instance.GetGSInfoByNSID( this.id );
 			if ( csgsInfo == null )
 				return ErrorCode.GSNotFound;
 			this.owner.TranMsgToSession( csgsInfo.m_n32NSID, msg, ( int )CSToGS.MsgID.EMsgToGsfromCsAskPingRet, 0, 0 );
@@ -206,7 +206,7 @@ namespace CentralServer.Net
 			GSToCS.ReportGCMsg reportGCMsg = new GSToCS.ReportGCMsg();
 			reportGCMsg.MergeFrom( data, offset, size );
 
-			CSGSInfo csgsInfo = CS.instance.GetCGSInfoByNSID( this.id );
+			CSGSInfo csgsInfo = CS.instance.GetGSInfoByNSID( this.id );
 			return CS.instance.InvokeGCMsg( csgsInfo, msgID, gcNetID, data, offset, size );
 		}
 	}

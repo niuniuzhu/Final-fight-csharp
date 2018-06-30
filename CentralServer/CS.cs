@@ -194,12 +194,13 @@ namespace CentralServer
 			this.netSessionMgr.Update();
 		}
 
-		public CSGSInfo GetCGSInfoByNSID( uint nsID )
+		public CSGSInfo GetGSInfoByNSID( uint nsID )
 		{
 			for ( int i = 0; i < this.csCfg.un32MaxGSNum; ++i )
 			{
 				CSGSInfo csgsInfo = this.gsNetInfoList[i].pcGSInfo;
-				if ( null == csgsInfo ) continue;
+				if ( null == csgsInfo )
+					continue;
 				if ( csgsInfo.m_n32NSID == nsID )
 					return csgsInfo;
 			}
@@ -208,11 +209,27 @@ namespace CentralServer
 
 		public CSGSInfo GetGSInfoByGSID( int gsID )
 		{
-			CSGSInfo pcInfo = null;
 			uint index = ( uint )gsID - this.csCfg.un32GSBaseIdx;
-			if ( index < this.csCfg.un32MaxGSNum )
-				pcInfo = this.gsInfoList[index];
-			return pcInfo;
+			return index < this.csCfg.un32MaxGSNum ? this.gsInfoList[index] : null;
+		}
+
+		public CSSSInfo GetSSInfoByNSID( uint nsID )
+		{
+			for ( int i = 0; i < this.csCfg.un32MaxSSNum; ++i )
+			{
+				CSSSInfo pcInfo = this.ssNetInfoList[i].pcSSInfo;
+				if ( null == pcInfo )
+					continue;
+				if ( pcInfo.m_n32NSID == nsID )
+					return pcInfo;
+			}
+			return null;
+		}
+
+		public CSSSInfo GetSSInfoBySSID( int ssID )
+		{
+			uint un32Idx = ( uint )ssID - this.csCfg.un32SSBaseIdx;
+			return un32Idx < this.csCfg.un32MaxSSNum ? this.ssInfoList[un32Idx] : null;
 		}
 
 		public ErrorCode InvokeGCMsg( CSGSInfo csgsInfo, int msgID, uint gcNetID, byte[] data, int offset, int size ) =>
