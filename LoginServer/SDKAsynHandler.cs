@@ -41,7 +41,7 @@ namespace LoginServer
 				if ( sdkBuffer.data == ( int )GCToLS.MsgID.EMsgToLsfromGcAskLogin )
 				{
 					uint gcnetID = sdkBuffer.ReadUInt();
-					EUserPlatform eplat = ( EUserPlatform )sdkBuffer.ReadInt();
+					UserPlatform eplat = ( UserPlatform )sdkBuffer.ReadInt();
 					if ( IfTestPlatform( eplat ) )
 						this.AsynHandleLoiginCheckMsg_PC( gcnetID );
 					// 其他渠道暂不实现 todo
@@ -59,7 +59,7 @@ namespace LoginServer
 
 		public ErrorCode CheckLogin( GCToLS.AskLogin askLogin, int msgID, uint gcnetID )
 		{
-			EUserPlatform platform = ( EUserPlatform )askLogin.Platform;
+			UserPlatform platform = ( UserPlatform )askLogin.Platform;
 			UserLoginData loginData = new UserLoginData
 			{
 				platFrom = askLogin.Platform,
@@ -80,7 +80,7 @@ namespace LoginServer
 			string sendData = string.Empty;
 			switch ( platform )
 			{
-				case EUserPlatform.Platform_PC:
+				case UserPlatform.Platform_PC:
 					sendData = "PCTest";
 					break;
 
@@ -93,7 +93,7 @@ namespace LoginServer
 			return 0;
 		}
 
-		private void PostMsg( string msg, int msgID, uint gcnetID, EUserPlatform eplat )
+		private void PostMsg( string msg, int msgID, uint gcnetID, UserPlatform eplat )
 		{
 			SDKBuffer pBuffer = this.m_SDKCallbackQueuePool.Pop();
 			pBuffer.Write( gcnetID );
@@ -118,7 +118,7 @@ namespace LoginServer
 			}
 
 			string temp = string.Empty;
-			if ( sUserData.platFrom == ( uint )EUserPlatform.Platform_PC )
+			if ( sUserData.platFrom == ( uint )UserPlatform.Platform_PC )
 			{
 				temp += sUserData.platFrom;
 				temp += sUserData.uin;
@@ -141,13 +141,13 @@ namespace LoginServer
 			LS.instance.sdkConnector.SendToFailData( ErrorCode, gcnetID );
 		}
 
-		private static bool IfTestPlatform( EUserPlatform eplat )
+		private static bool IfTestPlatform( UserPlatform eplat )
 		{
 			switch ( eplat )
 			{
-				case EUserPlatform.Platform_PC:
-				case EUserPlatform.PlatformAndroid_UC:
-				case EUserPlatform.PlatformiOS_OnlineGame:
+				case UserPlatform.Platform_PC:
+				case UserPlatform.PlatformAndroid_UC:
+				case UserPlatform.PlatformiOS_OnlineGame:
 					return true;
 				default:
 					return false;

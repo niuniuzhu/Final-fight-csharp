@@ -1,13 +1,16 @@
-﻿using CentralServer.User;
+﻿using System;
+using CentralServer.User;
 using Core.Misc;
-using Google.Protobuf;
 using Shared;
 using System.Collections.Generic;
+using CentralServer.Tools;
 
 namespace CentralServer.UserModule
 {
 	public partial class CSUserMgr
 	{
+		private const string LOG_SIGN = "#";
+
 		public struct UserCombineKey
 		{
 			public string username { get; }
@@ -37,53 +40,57 @@ namespace CentralServer.UserModule
 
 		private readonly Dictionary<int, GCMsgHandler> _gcMsgHandlers = new Dictionary<int, GCMsgHandler>();
 
-		private readonly Dictionary<SUserNetInfo, CSUser> _userNetMap = new Dictionary<SUserNetInfo, CSUser>();
+		private readonly Dictionary<UserNetInfo, CSUser> _userNetMap = new Dictionary<UserNetInfo, CSUser>();
 		private readonly Dictionary<ulong, CSUser> _userGUIDMap = new Dictionary<ulong, CSUser>();
 		private readonly Dictionary<string, CSUser> _nickNameMap = new Dictionary<string, CSUser>();
 		private readonly Dictionary<UserCombineKey, ulong> _allUserName2GUIDMap = new Dictionary<UserCombineKey, ulong>();
+		private readonly HashSet<string> _allNickNameSet = new HashSet<string>();
+		private readonly List<Notice> _notices = new List<Notice>();
 		private int _maxGuid;
 
 		public CSUserMgr()
 		{
 			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskLogin] = this.OnMsgToGstoCsfromGcAskLogin;
+			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskReconnectGame] = this.OnMsgToGstoCsfromGcAskReconnectGame;
+			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskComleteUserInfo] = this.OnMsgToGstoCsfromGcAskComleteUserInfo;
 		}
 
-		public bool ContainsUser( SUserNetInfo userNetInfo )
+		public bool ContainsUser( UserNetInfo userNetInfo )
 		{
 			return this._userNetMap.ContainsKey( userNetInfo );
 		}
 
-		private ErrorCode AddUser( CSUser pcUser )
+		private ErrorCode AddUser( CSUser csUser )
 		{
-			if ( null == pcUser )
+			if ( null == csUser )
 				return ErrorCode.NullUser;
 
-			pcUser.ResetPingTimer();
+			csUser.ResetPingTimer();
 
-			ulong un64ObjIndex = pcUser.guid;
+			ulong un64ObjIndex = csUser.guid;
 
-			if ( string.IsNullOrEmpty( pcUser.username ) )
+			if ( string.IsNullOrEmpty( csUser.username ) )
 			{
 				Logger.Error( "invalid username" );
 				return ErrorCode.InvalidUserName;
 			}
 
-			if ( !this._userGUIDMap.TryAdd( un64ObjIndex, pcUser ) )
+			if ( !this._userGUIDMap.TryAdd( un64ObjIndex, csUser ) )
 			{
 				Logger.Error( "add username fail" );
 				return ErrorCode.AddUserNameFailed;
 			}
 
-			if ( !string.IsNullOrEmpty( pcUser.nickname ) )
-				this._nickNameMap.Add( pcUser.nickname, pcUser );
+			if ( !string.IsNullOrEmpty( csUser.nickname ) )
+				this._nickNameMap.Add( csUser.nickname, csUser );
 
-			long timerID = CS.instance.AddTimer( pcUser.CheckDbSaveTimer, 1000, true );//todo CCSCfgMgr::getInstance().GetCSGlobalCfg().dbSaveTimeSpace * 1000
-			pcUser.timerID = timerID;
+			long timerID = CS.instance.AddTimer( csUser.CheckDbSaveTimer, 1000, true );//todo CCSCfgMgr::getInstance().GetCSGlobalCfg().dbSaveTimeSpace * 1000
+			csUser.timerID = timerID;
 
 			return ErrorCode.Success;
 		}
 
-		public CSUser GetUser( SUserNetInfo userNetInfo )
+		public CSUser GetUser( UserNetInfo userNetInfo )
 		{
 			this._userNetMap.TryGetValue( userNetInfo, out CSUser user );
 			return user;
@@ -100,8 +107,13 @@ namespace CentralServer.UserModule
 			this._nickNameMap.TryGetValue( nickName, out CSUser user );
 			return user;
 		}
+		private CSUser GetUser( CSGSInfo csgsInfo, uint gcNetID )
+		{
+			UserNetInfo userNetInfo = new UserNetInfo( csgsInfo.m_n32GSID, gcNetID );
+			return this.GetUser( userNetInfo );
+		}
 
-		private bool CheckIfInGuideBattle( CSUser pUser )
+		private bool CheckIfInGuideBattle( CSUser csUser )
 		{
 			//todo
 			return true;
@@ -111,11 +123,50 @@ namespace CentralServer.UserModule
 		{
 			++this._maxGuid;
 			//todo
-			//return this._maxGuid * GUID_Devide + CS.instance.m_sCSKernelCfg.unCSId;
+			//return this._maxGuid * GUID_Devide + CS.instance.csCfg.unCSId;
 			return ( ulong )this._maxGuid;
 		}
 
-		private void InsertNewUserToMysql( GCToCS.Login login, CSUser pcUser )
+		private void ChangeUserNickName( CSUser csUser, string nickname )
+		{
+			if ( string.IsNullOrEmpty( nickname ) )
+			{
+				Logger.Error( "nickname is empty!" );
+				return;
+			}
+			if ( !string.IsNullOrEmpty( csUser.nickname ) )
+			{
+				this._nickNameMap.Remove( csUser.nickname );
+				this._allNickNameSet.Remove( csUser.nickname );
+			}
+			csUser.userDbData.ChangeUserDbData( EUserDBDataType.eUserDBType_NickName, nickname );
+			this._allNickNameSet.Add( nickname );
+			this._nickNameMap.Add( nickname, csUser );
+
+			this.UpdateUserNickNameToDB( csUser );
+
+			Logger.Log( $"nickname changed, username:{csUser.userDbData.szUserName}, nickname:{nickname}" );
+		}
+
+		private void UpdateUserNickNameToDB( CSUser csUser )
+		{
+			CSToDB.ChangeNickName sChangeNickName = new CSToDB.ChangeNickName
+			{
+				Nickname = csUser.nickname,
+				Guid = ( long )csUser.guid
+			};
+			//todo
+			//m_CdkeyWrapper->EncodeAndSendToDBThread( sChangeNickName, sChangeNickName.msgid() );
+		}
+
+		public void ForeachNotice( Action<Notice> handler )
+		{
+			int count = this._notices.Count;
+			for ( int i = 0; i < count; i++ )
+				handler.Invoke( this._notices[i] );
+		}
+
+		private void InsertNewUserToMysql( GCToCS.Login login, CSUser csUser )
 		{
 		}
 
@@ -125,30 +176,6 @@ namespace CentralServer.UserModule
 				return handler.Invoke( csgsInfo, gcNetID, data, offset, size );
 			Logger.Warn( $"invalid msg:{msgID}." );
 			return ErrorCode.InvalidMsgProtocalID;
-		}
-
-		private static void PostMsgToGCAskReturn( CSGSInfo csgsInfo, uint gcNetID, int askProtocalID, ErrorCode errorCode )
-		{
-			GSToGC.AskRet msg = new GSToGC.AskRet
-			{
-				Askid = askProtocalID,
-				Errorcode = ( int )errorCode
-			};
-			CS.instance.netSessionMgr.TranMsgToSession( csgsInfo.m_n32NSID, msg,
-														( int )GSToGC.MsgID.EMsgToGcfromGsGcaskRet,
-														gcNetID == 0 ? 0 : ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc,
-														gcNetID );
-		}
-
-		private ErrorCode OnMsgToGstoCsfromGcAskLogin( CSGSInfo csgsInfo, uint gcNetID, byte[] data, int offset, int size )
-		{
-			GCToCS.Login login = new GCToCS.Login();
-			login.MergeFrom( data, offset, size );
-			Logger.Log( $"--new login({login.Name})--" );
-			ErrorCode errorCode = this.UserAskLogin( csgsInfo, gcNetID, login );
-			if ( ErrorCode.Success != errorCode )
-				PostMsgToGCAskReturn( csgsInfo, gcNetID, ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskLogin, errorCode );
-			return ErrorCode.Success;
 		}
 	}
 }

@@ -82,7 +82,7 @@ namespace GateServer.Net
 				return ( ErrorCode )askRegisteRet.State;
 			}
 
-			ssInfo.ssNetState = EServerNetState.SnsFree;
+			ssInfo.ssNetState = ServerNetState.SnsFree;
 			Logger.Info( $"register to SS {ssInfo.ssID} success at session {ssInfo.nsID}." );
 			this.SetInited( true, true );
 

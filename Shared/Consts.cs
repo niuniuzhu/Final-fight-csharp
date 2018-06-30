@@ -2,7 +2,7 @@
 
 namespace Shared
 {
-	public enum EServerNetState
+	public enum ServerNetState
 	{
 		SnsClosed = 0,
 		SnsConnecting,
@@ -362,7 +362,7 @@ namespace Shared
 		RedisReplyNil
 	}
 
-	public enum EUserPlatform
+	public enum UserPlatform
 	{
 		//ios
 		Platform_PC = 0,
@@ -387,25 +387,25 @@ namespace Shared
 		Platform_All = 1000,
 	}
 
-	public enum ERelationShip
+	public enum RelationShip
 	{
 		eRSType_None,
 		eRSType_Friends,
 		eRSType_Detestation,
 	}
 
-	public class SUserNetInfo
+	public class UserNetInfo
 	{
 		public int n32GSID { get; }
 		public uint n32GCNSID { get; }
 
-		public SUserNetInfo( int n32GSID, uint n32GCNSID )
+		public UserNetInfo( int n32GSID, uint n32GCNSID )
 		{
 			this.n32GSID = n32GSID;
 			this.n32GCNSID = n32GCNSID;
 		}
 
-		private bool Equals( SUserNetInfo other )
+		private bool Equals( UserNetInfo other )
 		{
 			return this.n32GSID == other.n32GSID && this.n32GCNSID == other.n32GCNSID;
 		}
@@ -415,7 +415,7 @@ namespace Shared
 			if ( ReferenceEquals( null, obj ) ) return false;
 			if ( ReferenceEquals( this, obj ) ) return true;
 			if ( obj.GetType() != this.GetType() ) return false;
-			return this.Equals( ( SUserNetInfo )obj );
+			return this.Equals( ( UserNetInfo )obj );
 		}
 
 		public override int GetHashCode()
@@ -426,7 +426,7 @@ namespace Shared
 			}
 		}
 
-		public static bool operator ==( SUserNetInfo a, SUserNetInfo b )
+		public static bool operator ==( UserNetInfo a, UserNetInfo b )
 		{
 			bool aNull = ( a as object ) == null;
 			bool bNull = ( b as object ) == null;
@@ -441,7 +441,7 @@ namespace Shared
 		}
 
 
-		public static bool operator !=( SUserNetInfo a, SUserNetInfo b )
+		public static bool operator !=( UserNetInfo a, UserNetInfo b )
 		{
 			return !( a == b );
 		}
@@ -450,6 +450,36 @@ namespace Shared
 		{
 			return this.n32GCNSID > 0 && this.n32GSID > 0;
 		}
+	}
+
+	public enum NoticeFlag
+	{
+		eFlag_None = 0,
+		eFlag_OnSale = 1,
+		eFlag_Notice = 2,
+		eFlag_Services = 3,
+	}
+
+	public enum NoticeState
+	{
+		eState_None = 0,
+		eState_Hot = 1,
+		eState_New = 2,
+	}
+
+	public class Notice
+	{
+		//字段、属性、方法、事件
+		public long noticeID;//数据库主键
+		public uint id;
+		public UserPlatform platform;
+		public string title;
+		public NoticeFlag flag;
+		public NoticeState state;
+		public uint priority;
+		public string msg;
+		public long star_time;
+		public long end_time;
 	}
 
 	public static class Consts

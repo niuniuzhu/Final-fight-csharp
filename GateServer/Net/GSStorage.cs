@@ -15,7 +15,7 @@ namespace GateServer.Net
 		public string listenIp;
 		public int listenPort;
 		//property from local.
-		public EServerNetState ssNetState;
+		public ServerNetState ssNetState;
 		public uint nsID;
 		public uint connTimes;
 		public long lastConnMilsec;

@@ -7,7 +7,7 @@ namespace CentralServer.Tools
 	public enum EUserDBDataType
 	{
 		eUserDBType_None = 0,//			un64ObjIdx; 
-		eUserDBType_Channel,//		eUserPlatform;
+		eUserDBType_Channel,//		userPlatform;
 		eUserDBType_Name,//		szUserName[c_n32DefaultNameLen];
 		eUserDBType_Pwd,//			szUserPwd[c_n32DefaultUserPwdLen]; 
 		eUserDBType_NickName,//				szNickName[c_n32DefaultNickNameLen+1];
@@ -106,11 +106,11 @@ namespace CentralServer.Tools
 		public ushort nHeadId;
 		public ulong guididx;
 		public uint viplv;
-		public ERelationShip eRelationShip;
+		public RelationShip relationShip;
 		public long tMilSec;
 
 		//构造函数
-		public SUserRelationshipInfo( string stName, int headId, ERelationShip ers, long tm, ulong GuidIdx, uint vipLv )
+		public SUserRelationshipInfo( string stName, int headId, RelationShip ers, long tm, ulong GuidIdx, uint vipLv )
 		{
 			this.stNickName = stName.Length < Consts.DEFAULT_NICK_NAME_LEN ? stName : string.Empty;
 		}
@@ -181,7 +181,7 @@ namespace CentralServer.Tools
 	public class PODUsrDBData
 	{
 		public ulong un64ObjIdx;//玩家唯一标识
-		public EUserPlatform eUserPlatform;
+		public UserPlatform userPlatform;
 		public ushort un16HeaderID;//玩家头像ID在200内
 		public short n16Sex;
 		public long n64Diamond;
@@ -209,7 +209,7 @@ namespace CentralServer.Tools
 		public void Copy( PODUsrDBData other )
 		{
 			this.un64ObjIdx = other.un64ObjIdx;
-			this.eUserPlatform = other.eUserPlatform;
+			this.userPlatform = other.userPlatform;
 			this.un16HeaderID = other.un16HeaderID;
 			this.n16Sex = other.n16Sex;
 			this.n64Diamond = other.n64Diamond;
@@ -234,7 +234,7 @@ namespace CentralServer.Tools
 		public void Clear()
 		{
 			this.un64ObjIdx = 0;
-			this.eUserPlatform = 0;
+			this.userPlatform = 0;
 			this.un16HeaderID = 0;
 			this.n16Sex = 0;
 			this.n64Diamond = 0;
@@ -287,6 +287,13 @@ namespace CentralServer.Tools
 			this.item_Map.Clear();
 		}
 
+		public SUserDBData Clone()
+		{
+			SUserDBData cloned = new SUserDBData();
+			cloned.Copy( this );
+			return cloned;
+		}
+
 		public void Copy( SUserDBData sData )
 		{
 			if ( this == sData )
@@ -313,7 +320,7 @@ namespace CentralServer.Tools
 			switch ( dtype )
 			{
 				case EUserDBDataType.eUserDBType_Channel:
-					this.sPODUsrDBData.eUserPlatform = ( EUserPlatform )param;
+					this.sPODUsrDBData.userPlatform = ( UserPlatform )param;
 					break;
 				case EUserDBDataType.eUserDBType_HeaderId:
 					this.sPODUsrDBData.un16HeaderID = ( ushort )param;

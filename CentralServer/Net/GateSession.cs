@@ -22,18 +22,18 @@ namespace CentralServer.Net
 			{
 				Registe = 0,
 				Curtime = time,
-				Ssbaseid = CS.instance.m_sCSKernelCfg.un32SSBaseIdx
+				Ssbaseid = CS.instance.csCfg.un32SSBaseIdx
 			};
 
-			//for ( uint i = 0; i < CS.instance.m_sCSKernelCfg.un32MaxSSNum; i++ )
+			//for ( uint i = 0; i < CS.instance.csCfg.un32MaxSSNum; i++ )
 			//{
 			//	CSToGS.AskRegisteRet.Types.SSInfo pSsinfo =
 			//		new CSToGS.AskRegisteRet.Types.SSInfo
 			//		{
-			//			Ssid = CS.instance.m_pcSSInfoList[i].m_n32SSID,
-			//			Ip = CS.instance.m_pcSSInfoList[i].m_sListenIP,
-			//			Port = CS.instance.m_pcSSInfoList[i].m_n32ListenPort,
-			//			Netstate = ( int )CS.instance.m_pcSSInfoList[i].m_eSSNetState
+			//			Ssid = CS.instance.ssInfoList[i].m_n32SSID,
+			//			Ip = CS.instance.ssInfoList[i].m_sListenIP,
+			//			Port = CS.instance.ssInfoList[i].m_n32ListenPort,
+			//			Netstate = ( int )CS.instance.ssInfoList[i].m_eSSNetState
 			//		};
 			//}
 
@@ -54,12 +54,12 @@ namespace CentralServer.Net
 			if ( csgsInfo == null )
 				return;
 			Logger.Info( $"GS({csgsInfo.m_n32GSID}) DisConnected" );
-			int pos = ( int )( csgsInfo.m_n32GSID - CS.instance.m_sCSKernelCfg.un32GSBaseIdx );
-			csgsInfo.m_eGSNetState = EServerNetState.SnsClosed;
+			int pos = ( int )( csgsInfo.m_n32GSID - CS.instance.csCfg.un32GSBaseIdx );
+			csgsInfo.m_eGSNetState = ServerNetState.SnsClosed;
 			csgsInfo.m_n32NSID = 0;
 			csgsInfo.m_tLastConnMilsec = 0;
-			CS.instance.m_psGSNetInfoList[pos].tConnMilsec = 0;
-			CS.instance.m_psGSNetInfoList[pos].pcGSInfo = null;
+			CS.instance.gsNetInfoList[pos].tConnMilsec = 0;
+			CS.instance.gsNetInfoList[pos].pcGSInfo = null;
 		}
 
 		private ErrorCode MsgHandleInit( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
@@ -70,11 +70,11 @@ namespace CentralServer.Net
 			//找到位置号
 			int gsPos = -1;
 			CSGSInfo csgsInfo = null;
-			for ( int i = 0; i < CS.instance.m_sCSKernelCfg.un32MaxGSNum; i++ )
+			for ( int i = 0; i < CS.instance.csCfg.un32MaxGSNum; i++ )
 			{
-				if ( msg.Gsid != CS.instance.m_pcGSInfoList[i].m_n32GSID )
+				if ( msg.Gsid != CS.instance.gsInfoList[i].m_n32GSID )
 					continue;
-				csgsInfo = CS.instance.m_pcGSInfoList[i];
+				csgsInfo = CS.instance.gsInfoList[i];
 				gsPos = i;
 				break;
 			}
@@ -93,13 +93,13 @@ namespace CentralServer.Net
 
 			// 加入GS
 			long time = TimeUtils.utcTime;
-			csgsInfo.m_eGSNetState = EServerNetState.SnsFree;
+			csgsInfo.m_eGSNetState = ServerNetState.SnsFree;
 			csgsInfo.m_n32NSID = this.id;
 			this.logicID = csgsInfo.m_n32GSID;
 			csgsInfo.m_tLastConnMilsec = time;
 			csgsInfo.m_sListenIP = msg.Ip;
 			csgsInfo.m_n32ListenPort = msg.Port;
-			CS.instance.m_psGSNetInfoList[gsPos].pcGSInfo = csgsInfo;
+			CS.instance.gsNetInfoList[gsPos].pcGSInfo = csgsInfo;
 			csgsInfo.m_n64MsgReceived++;
 			csgsInfo.m_n64DataReceived += msg.CalculateSize();
 			csgsInfo.m_un32ConnTimes++;
@@ -118,11 +118,11 @@ namespace CentralServer.Net
 			// 找到位置号
 			int gsPos = -1;
 			CSGSInfo pcGSInfo = null;
-			for ( int i = 0; i < CS.instance.m_sCSKernelCfg.un32MaxGSNum; i++ )
+			for ( int i = 0; i < CS.instance.csCfg.un32MaxGSNum; i++ )
 			{
-				if ( sMsg.Gsid != CS.instance.m_pcGSInfoList[i].m_n32GSID )
+				if ( sMsg.Gsid != CS.instance.gsInfoList[i].m_n32GSID )
 					continue;
-				pcGSInfo = CS.instance.m_pcGSInfoList[i];
+				pcGSInfo = CS.instance.gsInfoList[i];
 				gsPos = i;
 				break;
 			}
@@ -142,12 +142,12 @@ namespace CentralServer.Net
 			long tCurUTCMilsec = TimeUtils.utcTime;
 			if ( ErrorCode.Success == n32Registe )
 			{
-				pcGSInfo.m_eGSNetState = EServerNetState.SnsFree;
+				pcGSInfo.m_eGSNetState = ServerNetState.SnsFree;
 				pcGSInfo.m_n32NSID = csgsInfo.m_n32NSID;
 				pcGSInfo.m_tLastConnMilsec = tCurUTCMilsec;
 				pcGSInfo.m_sListenIP = sMsg.Ip;
 				pcGSInfo.m_n32ListenPort = sMsg.Port;
-				CS.instance.m_psGSNetInfoList[gsPos].pcGSInfo = pcGSInfo;
+				CS.instance.gsNetInfoList[gsPos].pcGSInfo = pcGSInfo;
 
 				pcGSInfo.m_n64MsgReceived++;
 				pcGSInfo.m_n64DataReceived += sMsg.CalculateSize();
@@ -162,10 +162,10 @@ namespace CentralServer.Net
 			sAskRegisteRet.Curtime = tCurUTCMilsec;
 			if ( ErrorCode.Success == n32Registe )
 			{
-				sAskRegisteRet.Ssbaseid = CS.instance.m_sCSKernelCfg.un32SSBaseIdx;
-				for ( int i = 0; i < CS.instance.m_sCSKernelCfg.un32MaxSSNum; i++ )
+				sAskRegisteRet.Ssbaseid = CS.instance.csCfg.un32SSBaseIdx;
+				for ( int i = 0; i < CS.instance.csCfg.un32MaxSSNum; i++ )
 				{
-					CSSSInfo csssInfo = CS.instance.m_pcSSInfoList[i];
+					CSSSInfo csssInfo = CS.instance.ssInfoList[i];
 					CSToGS.AskRegisteRet.Types.SSInfo pSSInfo =
 						new CSToGS.AskRegisteRet.Types.SSInfo
 						{

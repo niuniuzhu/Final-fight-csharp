@@ -104,7 +104,7 @@ namespace CentralServer.UserModule
 			do
 			{
 				//这里为什么还要检测一次?
-				SUserNetInfo netinfo = new SUserNetInfo( pQueryUser.Gsid, ( uint )pQueryUser.Gcnetid );
+				UserNetInfo netinfo = new UserNetInfo( pQueryUser.Gsid, ( uint )pQueryUser.Gcnetid );
 				if ( this.ContainsUser( netinfo ) )
 				{
 					res = ErrorCode.InvalidNetState;

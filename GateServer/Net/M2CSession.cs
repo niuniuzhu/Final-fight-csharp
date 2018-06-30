@@ -92,9 +92,9 @@ namespace GateServer.Net
 					ssInfo.ssID = askRegisteRet.Ssinfo[i].Ssid;
 					ssInfo.listenIp = askRegisteRet.Ssinfo[i].Ip.Replace( "\0", string.Empty );
 					ssInfo.listenPort = askRegisteRet.Ssinfo[i].Port;
-					ssInfo.ssNetState = ( EServerNetState )askRegisteRet.Ssinfo[i].Netstate;
+					ssInfo.ssNetState = ( ServerNetState )askRegisteRet.Ssinfo[i].Netstate;
 					GS.instance.gsStorage.AddSSInfo( ssInfo.ssID, ssInfo );
-					if ( ssInfo.ssNetState == EServerNetState.SnsClosed )
+					if ( ssInfo.ssNetState == ServerNetState.SnsClosed )
 						continue;
 
 					this.owner.CreateConnector( SessionType.ClientG2S, ssInfo.listenIp, ssInfo.listenPort,
@@ -119,9 +119,9 @@ namespace GateServer.Net
 			{
 				pcSSInfo.listenIp = oneSsConnected.Ip.Replace( "\0", string.Empty );
 				pcSSInfo.listenPort = oneSsConnected.Port;
-				if ( pcSSInfo.ssNetState == EServerNetState.SnsClosed )
+				if ( pcSSInfo.ssNetState == ServerNetState.SnsClosed )
 				{
-					pcSSInfo.ssNetState = ( EServerNetState )oneSsConnected.Netstate;
+					pcSSInfo.ssNetState = ( ServerNetState )oneSsConnected.Netstate;
 					pcSSInfo.nsID = 0;
 					this.owner.CreateConnector( SessionType.ClientG2S, pcSSInfo.listenIp, pcSSInfo.listenPort,
 												Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 10240, oneSsConnected.Ssid );

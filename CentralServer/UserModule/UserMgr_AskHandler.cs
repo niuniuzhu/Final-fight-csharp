@@ -3,7 +3,6 @@ using CentralServer.User;
 using Core.Misc;
 using Google.Protobuf;
 using Shared;
-using SUserNetInfo = Shared.SUserNetInfo;
 
 namespace CentralServer.UserModule
 {
@@ -14,7 +13,7 @@ namespace CentralServer.UserModule
 			if ( string.IsNullOrEmpty( login.Name ) || login.Name.Length > Consts.DEFAULT_NAME_LEN )
 				return ErrorCode.InvalidUserName;
 
-			SUserNetInfo netinfo = new SUserNetInfo( csgsInfo.m_n32GSID, gcNetID );
+			UserNetInfo netinfo = new UserNetInfo( csgsInfo.m_n32GSID, gcNetID );
 			if ( this.ContainsUser( netinfo ) )
 				return ErrorCode.InvalidNetState;
 
@@ -40,12 +39,14 @@ namespace CentralServer.UserModule
 				}
 
 				//异步查询玩家数据
-				CSToDB.QueryUserReq queryUser = new CSToDB.QueryUserReq();
-				queryUser.Logininfo = login.ToByteString().ToStringUtf8();
-				queryUser.Gsid = csgsInfo.m_n32GSID;
-				queryUser.Gcnetid = ( int )gcNetID;
-				queryUser.Csid = ( int )CS.instance.m_sCSKernelCfg.unCSId;
-				queryUser.Objid = ( long )guid;
+				CSToDB.QueryUserReq queryUser = new CSToDB.QueryUserReq
+				{
+					Logininfo = login.ToByteString().ToStringUtf8(),
+					Gsid = csgsInfo.m_n32GSID,
+					Gcnetid = ( int )gcNetID,
+					Csid = ( int )CS.instance.csCfg.unCSId,
+					Objid = ( long )guid
+				};
 				errorCode = this.QueryUserAsync( queryUser ).Result;
 			}
 			else
@@ -58,7 +59,7 @@ namespace CentralServer.UserModule
 				sUserDBData.sPODUsrDBData.un64ObjIdx = guid;
 				sUserDBData.szUserName = login.Name;
 				sUserDBData.szUserPwd = login.Passwd;
-				sUserDBData.sPODUsrDBData.eUserPlatform = ( EUserPlatform )login.Sdk;
+				sUserDBData.sPODUsrDBData.userPlatform = ( UserPlatform )login.Sdk;
 				sUserDBData.sPODUsrDBData.tRegisteUTCMillisec = TimeUtils.utcTime;
 
 				//加入全局表
@@ -88,6 +89,27 @@ namespace CentralServer.UserModule
 			//	CSSGameLogMgr::GetInstance().AddGameLog( eLog_Login, guid, mystream.str() );
 			//}
 			return errorCode;
+		}
+
+		private ErrorCode UserAskReconnectGame( CSGSInfo csgsInfo, uint gcNetID, string name, string passwd )
+		{
+			UserNetInfo netinfo = new UserNetInfo( csgsInfo.m_n32GSID, gcNetID );
+			if ( this.ContainsUser( netinfo ) )
+				return ErrorCode.InvalidNetState;
+
+			//需要从消息获取
+			const int sdkID = 0;
+			UserCombineKey sUserCombineKey = new UserCombineKey( name, sdkID );
+			if ( !this._allUserName2GUIDMap.TryGetValue( sUserCombineKey, out ulong guid ) )
+				return ErrorCode.NullUser;
+
+			CSUser pcUser = this.GetUser( guid );
+			if ( null == pcUser )
+				return ErrorCode.NullUser;
+
+			GCToCS.Login login = new GCToCS.Login();
+			pcUser.OnOnline( netinfo, login, false, false, true );
+			return ErrorCode.Success;
 		}
 	}
 }

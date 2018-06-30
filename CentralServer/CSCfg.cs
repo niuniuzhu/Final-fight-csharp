@@ -1,9 +1,11 @@
 ﻿using Core.Misc;
 using Shared;
+using System;
+using System.Collections.Generic;
 
 namespace CentralServer
 {
-	public class SCSKernelCfg
+	public class CSKernelCfg
 	{
 		public uint unCSId;
 		public int n32MaxMsgSize;
@@ -34,7 +36,7 @@ namespace CentralServer
 		public string m_sListenIP;
 		public int m_n32ListenPort;
 		//property from local.
-		public EServerNetState m_eSSNetState;
+		public ServerNetState m_eSSNetState;
 		public int m_n32NSID;
 		public uint m_un32ConnTimes;
 		public long m_tLastConnMilsec;
@@ -50,15 +52,15 @@ namespace CentralServer
 			}
 			if ( this.m_n32BattleNum < Consts.MAX_BATTLE_IN_SS / 2 )
 			{
-				this.m_eSSNetState = EServerNetState.SnsFree;
+				this.m_eSSNetState = ServerNetState.SnsFree;
 			}
 			else if ( this.m_n32BattleNum >= Consts.MAX_BATTLE_IN_SS / 2 )
 			{
-				this.m_eSSNetState = EServerNetState.SnsBusy;
+				this.m_eSSNetState = ServerNetState.SnsBusy;
 			}
 			else
 			{
-				this.m_eSSNetState = EServerNetState.SnsFull;
+				this.m_eSSNetState = ServerNetState.SnsFull;
 			}
 			return ErrorCode.Success;
 		}
@@ -78,7 +80,7 @@ namespace CentralServer
 		public string m_sListenIP;
 		public int m_n32ListenPort;
 		//property from local.
-		public EServerNetState m_eGSNetState;
+		public ServerNetState m_eGSNetState;
 		public uint m_n32NSID;
 		public uint m_un32ConnTimes;
 		public long m_tLastConnMilsec;
@@ -96,7 +98,7 @@ namespace CentralServer
 		public string m_sListenIP;
 		public int m_n32ListenPort;
 		//property from local.
-		EServerNetState m_eNetState;
+		ServerNetState _mNetState;
 		public int m_n32NSID;
 	}
 
@@ -116,5 +118,25 @@ namespace CentralServer
 	{
 		public long tConnMilsec;
 		public CSGSInfo pcGSInfo;
+	}
+
+	public class CSCfgMgr
+	{
+		private readonly Dictionary<string, bool> _aiRobotNameMapForCheck = new Dictionary<string, bool>();
+		private readonly List<string> _invalidWorlds = new List<string>();
+
+		public bool CheckInvalidWorld( string word )
+		{
+			int total = this._invalidWorlds.Count;
+			for ( int i = 0; i < total; i++ )
+			{
+				int npos = word.IndexOf( this._invalidWorlds[i], StringComparison.Ordinal );
+				if ( npos != -1 )
+					return true;
+			}
+			return false;
+		}
+
+		public bool CheckAIRobotName( string nickname ) => this._aiRobotNameMapForCheck.ContainsKey( nickname );
 	}
 }
