@@ -20,7 +20,7 @@ namespace GateServer.Net
 			int end = ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcEnd;
 			for ( int i = start; i < end; ++i )
 				this.msgCenter.Register( i, this.OnTransToCS );
-			start = ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcBegin;
+			start = ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcBegin + 1;
 			end = ( int )GCToSS.MsgNum.EMsgToGstoSsfromGcEnd;
 			for ( int i = start; i < end; ++i )
 				this.msgCenter.Register( i, this.OnTransToSS );

@@ -15,11 +15,15 @@ namespace Shared.Net
 
 		public void Register( int msgID, GeneralHandler handler )
 		{
+			if ( this._generalHandlers.ContainsKey( msgID ) )
+				return;
 			this._generalHandlers[msgID] = handler;
 		}
 
 		public void Register( int msgID, TransHandler handler )
 		{
+			if ( this._transHandlers.ContainsKey( msgID ) )
+				return;
 			this._transHandlers[msgID] = handler;
 		}
 
