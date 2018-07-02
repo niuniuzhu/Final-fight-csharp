@@ -376,11 +376,9 @@ namespace Shared
 		PlatformiOS_As = 8,
 		PlatformiOS_XY = 9,
 		PlatformiOS_CMGE_ZB = 10,
-
 		//android
 		PlatformAndroid_CMGE = 104,
 		PlatformAndroid_UC = 105,
-
 		//其他
 		PlatformiOS_CMGEInfo = 304,
 		//RC use
@@ -389,25 +387,86 @@ namespace Shared
 
 	public enum RelationShip
 	{
-		eRSType_None,
-		eRSType_Friends,
-		eRSType_Detestation,
+		RsTypeNone,
+		RsTypeFriends,
+		RsTypeDetestation,
+	}
+
+	public enum UserPlayingStatus
+	{
+		UserPlayingStatusOffLine,
+		UserPlayingStatusPlaying,
+	}
+
+	public enum GoodsType
+	{
+		GoodsTypeNone,
+		GoodsTypeHero,
+		GoodsTypeSkin,
+		GoodsTypeRune
+	}
+
+	public enum HeroKind
+	{
+		HeroKindNone = 0,
+		HeroKindDps = 1,
+		HeroKindMagic = 2,
+		HeroKindAss = 3,
+		HeroKindTank = 4,
+	}
+
+	public enum SkinType
+	{
+		SkinNone = 0,
+	};
+
+	public enum ConsumeType
+	{
+		ConsumeTypeFree = 0,
+		ConsumeTypeGold = 1,
+		ConsumeTypeDiamond = 2,
+	};
+
+	public enum LobbyType
+	{
+		LobbyNull = -1,
+		LobbyEle, //初级场
+		LobbyMid, //中级场
+		LobbyHey, //高级场
+		LobbyTaW,
+		LobbyPve1,
+		LobbyTowerDef,
+		LobbyPvp007,
+		LobbyGuid1,
+		LobbyGuid2,
+		LobbyGuid3,
+		LobbyGuid4,
 	}
 
 	public class UserNetInfo
 	{
-		public int n32GSID { get; }
-		public uint n32GCNSID { get; }
+		public int gsID { get; private set; }
+		public uint gcNetID { get; private set; }
 
-		public UserNetInfo( int n32GSID, uint n32GCNSID )
+		public UserNetInfo()
 		{
-			this.n32GSID = n32GSID;
-			this.n32GCNSID = n32GCNSID;
+		}
+
+		public UserNetInfo( int gsID, uint gcNetID )
+		{
+			this.gsID = gsID;
+			this.gcNetID = gcNetID;
+		}
+
+		public void Copy( UserNetInfo other )
+		{
+			this.gsID = other.gsID;
+			this.gcNetID = other.gcNetID;
 		}
 
 		private bool Equals( UserNetInfo other )
 		{
-			return this.n32GSID == other.n32GSID && this.n32GCNSID == other.n32GCNSID;
+			return this.gsID == other.gsID && this.gcNetID == other.gcNetID;
 		}
 
 		public override bool Equals( object obj )
@@ -422,7 +481,7 @@ namespace Shared
 		{
 			unchecked
 			{
-				return ( this.n32GSID * 397 ) ^ ( int )this.n32GCNSID;
+				return ( this.gsID * 397 ) ^ ( int )this.gcNetID;
 			}
 		}
 
@@ -437,7 +496,7 @@ namespace Shared
 			if ( aNull || bNull )
 				return false;
 
-			return a.n32GSID == b.n32GSID && a.n32GCNSID == b.n32GCNSID;
+			return a.gsID == b.gsID && a.gcNetID == b.gcNetID;
 		}
 
 
@@ -446,9 +505,15 @@ namespace Shared
 			return !( a == b );
 		}
 
+		public void Clear()
+		{
+			this.gcNetID = 0;
+			this.gsID = 0;
+		}
+
 		public bool IsValid()
 		{
-			return this.n32GCNSID > 0 && this.n32GSID > 0;
+			return this.gcNetID > 0 && this.gsID > 0;
 		}
 	}
 

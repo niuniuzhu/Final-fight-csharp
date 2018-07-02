@@ -8,19 +8,24 @@ namespace CentralServer.UserModule
 {
 	public partial class CSUserMgr
 	{
+		private static ErrorCode PostMsgToGCAskReturn( UserNetInfo crsUserNetInfo, int n32AskProtocalID, int n32RetFlag )
+		{
+			GSToGC.AskRet sMsg = new GSToGC.AskRet
+			{
+				Askid = n32AskProtocalID,
+				Errorcode = n32RetFlag
+			};
+			return CS.instance.PostMsgToGC( crsUserNetInfo, sMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsGcaskRet );
+		}
 
-
-		private static void PostMsgToGCAskReturn( CSGSInfo csgsInfo, uint gcNetID, int askProtocalID, ErrorCode errorCode )
+		private static ErrorCode PostMsgToGCAskReturn( CSGSInfo csgsInfo, uint gcNetID, int askProtocalID, ErrorCode errorCode )
 		{
 			GSToGC.AskRet msg = new GSToGC.AskRet
 			{
 				Askid = askProtocalID,
 				Errorcode = ( int )errorCode
 			};
-			CS.instance.netSessionMgr.TranMsgToSession( csgsInfo.m_n32NSID, msg,
-														( int )GSToGC.MsgID.EMsgToGcfromGsGcaskRet,
-														gcNetID == 0 ? 0 : ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc,
-														gcNetID );
+			return CS.instance.PostMsgToGS( csgsInfo, msg, ( int )GSToGC.MsgID.EMsgToGcfromGsGcaskRet, gcNetID );
 		}
 
 		private ErrorCode OnMsgToGstoCsfromGcAskLogin( CSGSInfo csgsInfo, uint gcNetID, byte[] data, int offset, int size )
@@ -73,13 +78,13 @@ namespace CentralServer.UserModule
 					break;
 				}
 
-				if ( CS.instance.csscCfg.CheckInvalidWorld( pCompleteInfo.Nickname ) )
+				if ( CS.instance.csCfg.CheckInvalidWorld( pCompleteInfo.Nickname ) )
 				{
 					errorCode = ErrorCode.NickNameNotAllowed;
 					break;
 				}
 
-				if ( CS.instance.csscCfg.CheckAIRobotName( pCompleteInfo.Nickname ) )
+				if ( CS.instance.csCfg.CheckAIRobotName( pCompleteInfo.Nickname ) )
 				{
 					errorCode = ErrorCode.NickNameCollision;
 					break;
@@ -91,8 +96,8 @@ namespace CentralServer.UserModule
 					break;
 				}
 
-				csUser.userDbData.ChangeUserDbData( EUserDBDataType.eUserDBType_Sex, pCompleteInfo.Sex );
-				csUser.userDbData.ChangeUserDbData( EUserDBDataType.eUserDBType_HeaderId, pCompleteInfo.Headid );
+				csUser.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_Sex, pCompleteInfo.Sex );
+				csUser.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_HeaderId, pCompleteInfo.Headid );
 
 				this.ChangeUserNickName( csUser, pCompleteInfo.Nickname );
 

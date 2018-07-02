@@ -44,7 +44,7 @@ namespace CentralServer.UserModule
 					Logininfo = login.ToByteString().ToStringUtf8(),
 					Gsid = csgsInfo.m_n32GSID,
 					Gcnetid = ( int )gcNetID,
-					Csid = ( int )CS.instance.csCfg.unCSId,
+					Csid = ( int )CS.instance.csKernelCfg.unCSId,
 					Objid = ( long )guid
 				};
 				errorCode = this.QueryUserAsync( queryUser ).Result;
@@ -55,17 +55,17 @@ namespace CentralServer.UserModule
 				guid = this.CombineGUID();
 
 				CSUser pcUser = new CSUser();
-				SUserDBData sUserDBData = new SUserDBData();
-				sUserDBData.sPODUsrDBData.un64ObjIdx = guid;
-				sUserDBData.szUserName = login.Name;
-				sUserDBData.szUserPwd = login.Passwd;
-				sUserDBData.sPODUsrDBData.userPlatform = ( UserPlatform )login.Sdk;
-				sUserDBData.sPODUsrDBData.tRegisteUTCMillisec = TimeUtils.utcTime;
+				UserDBData userDbData = new UserDBData();
+				userDbData.sPODUsrDBData.un64ObjIdx = guid;
+				userDbData.szUserName = login.Name;
+				userDbData.szUserPwd = login.Passwd;
+				userDbData.sPODUsrDBData.userPlatform = ( UserPlatform )login.Sdk;
+				userDbData.sPODUsrDBData.tRegisteUTCMillisec = TimeUtils.utcTime;
 
 				//加入全局表
 				this._allUserName2GUIDMap.Add( sUserCombineKey, guid );
 
-				pcUser.LoadDBData( sUserDBData );
+				pcUser.LoadDBData( userDbData );
 				//todo
 				//pcUser.userBattleInfoEx.mDebugName = login.Name;
 

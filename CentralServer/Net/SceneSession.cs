@@ -18,8 +18,8 @@ namespace CentralServer.Net
 			CSToSS.AskRegisteRet aAskRegisteRet = new CSToSS.AskRegisteRet();
 			aAskRegisteRet.Ret = ( int )ErrorCode.Success;
 			aAskRegisteRet.Time = tCurMilSec;
-			aAskRegisteRet.Basegsid = ( int )CS.instance.csCfg.un32GSBaseIdx;
-			for ( uint i = 0; i < CS.instance.csCfg.un32MaxGSNum; i++ )
+			aAskRegisteRet.Basegsid = ( int )CS.instance.csKernelCfg.un32GSBaseIdx;
+			for ( uint i = 0; i < CS.instance.csKernelCfg.un32MaxGSNum; i++ )
 			{
 				CSToSS.AskRegisteRet.Types.GSInfo pGSInfo =
 					new CSToSS.AskRegisteRet.Types.GSInfo
@@ -41,10 +41,10 @@ namespace CentralServer.Net
 				Ip = pcSSInfo.m_sListenIP,
 				Port = pcSSInfo.m_n32ListenPort,
 				Netstate = ( int )pcSSInfo.m_eSSNetState,
-				Basessid = ( int )CS.instance.csCfg.un32SSBaseIdx
+				Basessid = ( int )CS.instance.csKernelCfg.un32SSBaseIdx
 			};
 
-			CS.instance.netSessionMgr.TranMsgToSession( SessionType.ServerCsOnlyGS, sOneSSConnected, ( int )CSToGS.MsgID.EMsgToGsfromCsOneSsconnected, 0, 0, false );
+			CS.instance.BroadCastMsgToGS( sOneSSConnected, ( int )CSToGS.MsgID.EMsgToGsfromCsOneSsconnected );
 		}
 
 		protected override void OnRealEstablish()
@@ -60,7 +60,7 @@ namespace CentralServer.Net
 			if ( pcSSInfo != null )
 			{
 				Logger.Info( $"SS({pcSSInfo.m_n32SSID}) DisConnected" );
-				int pos = pcSSInfo.m_n32SSID - ( int )CS.instance.csCfg.un32SSBaseIdx;
+				int pos = pcSSInfo.m_n32SSID - ( int )CS.instance.csKernelCfg.un32SSBaseIdx;
 				pcSSInfo.m_eSSNetState = ServerNetState.SnsClosed;
 				pcSSInfo.m_n32NSID = 0;
 				pcSSInfo.m_tLastConnMilsec = 0;
@@ -75,7 +75,7 @@ namespace CentralServer.Net
 			SSToCS.AskRegiste aAskRegiste = new SSToCS.AskRegiste();
 			aAskRegiste.MergeFrom( data, offset, size );
 
-			int ssPos = aAskRegiste.Ssid - ( int )CS.instance.csCfg.un32SSBaseIdx;
+			int ssPos = aAskRegiste.Ssid - ( int )CS.instance.csKernelCfg.un32SSBaseIdx;
 			CSSSInfo pcSSInfo = CS.instance.GetSSInfoBySSID( aAskRegiste.Ssid );
 			if ( null == pcSSInfo )
 				return ErrorCode.InvalidSSID;

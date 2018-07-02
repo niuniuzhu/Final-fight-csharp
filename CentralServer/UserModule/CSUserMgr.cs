@@ -35,6 +35,7 @@ namespace CentralServer.UserModule
 				return !( a < b );
 			}
 		}
+		public DateTime today { get; private set; }
 
 		private delegate ErrorCode GCMsgHandler( CSGSInfo csgsInfo, uint gcNetID, byte[] data, int offset, int size );
 
@@ -42,6 +43,7 @@ namespace CentralServer.UserModule
 
 		private readonly Dictionary<UserNetInfo, CSUser> _userNetMap = new Dictionary<UserNetInfo, CSUser>();
 		private readonly Dictionary<ulong, CSUser> _userGUIDMap = new Dictionary<ulong, CSUser>();
+		private readonly Dictionary<ulong, CSUser> _userOnlineMap = new Dictionary<ulong, CSUser>();
 		private readonly Dictionary<string, CSUser> _nickNameMap = new Dictionary<string, CSUser>();
 		private readonly Dictionary<UserCombineKey, ulong> _allUserName2GUIDMap = new Dictionary<UserCombineKey, ulong>();
 		private readonly HashSet<string> _allNickNameSet = new HashSet<string>();
@@ -50,6 +52,8 @@ namespace CentralServer.UserModule
 
 		public CSUserMgr()
 		{
+			this.today = new DateTime();
+
 			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskLogin] = this.OnMsgToGstoCsfromGcAskLogin;
 			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskReconnectGame] = this.OnMsgToGstoCsfromGcAskReconnectGame;
 			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskComleteUserInfo] = this.OnMsgToGstoCsfromGcAskComleteUserInfo;
@@ -60,7 +64,7 @@ namespace CentralServer.UserModule
 			return this._userNetMap.ContainsKey( userNetInfo );
 		}
 
-		private ErrorCode AddUser( CSUser csUser )
+		public ErrorCode AddUser( CSUser csUser )
 		{
 			if ( null == csUser )
 				return ErrorCode.NullUser;
@@ -96,18 +100,18 @@ namespace CentralServer.UserModule
 			return user;
 		}
 
-		private CSUser GetUser( ulong guid )
+		public CSUser GetUser( ulong guid )
 		{
 			this._userGUIDMap.TryGetValue( guid, out CSUser user );
 			return user;
 		}
 
-		private CSUser GetUser( string nickName )
+		public CSUser GetUser( string nickName )
 		{
 			this._nickNameMap.TryGetValue( nickName, out CSUser user );
 			return user;
 		}
-		private CSUser GetUser( CSGSInfo csgsInfo, uint gcNetID )
+		public CSUser GetUser( CSGSInfo csgsInfo, uint gcNetID )
 		{
 			UserNetInfo userNetInfo = new UserNetInfo( csgsInfo.m_n32GSID, gcNetID );
 			return this.GetUser( userNetInfo );
@@ -123,7 +127,7 @@ namespace CentralServer.UserModule
 		{
 			++this._maxGuid;
 			//todo
-			//return this._maxGuid * GUID_Devide + CS.instance.csCfg.unCSId;
+			//return this._maxGuid * GUID_Devide + CS.instance.csKernelCfg.unCSId;
 			return ( ulong )this._maxGuid;
 		}
 
@@ -139,7 +143,7 @@ namespace CentralServer.UserModule
 				this._nickNameMap.Remove( csUser.nickname );
 				this._allNickNameSet.Remove( csUser.nickname );
 			}
-			csUser.userDbData.ChangeUserDbData( EUserDBDataType.eUserDBType_NickName, nickname );
+			csUser.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_NickName, nickname );
 			this._allNickNameSet.Add( nickname );
 			this._nickNameMap.Add( nickname, csUser );
 
@@ -156,7 +160,7 @@ namespace CentralServer.UserModule
 				Guid = ( long )csUser.guid
 			};
 			//todo
-			//m_CdkeyWrapper->EncodeAndSendToDBThread( sChangeNickName, sChangeNickName.msgid() );
+			//m_CdkeyWrapper.EncodeAndSendToDBThread( sChangeNickName, sChangeNickName.msgid() );
 		}
 
 		public void ForeachNotice( Action<Notice> handler )
@@ -164,6 +168,22 @@ namespace CentralServer.UserModule
 			int count = this._notices.Count;
 			for ( int i = 0; i < count; i++ )
 				handler.Invoke( this._notices[i] );
+		}
+
+		public ErrorCode OnUserOnline( CSUser csUser, UserNetInfo netInfo )
+		{
+			this._userNetMap.Add( netInfo, csUser );
+			this._userOnlineMap.Add( csUser.guid, csUser );
+			csUser.SetUserNetInfo( netInfo );
+			Logger.Log( $"Add user netinfo({netInfo.gcNetID})" );
+			return ErrorCode.Success;
+		}
+
+		public void OnUserOffline( CSUser csUser )
+		{
+			this._userNetMap.Remove( csUser.userNetInfo );
+			this._userOnlineMap.Remove( csUser.guid );
+			csUser.ClearNetInfo();
 		}
 
 		private void InsertNewUserToMysql( GCToCS.Login login, CSUser csUser )
@@ -176,6 +196,27 @@ namespace CentralServer.UserModule
 				return handler.Invoke( csgsInfo, gcNetID, data, offset, size );
 			Logger.Warn( $"invalid msg:{msgID}." );
 			return ErrorCode.InvalidMsgProtocalID;
+		}
+
+		private void OnTimeUpdate()
+		{
+			DateTime oldDay = this.today;
+			this.today = new DateTime();
+			if ( this.today.Year != oldDay.Year ) this.OnNewYear();
+			else if ( this.today.Month != oldDay.Month ) this.OnNewMonth();
+			else if ( this.today.Day != oldDay.Day ) this.OnNewDay();
+		}
+
+		private void OnNewYear()
+		{
+		}
+
+		private void OnNewMonth()
+		{
+		}
+
+		private void OnNewDay()
+		{
 		}
 	}
 }

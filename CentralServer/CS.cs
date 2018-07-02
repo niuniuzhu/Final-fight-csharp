@@ -9,6 +9,7 @@ using StackExchange.Redis;
 using System;
 using System.Collections;
 using System.IO;
+using Google.Protobuf;
 
 namespace CentralServer
 {
@@ -20,8 +21,8 @@ namespace CentralServer
 		private static CS _instance;
 		public static CS instance => _instance ?? ( _instance = new CS() );
 
-		public CSKernelCfg csCfg { get; }
-		public CSCfgMgr csscCfg { get; }
+		public CSKernelCfg csKernelCfg { get; }
+		public CSCfgMgr csCfg { get; }
 		public CSSSInfo[] ssInfoList { get; private set; }
 		public CSGSInfo[] gsInfoList { get; private set; }
 		public string remoteConsolekey { get; private set; }
@@ -38,8 +39,8 @@ namespace CentralServer
 
 		public CS()
 		{
-			this.csCfg = new CSKernelCfg();
-			this.csscCfg = new CSCfgMgr();
+			this.csKernelCfg = new CSKernelCfg();
+			this.csCfg = new CSCfgMgr();
 			this.netSessionMgr = new CSNetSessionMgr();
 			this.csUserMgr = new CSUserMgr();
 			this.battleTimer = new BattleTimer();
@@ -57,12 +58,12 @@ namespace CentralServer
 			if ( ErrorCode.Success == eResult )
 				Logger.Info( "CS Initialize success" );
 
-			this.ssNetInfoList = new SSNetInfo[this.csCfg.un32MaxSSNum];
-			for ( int i = 0; i < this.csCfg.un32MaxSSNum; i++ )
+			this.ssNetInfoList = new SSNetInfo[this.csKernelCfg.un32MaxSSNum];
+			for ( int i = 0; i < this.csKernelCfg.un32MaxSSNum; i++ )
 				this.ssNetInfoList[i] = new SSNetInfo();
 
-			this.gsNetInfoList = new GSNetInfo[this.csCfg.un32MaxGSNum];
-			for ( int i = 0; i < this.csCfg.un32MaxGSNum; i++ )
+			this.gsNetInfoList = new GSNetInfo[this.csKernelCfg.un32MaxGSNum];
+			for ( int i = 0; i < this.csKernelCfg.un32MaxGSNum; i++ )
 				this.gsNetInfoList[i] = new GSNetInfo();
 
 			this.rcNetInfoList = new RCNetInfo[10];
@@ -86,21 +87,21 @@ namespace CentralServer
 				Logger.Error( $"load CSCfg.xml failed for {e}" );
 				return ErrorCode.CfgFailed;
 			}
-			this.csCfg.unCSId = json.GetUInt( "GameWorldID" );
-			this.csCfg.ipaddress = json.GetString( "CSIP" );
-			this.csCfg.n32SSNetListenerPort = json.GetInt( "SSPort" );
-			this.csCfg.n32GSNetListenerPort = json.GetInt( "GSPort" );
-			this.csCfg.un32MaxSSNum = json.GetUInt( "MaxSSNum" );
-			this.csCfg.un32SSBaseIdx = json.GetUInt( "SSBaseIndex" );
-			this.csCfg.un32MaxGSNum = json.GetUInt( "MaxGSNum" );
-			this.csCfg.un32GSBaseIdx = json.GetUInt( "GSBaseIndex" );
-			this.csCfg.maxWaitingDBNum = json.GetInt( "WaitingDBNum" );
-			this.csCfg.redisAddress = json.GetString( "redisAddress" );
-			this.csCfg.redisPort = json.GetInt( "redisPort" );
-			this.csCfg.redisLogicAddress = json.GetString( "redisLogicAddress" );
-			this.csCfg.redisLogicPort = json.GetInt( "redisLogicPort" );
-			this.csCfg.LogAddress = json.GetString( "LogAddress" );
-			this.csCfg.LogPort = json.GetInt( "LogPort" );
+			this.csKernelCfg.unCSId = json.GetUInt( "GameWorldID" );
+			this.csKernelCfg.ipaddress = json.GetString( "CSIP" );
+			this.csKernelCfg.n32SSNetListenerPort = json.GetInt( "SSPort" );
+			this.csKernelCfg.n32GSNetListenerPort = json.GetInt( "GSPort" );
+			this.csKernelCfg.un32MaxSSNum = json.GetUInt( "MaxSSNum" );
+			this.csKernelCfg.un32SSBaseIdx = json.GetUInt( "SSBaseIndex" );
+			this.csKernelCfg.un32MaxGSNum = json.GetUInt( "MaxGSNum" );
+			this.csKernelCfg.un32GSBaseIdx = json.GetUInt( "GSBaseIndex" );
+			this.csKernelCfg.maxWaitingDBNum = json.GetInt( "WaitingDBNum" );
+			this.csKernelCfg.redisAddress = json.GetString( "redisAddress" );
+			this.csKernelCfg.redisPort = json.GetInt( "redisPort" );
+			this.csKernelCfg.redisLogicAddress = json.GetString( "redisLogicAddress" );
+			this.csKernelCfg.redisLogicPort = json.GetInt( "redisLogicPort" );
+			this.csKernelCfg.LogAddress = json.GetString( "LogAddress" );
+			this.csKernelCfg.LogPort = json.GetInt( "LogPort" );
 
 			string ssIndexStr = json.GetString( "AllSSIndex" );
 			string[] ssIndexVec = ssIndexStr.Split( ';' );
@@ -145,7 +146,7 @@ namespace CentralServer
 				this.gsInfoList[i] = csgsInfo;
 			}
 
-			this.csCfg.n32RCNetListenerPort = json.GetInt( "RSPort" );
+			this.csKernelCfg.n32RCNetListenerPort = json.GetInt( "RSPort" );
 			this.remoteConsolekey = json.GetString( "RSKey" );
 
 			return ErrorCode.Success;
@@ -154,14 +155,14 @@ namespace CentralServer
 
 		public ErrorCode Start()
 		{
-			this.netSessionMgr.CreateListener( this.csCfg.n32GSNetListenerPort, 1024000, Consts.SOCKET_TYPE,
+			this.netSessionMgr.CreateListener( this.csKernelCfg.n32GSNetListenerPort, 1024000, Consts.SOCKET_TYPE,
 											   Consts.PROTOCOL_TYPE, 0, this.netSessionMgr.CreateGateSession );
-			this.netSessionMgr.CreateListener( this.csCfg.n32SSNetListenerPort, 1024000, Consts.SOCKET_TYPE,
+			this.netSessionMgr.CreateListener( this.csKernelCfg.n32SSNetListenerPort, 1024000, Consts.SOCKET_TYPE,
 											   Consts.PROTOCOL_TYPE, 0, this.netSessionMgr.CreateSceneSession );
-			this.netSessionMgr.CreateListener( this.csCfg.n32RCNetListenerPort, 1024000, Consts.SOCKET_TYPE,
+			this.netSessionMgr.CreateListener( this.csKernelCfg.n32RCNetListenerPort, 1024000, Consts.SOCKET_TYPE,
 											   Consts.PROTOCOL_TYPE, 0, this.netSessionMgr.CreateRemoteConsoleSession );
-			this.netSessionMgr.CreateConnector( SessionType.ClientC2Log, this.csCfg.LogAddress,
-												this.csCfg.LogPort, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 102400,
+			this.netSessionMgr.CreateConnector( SessionType.ClientC2Log, this.csKernelCfg.LogAddress,
+												this.csKernelCfg.LogPort, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE, 102400,
 												0 );
 
 			ConfigurationOptions config = new ConfigurationOptions
@@ -178,10 +179,10 @@ namespace CentralServer
 			if ( !this._userDBredisAsyncContext.IsConnected )
 				Logger.Error( "connect to redis fail." );
 
-			//if ( this.csCfg.redisLogicAddress != "0" )
+			//if ( this.csKernelCfg.redisLogicAddress != "0" )
 			//{
-			//	this.netSessionMgr.CreateConnector( SessionType.ClientC2LogicRedis, this.csCfg.redisLogicAddress,
-			//										this.csCfg.redisLogicPort, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE,
+			//	this.netSessionMgr.CreateConnector( SessionType.ClientC2LogicRedis, this.csKernelCfg.redisLogicAddress,
+			//										this.csKernelCfg.redisLogicPort, Consts.SOCKET_TYPE, Consts.PROTOCOL_TYPE,
 			//										102400, 0 );
 			//}
 
@@ -196,7 +197,7 @@ namespace CentralServer
 
 		public CSGSInfo GetGSInfoByNSID( uint nsID )
 		{
-			for ( int i = 0; i < this.csCfg.un32MaxGSNum; ++i )
+			for ( int i = 0; i < this.csKernelCfg.un32MaxGSNum; ++i )
 			{
 				CSGSInfo csgsInfo = this.gsNetInfoList[i].pcGSInfo;
 				if ( null == csgsInfo )
@@ -209,13 +210,13 @@ namespace CentralServer
 
 		public CSGSInfo GetGSInfoByGSID( int gsID )
 		{
-			uint index = ( uint )gsID - this.csCfg.un32GSBaseIdx;
-			return index < this.csCfg.un32MaxGSNum ? this.gsInfoList[index] : null;
+			uint index = ( uint )gsID - this.csKernelCfg.un32GSBaseIdx;
+			return index < this.csKernelCfg.un32MaxGSNum ? this.gsInfoList[index] : null;
 		}
 
 		public CSSSInfo GetSSInfoByNSID( uint nsID )
 		{
-			for ( int i = 0; i < this.csCfg.un32MaxSSNum; ++i )
+			for ( int i = 0; i < this.csKernelCfg.un32MaxSSNum; ++i )
 			{
 				CSSSInfo pcInfo = this.ssNetInfoList[i].pcSSInfo;
 				if ( null == pcInfo )
@@ -228,8 +229,8 @@ namespace CentralServer
 
 		public CSSSInfo GetSSInfoBySSID( int ssID )
 		{
-			uint un32Idx = ( uint )ssID - this.csCfg.un32SSBaseIdx;
-			return un32Idx < this.csCfg.un32MaxSSNum ? this.ssInfoList[un32Idx] : null;
+			uint un32Idx = ( uint )ssID - this.csKernelCfg.un32SSBaseIdx;
+			return un32Idx < this.csKernelCfg.un32MaxSSNum ? this.ssInfoList[un32Idx] : null;
 		}
 
 		public ErrorCode InvokeGCMsg( CSGSInfo csgsInfo, int msgID, uint gcNetID, byte[] data, int offset, int size ) =>
@@ -241,5 +242,40 @@ namespace CentralServer
 			this.battleTimer.AddTimer( pHeartbeatCallback, interval, ifPersist );
 
 		public void RemoveTimer( long timerID ) => this.battleTimer.RemoveTimer( timerID );
+
+		public ErrorCode PostMsgToGS_KickoutGC( CSGSInfo csgsInfo, uint gcNetID )
+		{
+			CSToGS.OrderKickoutGC sMsg = new CSToGS.OrderKickoutGC();
+			sMsg.Gcnid = ( int )gcNetID;
+			return this.PostMsgToGS( csgsInfo, sMsg, ( int )CSToGS.MsgID.EMsgToGsfromCsOrderKickoutGc, 0 );
+		}
+
+		public ErrorCode PostMsgToGS( CSGSInfo csgsInfo, IMessage msg, int msgID, uint gcNetID )
+		{
+			if ( csgsInfo == null )
+				return ErrorCode.NullMsg;
+			this.netSessionMgr.TranMsgToSession( csgsInfo.m_n32NSID, msg, msgID, gcNetID == 0 ? 0 : ( int )CSToGS.MsgID.EMsgToGsfromCsOrderPostToGc, gcNetID );
+			return ErrorCode.Success;
+		}
+
+		public ErrorCode BroadCastMsgToGS( IMessage msg, int msgID )
+		{
+			this.netSessionMgr.TranMsgToSession( SessionType.ServerCsOnlyGS, msg, msgID, 0, 0, false );
+			return ErrorCode.Success;
+		}
+
+		public ErrorCode PostMsgToGC( UserNetInfo userNetInfo, IMessage msg, int msgID )
+		{
+			if ( userNetInfo.gcNetID == 0 )
+				return ErrorCode.InvalidUserNetInfo;
+			this.PostMsgToGS( this.GetGSInfoByGSID( userNetInfo.gsID ), msg, msgID, userNetInfo.gcNetID );
+			return ErrorCode.Success;
+		}
+
+		public ErrorCode PostMsgToLogServer( IMessage msg, int msgID )
+		{
+			this.netSessionMgr.SendMsgToSession( SessionType.ClientC2Log, msg, msgID );
+			return ErrorCode.Success;
+		}
 	}
 }

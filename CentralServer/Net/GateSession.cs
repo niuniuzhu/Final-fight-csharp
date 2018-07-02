@@ -22,10 +22,10 @@ namespace CentralServer.Net
 			{
 				Registe = 0,
 				Curtime = time,
-				Ssbaseid = CS.instance.csCfg.un32SSBaseIdx
+				Ssbaseid = CS.instance.csKernelCfg.un32SSBaseIdx
 			};
 
-			//for ( uint i = 0; i < CS.instance.csCfg.un32MaxSSNum; i++ )
+			//for ( uint i = 0; i < CS.instance.csKernelCfg.un32MaxSSNum; i++ )
 			//{
 			//	CSToGS.AskRegisteRet.Types.SSInfo pSsinfo =
 			//		new CSToGS.AskRegisteRet.Types.SSInfo
@@ -54,7 +54,7 @@ namespace CentralServer.Net
 			if ( csgsInfo == null )
 				return;
 			Logger.Info( $"GS({csgsInfo.m_n32GSID}) DisConnected" );
-			int pos = ( int )( csgsInfo.m_n32GSID - CS.instance.csCfg.un32GSBaseIdx );
+			int pos = ( int )( csgsInfo.m_n32GSID - CS.instance.csKernelCfg.un32GSBaseIdx );
 			csgsInfo.m_eGSNetState = ServerNetState.SnsClosed;
 			csgsInfo.m_n32NSID = 0;
 			csgsInfo.m_tLastConnMilsec = 0;
@@ -70,7 +70,7 @@ namespace CentralServer.Net
 			//找到位置号
 			int gsPos = -1;
 			CSGSInfo csgsInfo = null;
-			for ( int i = 0; i < CS.instance.csCfg.un32MaxGSNum; i++ )
+			for ( int i = 0; i < CS.instance.csKernelCfg.un32MaxGSNum; i++ )
 			{
 				if ( msg.Gsid != CS.instance.gsInfoList[i].m_n32GSID )
 					continue;
@@ -118,7 +118,7 @@ namespace CentralServer.Net
 			// 找到位置号
 			int gsPos = -1;
 			CSGSInfo pcGSInfo = null;
-			for ( int i = 0; i < CS.instance.csCfg.un32MaxGSNum; i++ )
+			for ( int i = 0; i < CS.instance.csKernelCfg.un32MaxGSNum; i++ )
 			{
 				if ( sMsg.Gsid != CS.instance.gsInfoList[i].m_n32GSID )
 					continue;
@@ -162,8 +162,8 @@ namespace CentralServer.Net
 			sAskRegisteRet.Curtime = tCurUTCMilsec;
 			if ( ErrorCode.Success == n32Registe )
 			{
-				sAskRegisteRet.Ssbaseid = CS.instance.csCfg.un32SSBaseIdx;
-				for ( int i = 0; i < CS.instance.csCfg.un32MaxSSNum; i++ )
+				sAskRegisteRet.Ssbaseid = CS.instance.csKernelCfg.un32SSBaseIdx;
+				for ( int i = 0; i < CS.instance.csKernelCfg.un32MaxSSNum; i++ )
 				{
 					CSSSInfo csssInfo = CS.instance.ssInfoList[i];
 					CSToGS.AskRegisteRet.Types.SSInfo pSSInfo =
@@ -178,7 +178,7 @@ namespace CentralServer.Net
 				}
 			}
 
-			CS.instance.netSessionMgr.TranMsgToSession( csgsInfo.m_n32NSID, sAskRegisteRet, ( int )CSToGS.MsgID.EMsgToGsfromCsAskRegisteRet, 0, 0 );
+			CS.instance.PostMsgToGS( csgsInfo, sAskRegisteRet, ( int )CSToGS.MsgID.EMsgToGsfromCsAskRegisteRet, 0 );
 
 			if ( ErrorCode.Success != n32Registe )
 				CS.instance.netSessionMgr.DisconnectOne( csgsInfo.m_n32NSID );

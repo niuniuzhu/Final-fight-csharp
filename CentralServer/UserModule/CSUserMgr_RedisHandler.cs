@@ -40,7 +40,7 @@ namespace CentralServer.UserModule
 		[ProtoMember( 13 )]
 		public ulong tLastFirstWinTime;
 		[ProtoMember( 14 )]
-		public uint un32LastGetLoginRewardDay;
+		public int un32LastGetLoginRewardDay;
 		[ProtoMember( 15 )]
 		public long tRegisteUTCMillisec;
 		[ProtoMember( 16 )]
@@ -128,15 +128,15 @@ namespace CentralServer.UserModule
 					break;
 				}
 
-				SUserDBData sSUserDBData = new SUserDBData();
-				PODUsrDBData sPODUsrDBData = sSUserDBData.sPODUsrDBData;
+				UserDBData userDbData = new UserDBData();
+				PODUsrDBData sPODUsrDBData = userDbData.sPODUsrDBData;
 				sPODUsrDBData.un64ObjIdx = ( ulong )pQueryUser.Objid;
-				sSUserDBData.szUserName = sLoginMsg.Name;
+				userDbData.szUserName = sLoginMsg.Name;
 
 				MemoryStream ms = new MemoryStream( task.Result );
 				DBUserCache dbUserCache = Serializer.Deserialize<DBUserCache>( ms );
 				System.Diagnostics.Debug.Assert( dbUserCache.guid == sPODUsrDBData.un64ObjIdx );
-				sSUserDBData.szNickName = dbUserCache.szNickName;
+				userDbData.szNickName = dbUserCache.szNickName;
 				sPODUsrDBData.n64Diamond = dbUserCache.n64Diamond;
 				sPODUsrDBData.n64Gold = dbUserCache.n64Gold;
 				sPODUsrDBData.n64Score = dbUserCache.n64Score;
@@ -156,14 +156,14 @@ namespace CentralServer.UserModule
 				sPODUsrDBData.un32UserCurLvExp = dbUserCache.un32UserCurLvExp;
 				sPODUsrDBData.vipScore = dbUserCache.vipScore;
 				sPODUsrDBData.n16Sex = dbUserCache.n16Sex;
-				sSUserDBData.szTaskData = dbUserCache.szTaskData;
+				userDbData.szTaskData = dbUserCache.szTaskData;
 
 				pcUser = new CSUser();
-				pcUser.LoadDBData( sSUserDBData );
+				pcUser.LoadDBData( userDbData );
 				pcUser.InitRunes( dbUserCache.bagStr, dbUserCache.slotStr );
 				pcUser.LoadFromRedisStr( dbUserCache.heroStr, dbUserCache.friendStr, dbUserCache.blackStr, dbUserCache.itemStr, dbUserCache.mailStr );
 				//todo
-				//pcUser.GetUserBattleInfoEx().mDebugName = sSUserDBData.szUserName;
+				//pcUser.GetUserBattleInfoEx().mDebugName = userDbData.szUserName;
 				//pcUser.GetUserDBData().mGuideSteps.szCSContinueGuide = dbUserCache.guideStr;
 
 				res = this.AddUser( pcUser );

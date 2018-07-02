@@ -2,6 +2,7 @@
 using Shared;
 using System;
 using System.Collections.Generic;
+using CentralServer.Tools;
 
 namespace CentralServer
 {
@@ -124,6 +125,10 @@ namespace CentralServer
 	{
 		private readonly Dictionary<string, bool> _aiRobotNameMapForCheck = new Dictionary<string, bool>();
 		private readonly List<string> _invalidWorlds = new List<string>();
+		private readonly Dictionary<uint, HeroBuyCfg> _heroBuyCfgMap = new Dictionary<uint, HeroBuyCfg>();
+		private readonly Dictionary<uint, HeroBuyCfg> m_HeroClientMatchMap = new Dictionary<uint, HeroBuyCfg>();
+
+		public UserDbSaveConfig userDbSaveCfg { get; }
 
 		public bool CheckInvalidWorld( string word )
 		{
@@ -138,5 +143,17 @@ namespace CentralServer
 		}
 
 		public bool CheckAIRobotName( string nickname ) => this._aiRobotNameMapForCheck.ContainsKey( nickname );
+
+		public void ForeachHeroBuyCfg( Action<KeyValuePair<uint, HeroBuyCfg>> handler )
+		{
+			foreach ( KeyValuePair<uint, HeroBuyCfg> kv in this._heroBuyCfgMap )
+				handler.Invoke( kv );
+		}
+
+		public HeroBuyCfg GetHeroClientMatchCfg( uint HeroID )
+		{
+			this.m_HeroClientMatchMap.TryGetValue( HeroID, out HeroBuyCfg heroBuyCfg );
+			return heroBuyCfg;
+		}
 	}
 }
