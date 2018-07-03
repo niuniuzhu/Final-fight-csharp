@@ -46,21 +46,21 @@ namespace LoginServer.Net
 			GCToBS.OneClinetLogin oneClientLogin = new GCToBS.OneClinetLogin();
 			oneClientLogin.MergeFrom( data, offset, size );
 
-			string sessionid = string.Empty;
+			string sessionID = string.Empty;
 			if ( oneClientLogin.Plat == ( uint )UserPlatform.Platform_PC )
 			{
-				sessionid += oneClientLogin.Plat;
-				sessionid += oneClientLogin.Uin;
+				sessionID += oneClientLogin.Plat;
+				sessionID += oneClientLogin.Uin;
 			}
 			else
-				sessionid = oneClientLogin.Sessionid;
+				sessionID = oneClientLogin.Sessionid;
 
-			LoginUserInfo loginUserInfo = LS.instance.sdkConnector.GetLoginUserInfo( sessionid );
+			LoginUserInfo loginUserInfo = LS.instance.sdkConnector.GetLoginUserInfo( sessionID );
 			if ( loginUserInfo != null )
 			{
 				oneClientLogin.LoginSuccess = 1;
 				oneClientLogin.Uin = loginUserInfo.uin;
-				LS.instance.sdkConnector.RemoveLoginUserInfo( sessionid );
+				LS.instance.sdkConnector.RemoveLoginUserInfo( sessionID );
 				Logger.Log( $"vaild uid:{oneClientLogin.Uin}" );
 			}
 			else

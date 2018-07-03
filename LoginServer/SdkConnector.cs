@@ -30,30 +30,30 @@ namespace LoginServer
 				SDKBuffer sdkBuffer = this._dbCallbackQueue.Pop();
 				if ( sdkBuffer.data == 1 )
 				{
-					uint gcnetid = sdkBuffer.ReadUInt();
+					uint gcNetID = sdkBuffer.ReadUInt();
 					uint platform = sdkBuffer.ReadUInt();
 					string uid = sdkBuffer.ReadUTF8();
 					string uin = sdkBuffer.ReadUTF8();
-					string sessionid = sdkBuffer.ReadUTF8E();
-					LoginUserInfo pLoginUserInfo = new LoginUserInfo
+					string sessionID = sdkBuffer.ReadUTF8E();
+					LoginUserInfo loginUserInfo = new LoginUserInfo
 					{
-						sessionid = sessionid,
+						sessionid = sessionID,
 						uin = uin,
 						plat = platform
 					};
-					this._allLoginUserInfo[sessionid] = pLoginUserInfo;
-					Logger.Log( $"Add uid:{uid}, sessionid:{sessionid}" );
+					this._allLoginUserInfo[sessionID] = loginUserInfo;
+					Logger.Log( $"add uid:{uid}, sessionID:{sessionID}" );
 
-					this.PostMsgToGC_NotifyServerList( gcnetid );
+					this.PostMsgToGC_NotifyServerList( gcNetID );
 				}
 				else if ( sdkBuffer.data == 2 )
 				{
-					uint gcnetid = sdkBuffer.ReadUInt();
-					int errorcode = sdkBuffer.ReadInt();
-					Logger.Log( $"User Login Fail with netid:{gcnetid}, errorcode:{errorcode}." );
-					this.PostMsgToGC_NotifyLoginFail( errorcode, gcnetid );
+					uint gcNetID = sdkBuffer.ReadUInt();
+					int errorCode = sdkBuffer.ReadInt();
+					Logger.Log( $"user login fail with netID:{gcNetID}, errorCode:{errorCode}." );
+					this.PostMsgToGC_NotifyLoginFail( errorCode, gcNetID );
 				}
-				sdkBuffer.position = 0;
+				sdkBuffer.Clear();
 				this._dbCallbackQueuePool.Push( sdkBuffer );
 			}
 		}
@@ -61,10 +61,10 @@ namespace LoginServer
 		/// <summary>
 		/// 该方法为异步方法
 		/// </summary>
-		public void SendToInsertData( string uid, LoginUserInfo loginInfo, uint gcnetID )
+		public void SendToInsertData( string uid, LoginUserInfo loginInfo, uint gcNetID )
 		{
 			SDKBuffer sdkBuffer = this._dbCallbackQueuePool.Pop();
-			sdkBuffer.Write( gcnetID );
+			sdkBuffer.Write( gcNetID );
 			sdkBuffer.Write( loginInfo.plat );
 			sdkBuffer.WriteUTF8( uid );
 			sdkBuffer.WriteUTF8( loginInfo.uin );
@@ -77,18 +77,18 @@ namespace LoginServer
 		/// <summary>
 		/// 该方法为异步方法
 		/// </summary>
-		public void SendToFailData( ErrorCode errorcode, uint gcnetID )
+		public void SendToFailData( ErrorCode errorCode, uint gcNetID )
 		{
 			SDKBuffer sdkBuffer = this._dbCallbackQueuePool.Pop();
-			sdkBuffer.Write( gcnetID );
-			sdkBuffer.Write( ( int )errorcode );
+			sdkBuffer.Write( gcNetID );
+			sdkBuffer.Write( ( int )errorCode );
 			sdkBuffer.position = 0;
 			sdkBuffer.data = 2;
-			Logger.Log( $"User Login Fail with netid:{gcnetID}, errorcode:{errorcode}." );
+			Logger.Log( $"user login fail with netID:{gcNetID}, errorCode:{errorCode}." );
 			this._dbCallbackQueue.Push( sdkBuffer );
 		}
 
-		private void PostMsgToGC_NotifyServerList( uint gcnetID )
+		private void PostMsgToGC_NotifyServerList( uint gcNetID )
 		{
 			//发送第2消息：登录成功，下发BS服务器列表
 			LSToGC.ServerBSAddr serverList = new LSToGC.ServerBSAddr();
@@ -104,15 +104,14 @@ namespace LoginServer
 				serverList.Serverinfo.Add( info );
 			}
 			Logger.Log( "Post Server List To User." );
-			LS.instance.netSessionMgr.SendMsgToSession( gcnetID, serverList, ( int )LSToGC.MsgID.EMsgToGcfromLsNotifyServerBsaddr );
+			LS.instance.netSessionMgr.SendMsgToSession( gcNetID, serverList, ( int )LSToGC.MsgID.EMsgToGcfromLsNotifyServerBsaddr );
 		}
 
-		private void PostMsgToGC_NotifyLoginFail( int errorcode, uint gcnetID )
+		private void PostMsgToGC_NotifyLoginFail( int errorCode, uint gcNetID )
 		{
 			// 发送第1消息：登录失败
-			LSToGC.LoginResult msg = new LSToGC.LoginResult();
-			msg.Result = errorcode;
-			LS.instance.netSessionMgr.SendMsgToSession( gcnetID, msg, ( int )LSToGC.MsgID.EMsgToGcfromLsNotifyLoginResult );
+			LSToGC.LoginResult msg = new LSToGC.LoginResult { Result = errorCode };
+			LS.instance.netSessionMgr.SendMsgToSession( gcNetID, msg, ( int )LSToGC.MsgID.EMsgToGcfromLsNotifyLoginResult );
 		}
 	}
 }

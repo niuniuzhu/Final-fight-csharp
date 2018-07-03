@@ -408,24 +408,35 @@ namespace Shared
 
 	public enum HeroKind
 	{
-		HeroKindNone = 0,
-		HeroKindDps = 1,
-		HeroKindMagic = 2,
-		HeroKindAss = 3,
-		HeroKindTank = 4,
+		HeroKindNone,
+		HeroKindDps,
+		HeroKindMagic,
+		HeroKindAss,
+		HeroKindTank
 	}
 
 	public enum SkinType
 	{
 		SkinNone = 0,
-	};
+	}
 
 	public enum ConsumeType
 	{
-		ConsumeTypeFree = 0,
-		ConsumeTypeGold = 1,
-		ConsumeTypeDiamond = 2,
-	};
+		ConsumeTypeFree,
+		ConsumeTypeGold,
+		ConsumeTypeDiamond
+	}
+
+	public enum ObjectType
+	{
+		ObjectTypeNone,
+		ObjectTypeGuild,
+		ObjectTypeUser,
+		ObjectTypeHeroBegin = Consts.ObjTypeSpace,
+		ObjectTypeNPCBegin = Consts.ObjTypeSpace * 2,
+		ObjectTypeGoodsBegin = Consts.ObjTypeSpace * 3,
+		ObjectTypeAiRobotBegin = Consts.ObjTypeSpace * 4,
+	}
 
 	public enum LobbyType
 	{
@@ -441,6 +452,21 @@ namespace Shared
 		LobbyGuid2,
 		LobbyGuid3,
 		LobbyGuid4,
+	}
+
+	public enum RewardType
+	{
+		RewardTypeNone = 0,       //未设
+		RewardTypeNomal = 1,      //普通
+		RewardTypeExtend = 2, //额外
+	}
+
+	public enum LoginRewardItemType
+	{
+		LoginRewadItemNone = 0,//未设
+		LoginRewadItemGold = 1,//金币
+		LoginRewadItemDiamond = 2,//钻石
+		LoginRewadItemGoodsIDBegin = 3,//商品
 	}
 
 	public class UserNetInfo
@@ -579,5 +605,6 @@ namespace Shared
 		public const int DEFAULT_DEVICE_KEY_LEN = DEFAULT_NAME_LEN * 5;
 		public const int PROJECTILE_MAX_CHILD_PROJECTILE_TYPE = 3;
 		public const int DEFAULT_REMOVE_CONSOLE_KEY_LEN = 65;
+		public const int ObjTypeSpace = 10000;
 	}
 }

@@ -2,6 +2,7 @@
 using Google.Protobuf;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using Core.Misc;
 
 namespace Shared.Net
 {
@@ -228,7 +229,12 @@ namespace Shared.Net
 		private void Send( uint sessionId, byte[] buffer )
 		{
 			NetSession session = this.GetSession( sessionId );
-			session?.Send( buffer, buffer.Length );
+			if ( session == null )
+			{
+				Logger.Warn( $"invalid sessionID:{sessionId}" );
+				return;
+			}
+			session.Send( buffer, buffer.Length );
 		}
 
 		private void Send( SessionType sessionType, byte[] buffer, bool once )
