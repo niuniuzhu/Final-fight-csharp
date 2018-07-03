@@ -35,14 +35,14 @@ namespace CentralServer.User
 			this._userPlayingStatus = UserPlayingStatus.UserPlayingStatusOffLine;
 		}
 
-		public void OnOnline( UserNetInfo netinfo, GCToCS.Login login, bool isFirstInDB, bool isFirstInMem, bool isReLogin = false )
+		public void OnOnline( UserNetInfo netInfo, GCToCS.Login login, bool isFirstInDB, bool isFirstInMem, bool isReLogin = false )
 		{
 			this.KickOutOldUser();
 			this.ResetPingTimer();
 			this.LoginRewardInit();
 			if ( !isReLogin )
 				this.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_Channel, login.Platform );
-			CS.instance.csUserMgr.OnUserOnline( this, netinfo );
+			CS.instance.csUserMgr.OnUserOnline( this, netInfo );
 			this.NotifyUserPlayState();
 			this.SynUser_IsOnSS();
 			this.SynUser_UserBaseInfo();
@@ -87,7 +87,7 @@ namespace CentralServer.User
 			//todo
 			//CS.instance.csUserMgr.DBPoster_UpdateUser( this );
 			//更新下线时间
-			this._offlineTime =TimeUtils.utcTime + CS.instance.csCfg.userDbSaveCfg.delayDelFromCacheTime;
+			this._offlineTime = TimeUtils.utcTime + CS.instance.csCfg.userDbSaveCfg.delayDelFromCacheTime;
 			CS.instance.csUserMgr.OnUserOffline( this );
 			this.NotifyUserPlayState();
 
@@ -145,7 +145,7 @@ namespace CentralServer.User
 			if ( this.userNetInfo.IsValid() )
 			{
 				this.PostMsgToGC_NetClash();
-				CSGSInfo piGSInfo = CS.instance.GetGSInfoByGSID( this.userNetInfo.gsID );
+				CSGSInfo piGSInfo = CS.instance.GetGSInfoByGSID( ( uint )this.userNetInfo.gsID );
 				if ( null != piGSInfo )
 				{
 					CS.instance.PostMsgToGS_KickoutGC( piGSInfo, this.userNetInfo.gcNetID );

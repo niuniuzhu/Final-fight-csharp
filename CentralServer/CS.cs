@@ -197,6 +197,18 @@ namespace CentralServer
 			this.netSessionMgr.Update();
 		}
 
+		/// <summary>
+		/// 获取指定位置号的GS信息(配置文件定义的序号)
+		/// </summary>
+		public CSGSInfo GetGSInfoByGSID( uint gsID )
+		{
+			gsID -= this.csKernelCfg.un32GSBaseIdx;
+			return gsID < this.csKernelCfg.un32MaxGSNum ? this.gsInfoList[gsID] : null;
+		}
+
+		/// <summary>
+		/// 获取指定逻辑ID的GS信息
+		/// </summary>
 		public CSGSInfo GetGSInfoByNSID( uint nsID )
 		{
 			for ( int i = 0; i < this.csKernelCfg.un32MaxGSNum; ++i )
@@ -210,11 +222,18 @@ namespace CentralServer
 			return null;
 		}
 
-		public CSGSInfo GetGSInfoByGSID( int gsID )
+		/// <summary>
+		/// 获取指定位置号的SS信息(配置文件定义的序号)
+		/// </summary>
+		public CSSSInfo GetSSInfoBySSID( uint ssID )
 		{
-			return gsID < this.csKernelCfg.un32MaxGSNum ? this.gsInfoList[gsID] : null;
+			ssID -= this.csKernelCfg.un32SSBaseIdx;
+			return ssID < this.csKernelCfg.un32MaxGSNum ? this.ssInfoList[ssID] : null;
 		}
 
+		/// <summary>
+		/// 获取指定逻辑ID的SS信息
+		/// </summary>
 		public CSSSInfo GetSSInfoByNSID( uint nsID )
 		{
 			for ( int i = 0; i < this.csKernelCfg.un32MaxSSNum; ++i )
@@ -226,12 +245,6 @@ namespace CentralServer
 					return pcInfo;
 			}
 			return null;
-		}
-
-		public CSSSInfo GetSSInfoBySSID( int ssID )
-		{
-			uint un32Idx = ( uint )ssID - this.csKernelCfg.un32SSBaseIdx;
-			return un32Idx < this.csKernelCfg.un32MaxSSNum ? this.ssInfoList[un32Idx] : null;
 		}
 
 		public ErrorCode InvokeGCMsg( CSGSInfo csgsInfo, int msgID, uint gcNetID, byte[] data, int offset, int size ) =>
@@ -269,7 +282,7 @@ namespace CentralServer
 		{
 			if ( userNetInfo.gcNetID == 0 )
 				return ErrorCode.InvalidUserNetInfo;
-			this.PostMsgToGS( this.GetGSInfoByGSID( userNetInfo.gsID ), msg, msgID, userNetInfo.gcNetID );
+			this.PostMsgToGS( this.GetGSInfoByGSID( ( uint ) userNetInfo.gsID ), msg, msgID, userNetInfo.gcNetID );
 			return ErrorCode.Success;
 		}
 

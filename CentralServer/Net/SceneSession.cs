@@ -75,8 +75,8 @@ namespace CentralServer.Net
 			SSToCS.AskRegiste aAskRegiste = new SSToCS.AskRegiste();
 			aAskRegiste.MergeFrom( data, offset, size );
 
-			int ssPos = aAskRegiste.Ssid - ( int )CS.instance.csKernelCfg.un32SSBaseIdx;
-			CSSSInfo pcSSInfo = CS.instance.GetSSInfoBySSID( aAskRegiste.Ssid );
+			uint ssPos = ( uint )aAskRegiste.Ssid - CS.instance.csKernelCfg.un32SSBaseIdx;
+			CSSSInfo pcSSInfo = CS.instance.GetSSInfoBySSID( ( uint )aAskRegiste.Ssid );
 			if ( null == pcSSInfo )
 				return ErrorCode.InvalidSSID;
 

@@ -19,12 +19,12 @@ namespace CentralServer.User
 				Curscore = this.userDbData.sPODUsrDBData.n64Score,
 				Curgold = this.userDbData.sPODUsrDBData.n64Gold,
 				Curdiamoand = this.userDbData.sPODUsrDBData.n64Diamond,
-				Guid = 29001,
+				Guid = this.userDbData.sPODUsrDBData.un64ObjIdx,
 				//todo
 				//Mapid = GetBattleMgrInstance().GetBattleMapID( m_sUserBattleInfoEx.GetBattleID() ),
 				//Battleid = m_sUserBattleInfoEx.GetBattleID(),
-				Mapid =  0,
-				Battleid =  0,
+				Mapid = 0,
+				Battleid = 0,
 				Ifreconnect = false,
 				Level = this.userDbData.sPODUsrDBData.un8UserLv,
 				Headid = this.userDbData.sPODUsrDBData.un16HeaderID,
@@ -37,7 +37,7 @@ namespace CentralServer.User
 
 		private ErrorCode PostMsgToGC( IMessage sMsg, int msgID )
 		{
-			CSGSInfo csgsInfo = CS.instance.GetGSInfoByGSID( this.userNetInfo.gsID );
+			CSGSInfo csgsInfo = CS.instance.GetGSInfoByGSID( ( uint )this.userNetInfo.gsID );
 			if ( null == csgsInfo )
 			{
 				Logger.Warn( $"GS({this.userNetInfo.gsID}) not found." );

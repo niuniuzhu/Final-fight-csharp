@@ -175,7 +175,7 @@ namespace CentralServer.UserModule
 			this._userNetMap.Add( netInfo, csUser );
 			this._userOnlineMap.Add( csUser.guid, csUser );
 			csUser.SetUserNetInfo( netInfo );
-			Logger.Log( $"Add user netinfo({netInfo.gcNetID})" );
+			Logger.Log( $"add user netinfo({netInfo.gcNetID})" );
 			return ErrorCode.Success;
 		}
 
