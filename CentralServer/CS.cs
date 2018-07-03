@@ -54,6 +54,8 @@ namespace CentralServer
 
 		public ErrorCode Initialize()
 		{
+			Console.Title = "CS";
+
 			ErrorCode eResult = this.LoadCfg();
 			if ( ErrorCode.Success == eResult )
 				Logger.Info( "CS Initialize success" );
@@ -210,8 +212,7 @@ namespace CentralServer
 
 		public CSGSInfo GetGSInfoByGSID( int gsID )
 		{
-			uint index = ( uint )gsID - this.csKernelCfg.un32GSBaseIdx;
-			return index < this.csKernelCfg.un32MaxGSNum ? this.gsInfoList[index] : null;
+			return gsID < this.csKernelCfg.un32MaxGSNum ? this.gsInfoList[gsID] : null;
 		}
 
 		public CSSSInfo GetSSInfoByNSID( uint nsID )

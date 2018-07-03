@@ -213,6 +213,43 @@ namespace CentralServer.Tools
 		}
 	}
 
+	public class SRunesCfg
+	{
+		public ObjectType eOT;
+		public byte un8Level;
+		public byte un8EffectID;
+		public float fEffectVal;
+		public float fEffectPer;
+		public bool bIsCanComposed;
+		public int n32ComposedSubID;
+		public List<ConsumeStruct> sConsumeList = new List<ConsumeStruct>();
+		public bool bIfShowInShop;
+	}
+
+	public class SDiscountCfg
+	{
+		public uint un32CommdityID;
+		public GoodsType eGoodsType;
+		public uint un32GoodsID;
+		public List<ConsumeStruct> sConsumeList = new List<ConsumeStruct>();
+	}
+
+	public class SLoginReward
+	{
+		public const int MAX_REWARD = 5;
+		public int n32Days;
+		public RewardType[] eRewardType;
+		public LoginRewardItemType[] eItemType;
+		public uint[] un32num;
+
+		SLoginReward()
+		{
+			this.eRewardType = new RewardType[MAX_REWARD];
+			this.eItemType = new LoginRewardItemType[MAX_REWARD];
+			this.un32num = new uint[MAX_REWARD];
+		}
+	}
+
 	public class PODUsrDBData
 	{
 		public ulong un64ObjIdx;//玩家唯一标识
@@ -296,11 +333,11 @@ namespace CentralServer.Tools
 	public class UserDBData
 	{
 		public readonly PODUsrDBData sPODUsrDBData = new PODUsrDBData();
-		public string szNickName;
-		public string szUserName;
-		public string szUserPwd;
+		public string szNickName = string.Empty;
+		public string szUserName = string.Empty;
+		public string szUserPwd = string.Empty;
 		public readonly UserGuideSteps mGuideSteps = new UserGuideSteps();
-		public string szTaskData;
+		public string szTaskData = string.Empty;
 		public bool isTaskRush;
 		public Dictionary<uint, UserHeroDBData> heroListMap = new Dictionary<uint, UserHeroDBData>();
 		public Dictionary<ulong, UserRelationshipInfo> friendListMap = new Dictionary<ulong, UserRelationshipInfo>();

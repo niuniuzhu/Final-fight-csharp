@@ -124,23 +124,15 @@ namespace CentralServer
 	public class CSCfgMgr
 	{
 		private readonly Dictionary<string, bool> _aiRobotNameMapForCheck = new Dictionary<string, bool>();
-		private readonly List<string> _invalidWorlds = new List<string>();
 		private readonly Dictionary<uint, HeroBuyCfg> _heroBuyCfgMap = new Dictionary<uint, HeroBuyCfg>();
-		private readonly Dictionary<uint, HeroBuyCfg> m_HeroClientMatchMap = new Dictionary<uint, HeroBuyCfg>();
+		private readonly Dictionary<uint, HeroBuyCfg> _heroClientMatchMap = new Dictionary<uint, HeroBuyCfg>();
+		private readonly Dictionary<uint, SRunesCfg> _runesCfgMap = new Dictionary<uint, SRunesCfg>();
+		private readonly Dictionary<uint, SDiscountCfg> _discountCfgMap = new Dictionary<uint, SDiscountCfg>();
+		private readonly List<uint> _hotGoodsCfgVec = new List<uint>();
+		private readonly List<uint> _newGoodsCfgVec = new List<uint>();
+		private readonly List<string> _invalidWorlds = new List<string>();
 
 		public UserDbSaveConfig userDbSaveCfg { get; }
-
-		public bool CheckInvalidWorld( string word )
-		{
-			int total = this._invalidWorlds.Count;
-			for ( int i = 0; i < total; i++ )
-			{
-				int npos = word.IndexOf( this._invalidWorlds[i], StringComparison.Ordinal );
-				if ( npos != -1 )
-					return true;
-			}
-			return false;
-		}
 
 		public bool CheckAIRobotName( string nickname ) => this._aiRobotNameMapForCheck.ContainsKey( nickname );
 
@@ -152,8 +144,44 @@ namespace CentralServer
 
 		public HeroBuyCfg GetHeroClientMatchCfg( uint HeroID )
 		{
-			this.m_HeroClientMatchMap.TryGetValue( HeroID, out HeroBuyCfg heroBuyCfg );
+			this._heroClientMatchMap.TryGetValue( HeroID, out HeroBuyCfg heroBuyCfg );
 			return heroBuyCfg;
+		}
+
+		public void ForeachRunesCfg( Action<KeyValuePair<uint, SRunesCfg>> handler )
+		{
+			foreach ( KeyValuePair<uint, SRunesCfg> kv in this._runesCfgMap )
+				handler.Invoke( kv );
+		}
+
+		public void ForeachDiscountCfg( Action<KeyValuePair<uint, SDiscountCfg>> handler )
+		{
+			foreach ( KeyValuePair<uint, SDiscountCfg> kv in this._discountCfgMap )
+				handler.Invoke( kv );
+		}
+
+		public void ForeachHotGoodsCfg( Action<uint> handler )
+		{
+			foreach ( uint hotGoodsCfg in this._hotGoodsCfgVec )
+				handler.Invoke( hotGoodsCfg );
+		}
+
+		public void ForeachNewGoodsCfg( Action<uint> handler )
+		{
+			foreach ( uint newGoodsCfg in this._newGoodsCfgVec )
+				handler.Invoke( newGoodsCfg );
+		}
+
+		public bool CheckInvalidWorld( string word )
+		{
+			int total = this._invalidWorlds.Count;
+			for ( int i = 0; i < total; i++ )
+			{
+				int npos = word.IndexOf( this._invalidWorlds[i], StringComparison.Ordinal );
+				if ( npos != -1 )
+					return true;
+			}
+			return false;
 		}
 	}
 }

@@ -19,10 +19,12 @@ namespace CentralServer.User
 				Curscore = this.userDbData.sPODUsrDBData.n64Score,
 				Curgold = this.userDbData.sPODUsrDBData.n64Gold,
 				Curdiamoand = this.userDbData.sPODUsrDBData.n64Diamond,
-				Guid = this.userDbData.sPODUsrDBData.un64ObjIdx,
+				Guid = 29001,
 				//todo
 				//Mapid = GetBattleMgrInstance().GetBattleMapID( m_sUserBattleInfoEx.GetBattleID() ),
-				//sUserBaseInfo.Battleid = m_sUserBattleInfoEx.GetBattleID(),
+				//Battleid = m_sUserBattleInfoEx.GetBattleID(),
+				Mapid =  0,
+				Battleid =  0,
 				Ifreconnect = false,
 				Level = this.userDbData.sPODUsrDBData.un8UserLv,
 				Headid = this.userDbData.sPODUsrDBData.un16HeaderID,
@@ -35,11 +37,14 @@ namespace CentralServer.User
 
 		private ErrorCode PostMsgToGC( IMessage sMsg, int msgID )
 		{
-			CSGSInfo cpiGSInfo = CS.instance.GetGSInfoByGSID( this.userNetInfo.gsID );
-			if ( null == cpiGSInfo )
+			CSGSInfo csgsInfo = CS.instance.GetGSInfoByGSID( this.userNetInfo.gsID );
+			if ( null == csgsInfo )
+			{
+				Logger.Warn( $"GS({this.userNetInfo.gsID}) not found." );
 				return ErrorCode.NullGateServer;
+			}
 
-			CS.instance.PostMsgToGS( cpiGSInfo, sMsg, msgID, this.userNetInfo.gcNetID );
+			CS.instance.PostMsgToGS( csgsInfo, sMsg, msgID, this.userNetInfo.gcNetID );
 			return ErrorCode.Success;
 		}
 
@@ -108,87 +113,89 @@ namespace CentralServer.User
 		private ErrorCode SynCommidityCfgInfo()
 		{
 			GSToGC.GoodsBuyCfgInfo sMsg = new GSToGC.GoodsBuyCfgInfo();
+			CS.instance.csCfg.ForeachHeroBuyCfg( kv =>
 			{
-				CS.instance.csCfg.ForeachHeroBuyCfg( ( kv ) =>
+				HeroBuyCfg pCfg = kv.Value;
+				if ( !pCfg.bIfShowInShop )
+					return;
+
+				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
+				foreach ( ConsumeStruct consumeStruct in pCfg.sConsumeList )
 				{
-					HeroBuyCfg pCfg = kv.Value;
-					if ( !pCfg.bIfShowInShop )
-						return;
+					GSToGC.GoodsCfgInfo.Types.Consume pConsume =
+						new GSToGC.GoodsCfgInfo.Types.Consume
+						{
+							Consumetype = ( int )consumeStruct.type,
+							Price = consumeStruct.price
+						};
+					sGoodsCfgInfo.Consume.Add( pConsume );
+				}
 
-					GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
-					foreach ( ConsumeStruct consumeStruct in pCfg.sConsumeList )
-					{
-						GSToGC.GoodsCfgInfo.Types.Consume pConsume =
-							new GSToGC.GoodsCfgInfo.Types.Consume
-							{
-								Consumetype = ( int )consumeStruct.type,
-								Price = consumeStruct.price
-							};
-						sGoodsCfgInfo.Consume.Add( pConsume );
-					}
-					sGoodsCfgInfo.CfgType = GSToGC.GoodsCfgInfo.Types.CfgType.Common;
-					sMsg.Info.Add( sGoodsCfgInfo );
-				} );
+				sGoodsCfgInfo.CfgType = GSToGC.GoodsCfgInfo.Types.CfgType.Common;
+				sMsg.Info.Add( sGoodsCfgInfo );
+			} );
 
-				//	Dictionary<INT32, SRunesCfg> & pRuneMap = CCSCfgMgr::getInstance().GetRunesMap();
-				//	for ( auto iter = pRuneMap.begin(); iter != pRuneMap.end(); ++iter )
-				//	{
-				//		SRunesCfg & pCfg = kv.Value;
-				//		if ( !pCfg.bIfShowInShop )
-				//		{
-				//			continue;
-				//		}
-				//		GSToGC.GoodsCfgInfo sGoodsCfgInfo = sMsg.add_info();
-				//		sGoodsCfgInfo.set_goodid( iter.first );
-				//		for ( auto consumeIter = pCfg.sConsumeList.Begin(); consumeIter != pCfg.sConsumeList.End(); consumeIter = pCfg.sConsumeList.Next() )
-				//		{
-				//			GSToGC::GoodsCfgInfo::Consume & pConsume = *sGoodsCfgInfo.add_consume();
-				//			ConsumeStruct & sConsumeStruct = *consumeIter;
-				//			pConsume.set_consumetype( sConsumeStruct.type );
-				//			pConsume.set_price( sConsumeStruct.price );
-				//		}
-				//		sGoodsCfgInfo.set_cfg_type( GSToGC::GoodsCfgInfo::CfgType_Common );
-				//	}
-				//}
+			CS.instance.csCfg.ForeachRunesCfg( kv =>
+			{
+				SRunesCfg pCfg = kv.Value;
+				if ( !pCfg.bIfShowInShop )
+					return;
+				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
+				foreach ( ConsumeStruct consumeStruct in pCfg.sConsumeList )
+				{
+					GSToGC.GoodsCfgInfo.Types.Consume pConsume =
+						new GSToGC.GoodsCfgInfo.Types.Consume
+						{
+							Consumetype = ( int )consumeStruct.type,
+							Price = consumeStruct.price
+						};
+					sGoodsCfgInfo.Consume.Add( pConsume );
+				}
 
-				//{
-				//	Dictionary<uint, SDiscountCfg> & pDiscountMap = CCSCfgMgr::getInstance().GetDisCountMapByType( eGoodsType_Hero );
-				//	for ( auto iter = pDiscountMap.begin(); iter != pDiscountMap.end(); ++iter )
-				//	{
-				//		SDiscountCfg & pCfg = kv.Value;
-				//		GSToGC::GoodsCfgInfo & sGoodsCfgInfo = *sMsg.add_info();
-				//		sGoodsCfgInfo.set_goodid( iter.first );
-				//		for ( auto consumeIter = pCfg.sConsumeList.Begin(); consumeIter != pCfg.sConsumeList.End(); consumeIter = pCfg.sConsumeList.Next() )
-				//		{
-				//			GSToGC::GoodsCfgInfo::Consume & pConsume = *sGoodsCfgInfo.add_consume();
-				//			ConsumeStruct & sConsumeStruct = *consumeIter;
-				//			pConsume.set_consumetype( sConsumeStruct.type );
-				//			pConsume.set_price( sConsumeStruct.price );
-				//		}
-				//		sGoodsCfgInfo.set_cfg_type( GSToGC::GoodsCfgInfo::CfgType_Discount );
-				//	}
-				//}
+				sGoodsCfgInfo.CfgType = ( GSToGC.GoodsCfgInfo.Types.CfgType.Common );
+				sMsg.Info.Add( sGoodsCfgInfo );
+			} );
 
-				//{
-				//	List<uint> & sNewGoodsCfg = CCSCfgMgr::getInstance().GetNewCfgVec();
-				//	for ( auto iter = sNewGoodsCfg.begin(); iter != sNewGoodsCfg.end(); ++iter )
-				//	{
-				//		GSToGC::GoodsCfgInfo & sGoodsCfgInfo = *sMsg.add_info();
-				//		sGoodsCfgInfo.set_goodid( *iter );
-				//		sGoodsCfgInfo.set_cfg_type( GSToGC::GoodsCfgInfo::CfgType_New );
-				//	}
-				//}
+			CS.instance.csCfg.ForeachDiscountCfg( kv =>
+			{
+				SDiscountCfg pCfg = kv.Value;
+				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
+				foreach ( ConsumeStruct consumeStruct in pCfg.sConsumeList )
+				{
+					GSToGC.GoodsCfgInfo.Types.Consume pConsume =
+						new GSToGC.GoodsCfgInfo.Types.Consume
+						{
+							Consumetype = ( int )consumeStruct.type,
+							Price = consumeStruct.price
+						};
+					sGoodsCfgInfo.Consume.Add( pConsume );
+				}
 
-				//{
-				//	List<uint> & sHotGoodsCfg = CCSCfgMgr::getInstance().GetHotGoodsCfg();
-				//	for ( auto iter = sHotGoodsCfg.begin(); iter != sHotGoodsCfg.end(); ++iter )
-				//	{
-				//		GSToGC::GoodsCfgInfo & sGoodsCfgInfo = *sMsg.add_info();
-				//		sGoodsCfgInfo.set_goodid( *iter );
-				//		sGoodsCfgInfo.set_cfg_type( GSToGC::GoodsCfgInfo::CfgType_hot );
-				//	}
-			}
-			CS.instance.PostMsgToGC( this.m_sUserNetInfo, sMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyGoodsCfgInfo );
+				sGoodsCfgInfo.CfgType = ( GSToGC.GoodsCfgInfo.Types.CfgType.Discount );
+				sMsg.Info.Add( sGoodsCfgInfo );
+			} );
+
+			CS.instance.csCfg.ForeachNewGoodsCfg( newGoodsCfg =>
+			{
+				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo
+				{
+					Goodid = ( int )newGoodsCfg,
+					CfgType = GSToGC.GoodsCfgInfo.Types.CfgType.New
+				};
+				sMsg.Info.Add( sGoodsCfgInfo );
+			} );
+
+			CS.instance.csCfg.ForeachHotGoodsCfg( hotGoodsCfg =>
+			{
+				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo
+				{
+					Goodid = ( int )hotGoodsCfg,
+					CfgType = GSToGC.GoodsCfgInfo.Types.CfgType.Hot
+				};
+				sMsg.Info.Add( sGoodsCfgInfo );
+			} );
+
+			CS.instance.PostMsgToGC( this.userNetInfo, sMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyGoodsCfgInfo );
 			return ErrorCode.Success;
 		}
 

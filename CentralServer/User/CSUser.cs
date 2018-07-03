@@ -9,7 +9,7 @@ namespace CentralServer.User
 	public partial class CSUser
 	{
 		public UserDBData userDbData { get; private set; }
-		public UserNetInfo userNetInfo { get; private set; }
+		public UserNetInfo userNetInfo { get; } = new UserNetInfo();
 		public ulong guid => this.userDbData.sPODUsrDBData.un64ObjIdx;
 		public string username => this.userDbData.szUserName;
 		public string nickname => this.userDbData.szNickName;
@@ -18,7 +18,6 @@ namespace CentralServer.User
 		//todo
 		//public CCSUserBattleInfo userBattleInfoEx { get; private set; }
 
-		private readonly UserNetInfo m_sUserNetInfo = new UserNetInfo();
 		private UserPlayingStatus _userPlayingStatus;
 		private readonly Dictionary<ulong, UserRelationshipInfo> m_cAddFVec = new Dictionary<ulong, UserRelationshipInfo>();
 		private long _gcLastPing;
@@ -26,13 +25,13 @@ namespace CentralServer.User
 
 		public void SetUserNetInfo( UserNetInfo crsUNI )
 		{
-			this.m_sUserNetInfo.Copy( crsUNI );
+			this.userNetInfo.Copy( crsUNI );
 			this._userPlayingStatus = UserPlayingStatus.UserPlayingStatusPlaying;
 		}
 
 		public void ClearNetInfo()
 		{
-			this.m_sUserNetInfo.Clear();
+			this.userNetInfo.Clear();
 			this._userPlayingStatus = UserPlayingStatus.UserPlayingStatusOffLine;
 		}
 
@@ -143,13 +142,13 @@ namespace CentralServer.User
 
 		private ErrorCode KickOutOldUser()
 		{
-			if ( this.m_sUserNetInfo.IsValid() )
+			if ( this.userNetInfo.IsValid() )
 			{
 				this.PostMsgToGC_NetClash();
-				CSGSInfo piGSInfo = CS.instance.GetGSInfoByGSID( this.m_sUserNetInfo.gsID );
+				CSGSInfo piGSInfo = CS.instance.GetGSInfoByGSID( this.userNetInfo.gsID );
 				if ( null != piGSInfo )
 				{
-					CS.instance.PostMsgToGS_KickoutGC( piGSInfo, this.m_sUserNetInfo.gcNetID );
+					CS.instance.PostMsgToGS_KickoutGC( piGSInfo, this.userNetInfo.gcNetID );
 				}
 				OnOffline();
 			}
