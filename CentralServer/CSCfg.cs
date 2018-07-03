@@ -126,8 +126,8 @@ namespace CentralServer
 		private readonly Dictionary<string, bool> _aiRobotNameMapForCheck = new Dictionary<string, bool>();
 		private readonly Dictionary<uint, HeroBuyCfg> _heroBuyCfgMap = new Dictionary<uint, HeroBuyCfg>();
 		private readonly Dictionary<uint, HeroBuyCfg> _heroClientMatchMap = new Dictionary<uint, HeroBuyCfg>();
-		private readonly Dictionary<uint, SRunesCfg> _runesCfgMap = new Dictionary<uint, SRunesCfg>();
-		private readonly Dictionary<uint, SDiscountCfg> _discountCfgMap = new Dictionary<uint, SDiscountCfg>();
+		private readonly Dictionary<uint, RunesCfg> _runesCfgMap = new Dictionary<uint, RunesCfg>();
+		private readonly Dictionary<uint, DiscountCfg> _discountCfgMap = new Dictionary<uint, DiscountCfg>();
 		private readonly List<uint> _hotGoodsCfgVec = new List<uint>();
 		private readonly List<uint> _newGoodsCfgVec = new List<uint>();
 		private readonly List<string> _invalidWorlds = new List<string>();
@@ -148,15 +148,15 @@ namespace CentralServer
 			return heroBuyCfg;
 		}
 
-		public void ForeachRunesCfg( Action<KeyValuePair<uint, SRunesCfg>> handler )
+		public void ForeachRunesCfg( Action<KeyValuePair<uint, RunesCfg>> handler )
 		{
-			foreach ( KeyValuePair<uint, SRunesCfg> kv in this._runesCfgMap )
+			foreach ( KeyValuePair<uint, RunesCfg> kv in this._runesCfgMap )
 				handler.Invoke( kv );
 		}
 
-		public void ForeachDiscountCfg( Action<KeyValuePair<uint, SDiscountCfg>> handler )
+		public void ForeachDiscountCfg( Action<KeyValuePair<uint, DiscountCfg>> handler )
 		{
-			foreach ( KeyValuePair<uint, SDiscountCfg> kv in this._discountCfgMap )
+			foreach ( KeyValuePair<uint, DiscountCfg> kv in this._discountCfgMap )
 				handler.Invoke( kv );
 		}
 

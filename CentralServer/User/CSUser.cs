@@ -1,8 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using CentralServer.Tools;
+﻿using CentralServer.Tools;
 using Core.Misc;
+using ProtoBuf;
 using Shared;
+using StackExchange.Redis;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace CentralServer.User
 {
@@ -10,10 +13,10 @@ namespace CentralServer.User
 	{
 		public UserDBData userDbData { get; private set; }
 		public UserNetInfo userNetInfo { get; } = new UserNetInfo();
-		public ulong guid => this.userDbData.sPODUsrDBData.un64ObjIdx;
+		public ulong guid => this.userDbData.usrDBData.un64ObjIdx;
 		public string username => this.userDbData.szUserName;
 		public string nickname => this.userDbData.szNickName;
-		public ushort headID => this.userDbData.sPODUsrDBData.un16HeaderID;
+		public ushort headID => this.userDbData.usrDBData.un16HeaderID;
 		public long timerID { get; set; }
 		//todo
 		//public CCSUserBattleInfo userBattleInfoEx { get; private set; }
@@ -62,7 +65,7 @@ namespace CentralServer.User
 				this.PostCSNotice();
 
 			//if ( isReLogin )
-			//	CSSGameLogMgr::GetInstance().AddGameLog( eLog_UserRecon, this.GetUserDBData().sPODUsrDBData.un64ObjIdx, 0 );
+			//	CSSGameLogMgr::GetInstance().AddGameLog( eLog_UserRecon, this.GetUserDBData().usrDBData.un64ObjIdx, 0 );
 
 			//if ( GetUserBattleInfoEx().GetBattleState() < eBattleState_Async )
 			//{//由cs进行管理//
@@ -95,7 +98,7 @@ namespace CentralServer.User
 
 			//if ( GetUserBattleInfoEx().GetBattleState() < eBattleState_Async )
 			//{//由cs进行管理//
-			//	INT32 ret = eNormal;
+			//	int ret = eNormal;
 			//	switch ( GetUserBattleInfoEx().GetBattleType() )
 			//	{
 			//		case eBattleType_Room:
@@ -160,7 +163,7 @@ namespace CentralServer.User
 			DateTime today = CS.instance.csUserMgr.today;
 			int curDays = today.DayOfYear;//当天是第几天(1900年1月1日)
 			int baseDays = curDays - today.Day + 1;//月初是第几天(1900年1月1日)
-			int lastDays = this.userDbData.sPODUsrDBData.un32LastGetLoginRewardDay;//上次是第几天(1900年1月1日)(数据库)
+			int lastDays = this.userDbData.usrDBData.un32LastGetLoginRewardDay;//上次是第几天(1900年1月1日)(数据库)
 			if ( lastDays < baseDays )//当月未签到
 			{
 				this.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_LastGetLoginReward, 0 );
@@ -186,7 +189,7 @@ namespace CentralServer.User
 		public ErrorCode LoadDBData( UserDBData userDbData )
 		{
 			this.userDbData = userDbData.Clone();
-			if ( 0 == this.userDbData.sPODUsrDBData.un8UserLv )
+			if ( 0 == this.userDbData.usrDBData.un8UserLv )
 			{
 				this.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_UserLv, 1 );
 				this.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_VIPLevel, 1 );
@@ -220,18 +223,29 @@ namespace CentralServer.User
 		{
 		}
 
-		public void InitRunes( string bagStr, string slotStr )
-		{
-		}
-
-		public void LoadFromRedisStr( string heroStr, string friendStr, string blackStr, string itemStr, string mailStr )
-		{
-		}
-
 		private void PostMsgToGC_NetClash()
 		{
 			GSToGC.NetClash sMsg = new GSToGC.NetClash();
 			this.PostMsgToGC( sMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyNetClash );
+		}
+
+		private bool SaveToRedis()
+		{
+			ConnectionMultiplexer redis = CS.instance.GetUserDBCacheRedisHandler();
+			if ( !redis.IsConnected )
+				return false;
+
+			//todo
+			//GetTaskMgr()->PackTaskData( m_sUserDBData.szTaskData, m_sUserDBData.isTaskRush );
+
+			using ( MemoryStream ms = new MemoryStream() )
+			{
+				Serializer.Serialize( ms, this.userDbData );
+				redis.GetDatabase().StringSetAsync( $"usercache:{this.userDbData.usrDBData.un64ObjIdx}", ms.ToArray(), null,
+													When.Always, CommandFlags.FireAndForget );
+			}
+
+			return true;
 		}
 	}
 }

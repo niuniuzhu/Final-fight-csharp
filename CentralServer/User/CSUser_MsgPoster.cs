@@ -15,22 +15,22 @@ namespace CentralServer.User
 			{
 				Nickname = this.userDbData.szNickName,
 				Name = this.userDbData.szUserName,
-				Sex = this.userDbData.sPODUsrDBData.n16Sex,
-				Curscore = this.userDbData.sPODUsrDBData.n64Score,
-				Curgold = this.userDbData.sPODUsrDBData.n64Gold,
-				Curdiamoand = this.userDbData.sPODUsrDBData.n64Diamond,
-				Guid = this.userDbData.sPODUsrDBData.un64ObjIdx,
+				Sex = this.userDbData.usrDBData.n16Sex,
+				Curscore = this.userDbData.usrDBData.n64Score,
+				Curgold = this.userDbData.usrDBData.n64Gold,
+				Curdiamoand = this.userDbData.usrDBData.n64Diamond,
+				Guid = this.userDbData.usrDBData.un64ObjIdx,
 				//todo
 				//Mapid = GetBattleMgrInstance().GetBattleMapID( m_sUserBattleInfoEx.GetBattleID() ),
 				//Battleid = m_sUserBattleInfoEx.GetBattleID(),
 				Mapid = 0,
 				Battleid = 0,
 				Ifreconnect = false,
-				Level = this.userDbData.sPODUsrDBData.un8UserLv,
-				Headid = this.userDbData.sPODUsrDBData.un16HeaderID,
-				VipLevel = this.userDbData.sPODUsrDBData.un16VipLv,
-				VipScore = this.userDbData.sPODUsrDBData.vipScore,
-				CurExp = ( int )this.userDbData.sPODUsrDBData.un32UserCurLvExp
+				Level = this.userDbData.usrDBData.un8UserLv,
+				Headid = this.userDbData.usrDBData.un16HeaderID,
+				VipLevel = this.userDbData.usrDBData.un16VipLv,
+				VipScore = this.userDbData.usrDBData.vipScore,
+				CurExp = ( int )this.userDbData.usrDBData.un32UserCurLvExp
 			};
 			return this.PostMsgToGC( sUserBaseInfo, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyUserBaseInfo );
 		}
@@ -58,7 +58,7 @@ namespace CentralServer.User
 
 				//平台判断
 				if ( tempNotice.platform != UserPlatform.Platform_All )
-					if ( tempNotice.platform != this.userDbData.sPODUsrDBData.userPlatform )
+					if ( tempNotice.platform != this.userDbData.usrDBData.userPlatform )
 						return;
 
 				//过期判断
@@ -137,7 +137,7 @@ namespace CentralServer.User
 
 			CS.instance.csCfg.ForeachRunesCfg( kv =>
 			{
-				SRunesCfg pCfg = kv.Value;
+				RunesCfg pCfg = kv.Value;
 				if ( !pCfg.bIfShowInShop )
 					return;
 				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
@@ -158,7 +158,7 @@ namespace CentralServer.User
 
 			CS.instance.csCfg.ForeachDiscountCfg( kv =>
 			{
-				SDiscountCfg pCfg = kv.Value;
+				DiscountCfg pCfg = kv.Value;
 				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
 				foreach ( ConsumeStruct consumeStruct in pCfg.sConsumeList )
 				{
@@ -206,8 +206,8 @@ namespace CentralServer.User
 			sMsg.Month = ( uint )today.Month;//当前月
 			sMsg.Today = ( uint )today.Day;//当前日
 			sMsg.TotalCldays = ( uint )DateTime.DaysInMonth( today.Year, today.Month );//月总天数
-			sMsg.Cldays = this.userDbData.sPODUsrDBData.un16Cldays;//已领天数
-			sMsg.IsTodayCan = this.userDbData.sPODUsrDBData.un32LastGetLoginRewardDay != today.DayOfYear;//今天是否可以领取
+			sMsg.Cldays = this.userDbData.usrDBData.un16Cldays;//已领天数
+			sMsg.IsTodayCan = this.userDbData.usrDBData.un32LastGetLoginRewardDay != today.DayOfYear;//今天是否可以领取
 			return this.PostMsgToGC( sMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyUserCldays );
 		}
 
@@ -252,7 +252,7 @@ namespace CentralServer.User
 					Headid = piUser.headID,
 					Status = ( int )piUser._userPlayingStatus,
 					Guididx = ( guid_friends ),
-					Viplv = ( uint )piUser.userDbData.sPODUsrDBData.un16VipLv
+					Viplv = ( uint )piUser.userDbData.usrDBData.un16VipLv
 				};
 				sNotifyUserSNSList.Info.Add( pInfo );
 			}
@@ -271,7 +271,7 @@ namespace CentralServer.User
 							pInfo.Headid = ( pTempUser.headID );
 							pInfo.Nickname = ( pTempUser.nickname );
 							pInfo.Status = ( int )( pTempUser._userPlayingStatus );
-							pInfo.Viplv = ( uint )( pTempUser.userDbData.sPODUsrDBData.un16VipLv );
+							pInfo.Viplv = ( uint )( pTempUser.userDbData.usrDBData.un16VipLv );
 						}
 						else
 						{

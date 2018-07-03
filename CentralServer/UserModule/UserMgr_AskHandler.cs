@@ -56,11 +56,11 @@ namespace CentralServer.UserModule
 
 				CSUser pcUser = new CSUser();
 				UserDBData userDbData = new UserDBData();
-				userDbData.sPODUsrDBData.un64ObjIdx = guid;
+				userDbData.usrDBData.un64ObjIdx = guid;
 				userDbData.szUserName = login.Name;
 				userDbData.szUserPwd = login.Passwd;
-				userDbData.sPODUsrDBData.userPlatform = ( UserPlatform )login.Sdk;
-				userDbData.sPODUsrDBData.tRegisteUTCMillisec = TimeUtils.utcTime;
+				userDbData.usrDBData.userPlatform = ( UserPlatform )login.Sdk;
+				userDbData.usrDBData.tRegisteUTCMillisec = TimeUtils.utcTime;
 
 				//加入全局表
 				this._allUserName2GUIDMap.Add( sUserCombineKey, guid );
