@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using CentralServer.Tools;
+﻿using CentralServer.Tools;
 using CentralServer.User;
 using Core.Misc;
 using Google.Protobuf;
 using Shared;
+using System.Collections.Generic;
 
 namespace CentralServer.UserModule
 {
@@ -36,7 +36,7 @@ namespace CentralServer.UserModule
 			Logger.Log( $"--new login({login.Name})--" );
 			ErrorCode errorCode = this.UserAskLogin( csgsInfo, gcNetID, login );
 			if ( ErrorCode.Success != errorCode )
-				PostMsgToGCAskReturn( csgsInfo, gcNetID, ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskLogin, errorCode );
+				this.PostMsgToGCAskReturn( csgsInfo, gcNetID, ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskLogin, errorCode );
 			return ErrorCode.Success;
 		}
 
@@ -47,7 +47,7 @@ namespace CentralServer.UserModule
 
 			ErrorCode errorCode = this.UserAskReconnectGame( csgsInfo, gcNetID, pReconnectToGame.Name, pReconnectToGame.Passwd );
 			if ( ErrorCode.Success != errorCode )
-				PostMsgToGCAskReturn( csgsInfo, gcNetID, ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskReconnectGame, errorCode );
+				this.PostMsgToGCAskReturn( csgsInfo, gcNetID, ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskReconnectGame, errorCode );
 			return errorCode;
 		}
 
@@ -105,7 +105,7 @@ namespace CentralServer.UserModule
 				csUser.PostCSNotice();
 
 				//todo
-				//DBPoster_UpdateUser( csUser );//存盘// 
+				//DBPosterUpdateUser( csUser );//存盘// 
 
 				string log = $"{csUser.userDbData.szUserName}{LOG_SIGN}{completeInfo.Headid}{completeInfo.Nickname}";
 				//todo
@@ -113,7 +113,7 @@ namespace CentralServer.UserModule
 			} while ( false );
 
 			if ( ErrorCode.Success != errorCode )
-				PostMsgToGCAskReturn( csgsInfo, gcNetID, ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskComleteUserInfo, errorCode );
+				this.PostMsgToGCAskReturn( csgsInfo, gcNetID, ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskComleteUserInfo, errorCode );
 
 			return errorCode;
 		}

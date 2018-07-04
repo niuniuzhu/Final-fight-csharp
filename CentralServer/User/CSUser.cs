@@ -11,8 +11,6 @@ namespace CentralServer.User
 {
 	public partial class CSUser
 	{
-		private const string LOG_SIGN = "#";
-
 		public UserDBData userDbData { get; private set; }
 		public UserNetInfo userNetInfo { get; } = new UserNetInfo();
 		public ulong guid => this.userDbData.usrDBData.un64ObjIdx;
@@ -132,12 +130,11 @@ namespace CentralServer.User
 					sHeroListStruct.expiredTime = kv.Value.endTime + kv.Value.buyTime - TimeUtils.utcTime;
 				heroVec.Add( sHeroListStruct );
 			}
-			CS.instance.csCfg.ForeachHeroBuyCfg( ( kv ) =>
+			CS.instance.csCfg.ForeachHeroBuyCfg( kv =>
 			{
 				HeroBuyCfg pCfg = kv.Value;
 				if ( !pCfg.bIfShowInShop )
 					return;
-
 				foreach ( ConsumeStruct consumeStruct in pCfg.sConsumeList )
 				{
 					if ( consumeStruct.type == ConsumeType.ConsumeTypeFree && kv.Value.un32HeroID > 0 )
@@ -152,46 +149,34 @@ namespace CentralServer.User
 
 		private ErrorCode KickOutOldUser()
 		{
-			if ( this.userNetInfo.IsValid() )
-			{
-				this.PostMsgToGC_NetClash();
-				CSGSInfo piGSInfo = CS.instance.GetGSInfoByGSID( ( uint )this.userNetInfo.gsID );
-				if ( null != piGSInfo )
-				{
-					CS.instance.PostMsgToGS_KickoutGC( piGSInfo, this.userNetInfo.gcNetID );
-				}
-				OnOffline();
-			}
+			if ( !this.userNetInfo.IsValid() )
+				return ErrorCode.Success;
+			this.PostMsgToGC_NetClash();
+			CSGSInfo piGSInfo = CS.instance.GetGSInfoByGSID( ( uint )this.userNetInfo.gsID );
+			if ( null != piGSInfo )
+				CS.instance.PostMsgToGS_KickoutGC( piGSInfo, this.userNetInfo.gcNetID );
+			this.OnOffline();
 			return ErrorCode.Success;
 		}
 
 		private void LoginRewardInit()
 		{
 			DateTime today = CS.instance.csUserMgr.today;
-			int curDays = today.DayOfYear;//当天是第几天(1900年1月1日)
-			int baseDays = curDays - today.Day + 1;//月初是第几天(1900年1月1日)
-			int lastDays = this.userDbData.usrDBData.un32LastGetLoginRewardDay;//上次是第几天(1900年1月1日)(数据库)
-			if ( lastDays < baseDays )//当月未签到
+			int curDays = today.DayOfYear;
+			int baseDays = curDays - today.Day + 1;
+			int lastDays = this.userDbData.usrDBData.un32LastGetLoginRewardDay;
+			if ( lastDays < baseDays )
 			{
 				this.userDbData.ChangeUserDbData( UserDBDataType.LastGetLoginReward, 0 );
 				this.userDbData.ChangeUserDbData( UserDBDataType.CLDay, 0 );
 			}
 		}
 
-		public bool CheckIfInFriendList( ulong guidIdx )
-		{
-			return this.userDbData.friendListMap.ContainsKey( guidIdx );
-		}
+		public bool CheckIfInFriendList( ulong guidIdx ) => this.userDbData.friendListMap.ContainsKey( guidIdx );
 
-		public bool CheckIfInBlacklist( ulong guidIdx )
-		{
-			return this.userDbData.blackListMap.ContainsKey( guidIdx );
-		}
+		public bool CheckIfInBlacklist( ulong guidIdx ) => this.userDbData.blackListMap.ContainsKey( guidIdx );
 
-		public bool CheckIfInAddSNSList( ulong guidIdx )
-		{
-			return this.m_cAddFVec.ContainsKey( guidIdx );
-		}
+		public bool CheckIfInAddSNSList( ulong guidIdx ) => this.m_cAddFVec.ContainsKey( guidIdx );
 
 		public bool CheckIfEnoughPay( PayType type, int pay )
 		{
@@ -241,7 +226,7 @@ namespace CentralServer.User
 		public void AskChangeHeaderId( uint headerID )
 		{
 			this.userDbData.ChangeUserDbData( UserDBDataType.HeaderId, headerID );
-			PostMsgToGCNotifyNewHeaderid( this.guid, headerID );
+			this.PostMsgToGCNotifyNewHeaderid( this.guid, headerID );
 			//notify new header to on-line friend
 			foreach ( KeyValuePair<ulong, UserRelationshipInfo> kv in this.userDbData.friendListMap )
 			{
@@ -282,10 +267,7 @@ namespace CentralServer.User
 			return ErrorCode.Success;
 		}
 
-		public void ResetPingTimer()
-		{
-			this._gcLastPing = TimeUtils.utcTime;
-		}
+		public void ResetPingTimer() => this._gcLastPing = TimeUtils.utcTime;
 
 		public void CheckDbSaveTimer( long curtime, long tickspan )
 		{

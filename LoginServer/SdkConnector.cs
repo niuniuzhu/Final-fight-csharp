@@ -8,8 +8,8 @@ namespace LoginServer
 	public class SdkConnector
 	{
 		private readonly Dictionary<string, LoginUserInfo> _allLoginUserInfo = new Dictionary<string, LoginUserInfo>();
-		private readonly ThreadSafeObejctPool<SDKBuffer> _dbCallbackQueuePool = new ThreadSafeObejctPool<SDKBuffer>();
-		private readonly SwitchQueue<SDKBuffer> _dbCallbackQueue = new SwitchQueue<SDKBuffer>();
+		private readonly ThreadSafeObejctPool<GBuffer> _dbCallbackQueuePool = new ThreadSafeObejctPool<GBuffer>();
+		private readonly SwitchQueue<GBuffer> _dbCallbackQueue = new SwitchQueue<GBuffer>();
 
 		public LoginUserInfo GetLoginUserInfo( string sessionID )
 		{
@@ -27,14 +27,14 @@ namespace LoginServer
 			this._dbCallbackQueue.Switch();
 			while ( !this._dbCallbackQueue.isEmpty )
 			{
-				SDKBuffer sdkBuffer = this._dbCallbackQueue.Pop();
-				if ( sdkBuffer.data == 1 )
+				GBuffer gBuffer = this._dbCallbackQueue.Pop();
+				if ( gBuffer.data == 1 )
 				{
-					uint gcNetID = sdkBuffer.ReadUInt();
-					uint platform = sdkBuffer.ReadUInt();
-					string uid = sdkBuffer.ReadUTF8();
-					string uin = sdkBuffer.ReadUTF8();
-					string sessionID = sdkBuffer.ReadUTF8E();
+					uint gcNetID = gBuffer.ReadUInt();
+					uint platform = gBuffer.ReadUInt();
+					string uid = gBuffer.ReadUTF8();
+					string uin = gBuffer.ReadUTF8();
+					string sessionID = gBuffer.ReadUTF8E();
 					LoginUserInfo loginUserInfo = new LoginUserInfo
 					{
 						sessionid = sessionID,
@@ -46,15 +46,15 @@ namespace LoginServer
 
 					this.PostMsgToGC_NotifyServerList( gcNetID );
 				}
-				else if ( sdkBuffer.data == 2 )
+				else if ( gBuffer.data == 2 )
 				{
-					uint gcNetID = sdkBuffer.ReadUInt();
-					int errorCode = sdkBuffer.ReadInt();
+					uint gcNetID = gBuffer.ReadUInt();
+					int errorCode = gBuffer.ReadInt();
 					Logger.Log( $"user login fail with netID:{gcNetID}, errorCode:{errorCode}." );
 					this.PostMsgToGC_NotifyLoginFail( errorCode, gcNetID );
 				}
-				sdkBuffer.Clear();
-				this._dbCallbackQueuePool.Push( sdkBuffer );
+				gBuffer.Clear();
+				this._dbCallbackQueuePool.Push( gBuffer );
 			}
 		}
 
@@ -63,15 +63,15 @@ namespace LoginServer
 		/// </summary>
 		public void SendToInsertData( string uid, LoginUserInfo loginInfo, uint gcNetID )
 		{
-			SDKBuffer sdkBuffer = this._dbCallbackQueuePool.Pop();
-			sdkBuffer.Write( gcNetID );
-			sdkBuffer.Write( loginInfo.plat );
-			sdkBuffer.WriteUTF8( uid );
-			sdkBuffer.WriteUTF8( loginInfo.uin );
-			sdkBuffer.WriteUTF8E( loginInfo.sessionid );
-			sdkBuffer.position = 0;
-			sdkBuffer.data = 1;
-			this._dbCallbackQueue.Push( sdkBuffer );
+			GBuffer gBuffer = this._dbCallbackQueuePool.Pop();
+			gBuffer.Write( gcNetID );
+			gBuffer.Write( loginInfo.plat );
+			gBuffer.WriteUTF8( uid );
+			gBuffer.WriteUTF8( loginInfo.uin );
+			gBuffer.WriteUTF8E( loginInfo.sessionid );
+			gBuffer.position = 0;
+			gBuffer.data = 1;
+			this._dbCallbackQueue.Push( gBuffer );
 		}
 
 		/// <summary>
@@ -79,13 +79,13 @@ namespace LoginServer
 		/// </summary>
 		public void SendToFailData( ErrorCode errorCode, uint gcNetID )
 		{
-			SDKBuffer sdkBuffer = this._dbCallbackQueuePool.Pop();
-			sdkBuffer.Write( gcNetID );
-			sdkBuffer.Write( ( int )errorCode );
-			sdkBuffer.position = 0;
-			sdkBuffer.data = 2;
+			GBuffer gBuffer = this._dbCallbackQueuePool.Pop();
+			gBuffer.Write( gcNetID );
+			gBuffer.Write( ( int )errorCode );
+			gBuffer.position = 0;
+			gBuffer.data = 2;
 			Logger.Log( $"user login fail with netID:{gcNetID}, errorCode:{errorCode}." );
-			this._dbCallbackQueue.Push( sdkBuffer );
+			this._dbCallbackQueue.Push( gBuffer );
 		}
 
 		private void PostMsgToGC_NotifyServerList( uint gcNetID )

@@ -8,17 +8,17 @@ namespace LoginServer
 {
 	public class SDKAsynHandler
 	{
-		public class UserLoginData
+		private class UserLoginData
 		{
 			public uint platFrom;
 			public string sessionid;
 			public string uin;
 		}
 
-		private readonly SwitchQueue<SDKBuffer> m_SDKCallbackQueue = new SwitchQueue<SDKBuffer>();
-		private readonly ThreadSafeObejctPool<SDKBuffer> m_SDKCallbackQueuePool = new ThreadSafeObejctPool<SDKBuffer>();
-		private readonly Dictionary<uint, UserLoginData> m_UserLoginDataMap = new Dictionary<uint, UserLoginData>();
-		private readonly object m_UserLoginDataMapMutex = new object();
+		private readonly SwitchQueue<GBuffer> _sdkCallbackQueue = new SwitchQueue<GBuffer>();
+		private readonly ThreadSafeObejctPool<GBuffer> _sdkCallbackQueuePool = new ThreadSafeObejctPool<GBuffer>();
+		private readonly Dictionary<uint, UserLoginData> _userLoginDataMap = new Dictionary<uint, UserLoginData>();
+		private readonly object _userLoginDataMapMutex = new object();
 		private int _checkTime = 100;
 		private Timer _timer;
 
@@ -34,26 +34,26 @@ namespace LoginServer
 
 		private void OnTimer( object state )
 		{
-			this.m_SDKCallbackQueue.Switch();
-			while ( !this.m_SDKCallbackQueue.isEmpty )
+			this._sdkCallbackQueue.Switch();
+			while ( !this._sdkCallbackQueue.isEmpty )
 			{
-				SDKBuffer sdkBuffer = this.m_SDKCallbackQueue.Pop();
-				if ( sdkBuffer.data == ( int )GCToLS.MsgID.EMsgToLsfromGcAskLogin )
+				GBuffer gBuffer = this._sdkCallbackQueue.Pop();
+				if ( gBuffer.data == ( int )GCToLS.MsgID.EMsgToLsfromGcAskLogin )
 				{
-					uint gcnetID = sdkBuffer.ReadUInt();
-					UserPlatform eplat = ( UserPlatform )sdkBuffer.ReadInt();
+					uint gcnetID = gBuffer.ReadUInt();
+					UserPlatform eplat = ( UserPlatform )gBuffer.ReadInt();
 					if ( IfTestPlatform( eplat ) )
 						this.AsynHandleLoiginCheckMsg_PC( gcnetID );
 					// 其他渠道暂不实现 todo
 					//else
 					//{
 					//bool bState = IfPostVisit( platform );
-					//string str = sdkBuffer.ReadUTF8E();
-					//new_conn( gcNetID, sdkBuffer.data, str, this.gGlobalInfoInstance, platform, bState );
+					//string str = gBuffer.ReadUTF8E();
+					//new_conn( gcNetID, gBuffer.data, str, this.gGlobalInfoInstance, platform, bState );
 					//}
 				}
-				sdkBuffer.position = 0;
-				this.m_SDKCallbackQueuePool.Push( sdkBuffer );
+				gBuffer.position = 0;
+				this._sdkCallbackQueuePool.Push( gBuffer );
 			}
 		}
 
@@ -66,14 +66,14 @@ namespace LoginServer
 				sessionid = askLogin.Sessionid,
 				uin = askLogin.Uin
 			};
-			lock ( this.m_UserLoginDataMapMutex )
+			lock ( this._userLoginDataMapMutex )
 			{
-				if ( this.m_UserLoginDataMap.ContainsKey( gcnetID ) )
+				if ( this._userLoginDataMap.ContainsKey( gcnetID ) )
 				{
 					Logger.Warn( $"client({askLogin.Uin}) login multiple times, but the server data has not been returned to the client" );
 					return ErrorCode.Success;
 				}
-				this.m_UserLoginDataMap[gcnetID] = loginData;
+				this._userLoginDataMap[gcnetID] = loginData;
 			}
 			Logger.Log( $"GC Try To Login with uin:{askLogin.Uin}({gcnetID}), sessionid:{askLogin.Sessionid}, platform:{platform}" );
 
@@ -95,26 +95,26 @@ namespace LoginServer
 
 		private void PostMsg( string msg, int msgID, uint gcnetID, UserPlatform eplat )
 		{
-			SDKBuffer pBuffer = this.m_SDKCallbackQueuePool.Pop();
+			GBuffer pBuffer = this._sdkCallbackQueuePool.Pop();
 			pBuffer.Write( gcnetID );
 			pBuffer.Write( ( int )eplat );
 			pBuffer.WriteUTF8E( msg );
 			pBuffer.position = 0;
 			pBuffer.data = msgID;
-			this.m_SDKCallbackQueue.Push( pBuffer );
+			this._sdkCallbackQueue.Push( pBuffer );
 		}
 
 		private void AsynHandleLoiginCheckMsg_PC( uint gcNetID )
 		{
 			UserLoginData userLoginData;
-			lock ( this.m_UserLoginDataMapMutex )
+			lock ( this._userLoginDataMapMutex )
 			{
-				if ( !this.m_UserLoginDataMap.TryGetValue( gcNetID, out userLoginData ) )
+				if ( !this._userLoginDataMap.TryGetValue( gcNetID, out userLoginData ) )
 				{
 					this.PostToLoginFailQueue( ErrorCode.UserNotExist, gcNetID );
 					return;
 				}
-				this.m_UserLoginDataMap.Remove( gcNetID );
+				this._userLoginDataMap.Remove( gcNetID );
 			}
 
 			string temp = string.Empty;

@@ -192,8 +192,9 @@ namespace CentralServer
 
 		public void Update( long elapsed, long dt )
 		{
-			//todo
 			this.netSessionMgr.Update();
+			this.csUserMgr.OnHeartBeatImmediately();
+			//todo
 		}
 
 		/// <summary>
@@ -281,7 +282,7 @@ namespace CentralServer
 		{
 			if ( userNetInfo.gcNetID == 0 )
 				return ErrorCode.InvalidUserNetInfo;
-			this.PostMsgToGS( this.GetGSInfoByGSID( ( uint ) userNetInfo.gsID ), msg, msgID, userNetInfo.gcNetID );
+			this.PostMsgToGS( this.GetGSInfoByGSID( ( uint )userNetInfo.gsID ), msg, msgID, userNetInfo.gcNetID );
 			return ErrorCode.Success;
 		}
 

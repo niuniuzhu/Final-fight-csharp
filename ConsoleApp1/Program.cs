@@ -3,6 +3,7 @@ using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using MySql.Data.MySqlClient;
 
 namespace ConsoleApp1
 {
@@ -12,10 +13,30 @@ namespace ConsoleApp1
 
 		private static void Main( string[] args )
 		{
-			Connect();
-			Test();
+			TestRedis();
+			TestDB();
 
 			Console.ReadLine();
+		}
+
+		private static void TestDB()
+		{
+			string query = "select * from account_user";
+			MySqlConnection myConnection = new MySqlConnection( "server=localhost;user id=root;password=ron159753;database=fball_accountdb" );
+			MySqlCommand myCommand = new MySqlCommand( query, myConnection );
+			myConnection.Open();
+			myCommand.ExecuteNonQuery();
+			MySqlDataReader myDataReader = myCommand.ExecuteReader();
+			string bookres = "";
+			while ( myDataReader.Read() )
+			{
+				bookres += myDataReader["id"];
+				bookres += myDataReader["user_name"];
+				bookres += myDataReader["cdkey"];
+			}
+			myDataReader.Close();
+			myConnection.Close();
+			Console.WriteLine( bookres );
 		}
 
 		private static void Connect()
@@ -24,7 +45,7 @@ namespace ConsoleApp1
 			{
 				EndPoints =
 				{
-					{ "localhost", 7000 }
+					{ "61.140.77.233", 23680 }
 				},
 				KeepAlive = 180,
 				AbortOnConnectFail = false,
@@ -33,8 +54,9 @@ namespace ConsoleApp1
 			redis = ConnectionMultiplexer.Connect( config );
 		}
 
-		private static async void Test()
+		private static async void TestRedis()
 		{
+			Connect();
 			IDatabase db = redis.GetDatabase();
 			var person = new Person
 			{

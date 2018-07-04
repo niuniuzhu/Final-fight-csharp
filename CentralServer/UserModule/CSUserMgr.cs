@@ -1,9 +1,11 @@
-﻿using System;
+﻿using CentralServer.Tools;
 using CentralServer.User;
 using Core.Misc;
 using Shared;
+using System;
 using System.Collections.Generic;
-using CentralServer.Tools;
+using Core.Net;
+using Core.Structure;
 
 namespace CentralServer.UserModule
 {
@@ -35,20 +37,45 @@ namespace CentralServer.UserModule
 				return !( a < b );
 			}
 		}
-		public DateTime today { get; private set; }
+
 
 		private delegate ErrorCode GCMsgHandler( CSGSInfo csgsInfo, uint gcNetID, byte[] data, int offset, int size );
 
+		/// <summary>
+		/// 消息处理函数容器
+		/// </summary>
 		private readonly Dictionary<int, GCMsgHandler> _gcMsgHandlers = new Dictionary<int, GCMsgHandler>();
-
+		/// <summary>
+		/// 玩家和网络信息的映射
+		/// </summary>
 		private readonly Dictionary<UserNetInfo, CSUser> _userNetMap = new Dictionary<UserNetInfo, CSUser>();
+		/// <summary>
+		/// 玩家和唯一id的映射
+		/// </summary>
 		private readonly Dictionary<ulong, CSUser> _userGUIDMap = new Dictionary<ulong, CSUser>();
+		/// <summary>
+		/// 在线玩家容器
+		/// </summary>
 		private readonly Dictionary<ulong, CSUser> _userOnlineMap = new Dictionary<ulong, CSUser>();
+		/// <summary>
+		/// 玩家和昵称的映射
+		/// </summary>
 		private readonly Dictionary<string, CSUser> _nickNameMap = new Dictionary<string, CSUser>();
+		/// <summary>
+		/// 玩家名称(包括SDK ID)和唯一id的映射
+		/// </summary>
 		private readonly Dictionary<UserCombineKey, ulong> _allUserName2GUIDMap = new Dictionary<UserCombineKey, ulong>();
+		/// <summary>
+		/// 昵称集合
+		/// </summary>
 		private readonly HashSet<string> _allNickNameSet = new HashSet<string>();
 		private readonly List<Notice> _notices = new List<Notice>();
-		private int _maxGuid;
+
+		private readonly SwitchQueue<StreamBuffer> _dbCallbackQueue = new SwitchQueue<StreamBuffer>();
+		private readonly ThreadSafeObejctPool<StreamBuffer> _dbCallbackQueuePool = new ThreadSafeObejctPool<StreamBuffer>();
+
+		public DateTime today { get; private set; }
+		private ulong _maxGuid;
 
 		public CSUserMgr()
 		{
@@ -100,7 +127,7 @@ namespace CentralServer.UserModule
 			CS.instance.RemoveTimer( pUser.timerID );
 			pUser.CheckHeroValidTimer( TimeUtils.utcTime );
 			//todo
-			//DBPoster_UpdateUser( pUser );//存盘// 
+			//DBPosterUpdateUser( pUser );//存盘// 
 			//CSSGameLogMgr::GetInstance().AddGameLog( eLog_UserDiscon, pUser.GetUserDBData() );
 			pUser.SaveToRedis();
 			//m_MailMgr.RemoveObjId( pUser.GetUserDBData().sPODUsrDBData.un64ObjIdx );
@@ -171,7 +198,7 @@ namespace CentralServer.UserModule
 			++this._maxGuid;
 			//todo
 			//return this._maxGuid * GUID_Devide + CS.instance.csKernelCfg.unCSId;
-			return ( ulong )this._maxGuid;
+			return this._maxGuid;
 		}
 
 		private void ChangeUserNickName( CSUser csUser, string nickname )
@@ -244,7 +271,7 @@ namespace CentralServer.UserModule
 		private void OnTimeUpdate()
 		{
 			DateTime oldDay = this.today;
-			this.today = new DateTime();
+			this.today = DateTime.Now;
 			if ( this.today.Year != oldDay.Year ) this.OnNewYear();
 			else if ( this.today.Month != oldDay.Month ) this.OnNewMonth();
 			else if ( this.today.Day != oldDay.Day ) this.OnNewDay();
@@ -260,6 +287,12 @@ namespace CentralServer.UserModule
 
 		private void OnNewDay()
 		{
+		}
+
+		public void OnHeartBeatImmediately()
+		{
+			this.OnTimeUpdate();
+			this.SynUserAskDBCallBack();
 		}
 	}
 }
