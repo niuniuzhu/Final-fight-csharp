@@ -1,0 +1,8 @@
+{
+    "MainBS": {
+        "ListernPortForBS": "49997"
+    },
+    "MainGC": {
+        "ListernPortForClient": "49996"
+    }
+}

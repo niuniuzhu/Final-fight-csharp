@@ -1,0 +1,23 @@
+{
+    "GameWorldID": "1",
+    "CSIP": "127.0.0.1",
+    "SSPort": "10001",
+    "GSPort": "10002",
+    "MaxSSNum": "15",
+    "SSBaseIndex": "20000",
+    "MaxGSNum": "10",
+    "GSBaseIndex": "30000",
+    "AllSSIndex": "20000,S1,123456;20001,S2,123456;20002,S3,123456;20003,S4,123456;20004,S5,123456;20005,S6,123456;20006,S7,123456;20007,S8,123456;20008,S9,123456;20009,S10,123456;20010,S11,123456;20011,S12,123456;20012,S13,123456;20013,S14,123456;20014,S15,123456",
+    "AllGSIndex": "30000,ZhongYuan,123456;30001,TongBei,123456;30002,HuaBei,123456;30003,XiLan,123456;30004,JiangLan,123456",
+    "RSPort": "10010",
+    "RSKey": "123456",
+    "WaitingDBNum": "10",
+    "LogAddress": "127.0.0.1",
+    "LogPort": "1234",
+    "redisAddress": "juntai.yytou.com",
+    "redisPort": "23680",
+    "redisPwd": "159753",
+    "redisLogicAddress": "127.0.0.1",
+    "redisLogicPort": "6380",
+    "redisLogicPwd": "123456"
+}

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+	<log4net>
+		<appender name="ManagedColoredConsoleAppender" type="log4net.Appender.ManagedColoredConsoleAppender">
+			<mapping>
+				<level value="ERROR" />
+				<foreColor value="Red" />
+			</mapping>
+			<mapping>
+				<level value="WARN" />
+				<foreColor value="Yellow" />
+			</mapping>
+			<mapping>
+				<level value="INFO" />
+				<foreColor value="Green" />
+			</mapping>
+			<mapping>
+				<level value="DEBUG" />
+				<foreColor value="Gray" />
+			</mapping>
+
+			<layout type="log4net.Layout.PatternLayout">
+				<conversionpattern value="%date{mm:ss,fff} [%thread] %-5level - %message%newline" />
+			</layout>
+		</appender>
+
+		<appender name="FileAppender" type="log4net.Appender.FileAppender">
+			<file value="log/gs.log" />
+			<appendToFile value="true" />
+			<layout type="log4net.Layout.PatternLayout">
+				<conversionPattern value="%date{MM-dd HH:mm:ss,fff} [%thread] %-5level %logger [%property{NDC}] - %message%newline" />
+			</layout>
+		</appender>
+
+		<appender name="RollingLogFileAppender" type="log4net.Appender.RollingFileAppender">
+			<file value="log/" />
+			<appendToFile value="true" />
+			<rollingStyle value="Composite" />
+			<staticLogFileName value="false" />
+			<datePattern value="'gs_'yyyyMMdd'.log'" />
+			<maxSizeRollBackups value="10" />
+			<maximumFileSize value="2MB" />
+			<layout type="log4net.Layout.PatternLayout">
+				<conversionPattern value="%date{MM-dd HH:mm:ss,fff} [%thread] %-5level %logger [%property{NDC}] - %message%newline" />
+			</layout>
+		</appender>
+
+		<root>
+			<level value="ALL" />
+			<appender-ref ref="ManagedColoredConsoleAppender" />
+			<appender-ref ref="FileAppender" />
+			<appender-ref ref="RollingLogFileAppender" />
+		</root>
+	</log4net>
+</configuration>
