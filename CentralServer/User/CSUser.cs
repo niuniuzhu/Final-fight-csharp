@@ -11,17 +11,24 @@ namespace CentralServer.User
 {
 	public partial class CSUser
 	{
+		private const string LOG_SIGN = "#";
+
 		public UserDBData userDbData { get; private set; }
 		public UserNetInfo userNetInfo { get; } = new UserNetInfo();
 		public ulong guid => this.userDbData.usrDBData.un64ObjIdx;
 		public string username => this.userDbData.szUserName;
 		public string nickname => this.userDbData.szNickName;
 		public ushort headID => this.userDbData.usrDBData.un16HeaderID;
+		public long userLv => this.userDbData.usrDBData.un8UserLv;
+		public long diamond => this.userDbData.usrDBData.n64Diamond;
+		public long gold => this.userDbData.usrDBData.n64Gold;
+		public long score => this.userDbData.usrDBData.n64Score;
+
 		public long timerID { get; set; }
 		//todo
 		//public CCSUserBattleInfo userBattleInfoEx { get; private set; }
+		public UserPlayingStatus userPlayingStatus { get; private set; }
 
-		private UserPlayingStatus _userPlayingStatus;
 		private readonly Dictionary<ulong, UserRelationshipInfo> m_cAddFVec = new Dictionary<ulong, UserRelationshipInfo>();
 		private long _gcLastPing;
 		private long _offlineTime;
@@ -29,13 +36,13 @@ namespace CentralServer.User
 		public void SetUserNetInfo( UserNetInfo crsUNI )
 		{
 			this.userNetInfo.Copy( crsUNI );
-			this._userPlayingStatus = UserPlayingStatus.UserPlayingStatusPlaying;
+			this.userPlayingStatus = UserPlayingStatus.UserPlayingStatusPlaying;
 		}
 
 		public void ClearNetInfo()
 		{
 			this.userNetInfo.Clear();
-			this._userPlayingStatus = UserPlayingStatus.UserPlayingStatusOffLine;
+			this.userPlayingStatus = UserPlayingStatus.UserPlayingStatusOffLine;
 		}
 
 		public void OnOnline( UserNetInfo netInfo, GCToCS.Login login, bool isFirstInDB, bool isFirstInMem, bool isReLogin = false )
@@ -44,14 +51,14 @@ namespace CentralServer.User
 			this.ResetPingTimer();
 			this.LoginRewardInit();
 			if ( !isReLogin )
-				this.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_Channel, login.Platform );
+				this.userDbData.ChangeUserDbData( UserDBDataType.Channel, login.Platform );
 			CS.instance.csUserMgr.OnUserOnline( this, netInfo );
 			this.NotifyUserPlayState();
-			this.SynUser_IsOnSS();
+			this.SynUserIsOnSS();
 			this.SynUser_UserBaseInfo();
 			this.SynCommidityCfgInfo();
 			this.SynUserCLDays();
-			this.SynUser_AllHeroList();
+			this.SynUserAllHeroList();
 			//todo
 			//SynUser_AllRunesList();
 			//CalculateItemAddition();
@@ -85,7 +92,7 @@ namespace CentralServer.User
 			//}
 		}
 
-		private void OnOffline()
+		public void OnOffline()
 		{
 			//todo
 			//CS.instance.csUserMgr.DBPoster_UpdateUser( this );
@@ -166,8 +173,8 @@ namespace CentralServer.User
 			int lastDays = this.userDbData.usrDBData.un32LastGetLoginRewardDay;//上次是第几天(1900年1月1日)(数据库)
 			if ( lastDays < baseDays )//当月未签到
 			{
-				this.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_LastGetLoginReward, 0 );
-				this.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_CLDay, 0 );
+				this.userDbData.ChangeUserDbData( UserDBDataType.LastGetLoginReward, 0 );
+				this.userDbData.ChangeUserDbData( UserDBDataType.CLDay, 0 );
 			}
 		}
 
@@ -186,13 +193,74 @@ namespace CentralServer.User
 			return this.m_cAddFVec.ContainsKey( guidIdx );
 		}
 
+		public bool CheckIfEnoughPay( PayType type, int pay )
+		{
+			switch ( type )
+			{
+				case PayType.PayTypeGold:
+					return pay <= this.gold;
+
+				case PayType.PayTypeDiamond:
+					return pay <= this.userDbData.usrDBData.n64Diamond;
+
+				default:
+					return false;
+			}
+		}
+
+		public void CheckHeroValidTimer( long curTime )
+		{
+			//通知客户端 英雄过期
+			GSToGC.NotifyGoodsExpired sMsg = new GSToGC.NotifyGoodsExpired();
+			List<uint> expired = new List<uint>();
+			foreach ( KeyValuePair<uint, UserHeroDBData> kv in this.userDbData.heroListMap )
+			{
+				UserHeroDBData pData = kv.Value;
+				if ( pData.endTime == Consts.PERSIST_TIME_ALWAYS )
+					continue;
+				if ( pData.buyTime + pData.endTime < curTime )
+				{
+					sMsg.Commondityid.Add( ( int )pData.un32HeroID );
+					expired.Add( kv.Key );
+					//todo
+					//CCSUserDbDataMgr::GetDelUserDbHerosSql( GetGUID(), pData.un32HeroID, expireSql );
+				}
+			}
+
+			int count = expired.Count;
+			for ( int i = 0; i < count; i++ )
+				this.userDbData.heroListMap.Remove( expired[i] );
+
+			this.PostMsgToGC( sMsg, ( int )GSToGC.MsgID.EMsgToGcfromBsNotifyGoodsExpired );
+
+			//通知从数据库删除
+			//todo
+			//CS.instance.csUserMgr.PostUserCacheMsgToDBThread( GetGUID(), expireSql );
+		}
+
+		public void AskChangeHeaderId( uint headerID )
+		{
+			this.userDbData.ChangeUserDbData( UserDBDataType.HeaderId, headerID );
+			PostMsgToGCNotifyNewHeaderid( this.guid, headerID );
+			//notify new header to on-line friend
+			foreach ( KeyValuePair<ulong, UserRelationshipInfo> kv in this.userDbData.friendListMap )
+			{
+				CSUser user = CS.instance.csUserMgr.GetUser( kv.Value.guididx );
+				if ( user != null && user.userPlayingStatus == UserPlayingStatus.UserPlayingStatusPlaying )
+					user.SynUserSNSList( this.guid, RelationShip.RsTypeFriends );
+			}
+			//todo
+			//string log = $"{headerID}{LOG_SIGN}{this.userDbData.szNickName}";
+			//CSSGameLogMgr::GetInstance().AddGameLog( eLog_HeadUse, this.GetUserDBData().sPODUsrDBData.un64ObjIdx, mystream.str() );
+		}
+
 		public ErrorCode LoadDBData( UserDBData userDbData )
 		{
 			this.userDbData = userDbData.Clone();
 			if ( 0 == this.userDbData.usrDBData.un8UserLv )
 			{
-				this.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_UserLv, 1 );
-				this.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_VIPLevel, 1 );
+				this.userDbData.ChangeUserDbData( UserDBDataType.UserLv, 1 );
+				this.userDbData.ChangeUserDbData( UserDBDataType.VIPLevel, 1 );
 			}
 
 			//auto itemID = RefreshCardBegin + i;
@@ -229,14 +297,14 @@ namespace CentralServer.User
 			this.PostMsgToGC( sMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyNetClash );
 		}
 
-		private bool SaveToRedis()
+		public bool SaveToRedis()
 		{
 			ConnectionMultiplexer redis = CS.instance.GetUserDBCacheRedisHandler();
 			if ( !redis.IsConnected )
 				return false;
 
 			//todo
-			//GetTaskMgr()->PackTaskData( m_sUserDBData.szTaskData, m_sUserDBData.isTaskRush );
+			//GetTaskMgr().PackTaskData( m_sUserDBData.szTaskData, m_sUserDBData.isTaskRush );
 
 			using ( MemoryStream ms = new MemoryStream() )
 			{

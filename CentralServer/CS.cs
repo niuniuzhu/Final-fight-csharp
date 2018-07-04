@@ -3,13 +3,13 @@ using CentralServer.Tools;
 using CentralServer.UserModule;
 using Core.Misc;
 using Core.Net;
+using Google.Protobuf;
 using Shared;
 using Shared.Net;
 using StackExchange.Redis;
 using System;
 using System.Collections;
 using System.IO;
-using Google.Protobuf;
 
 namespace CentralServer
 {
@@ -69,9 +69,6 @@ namespace CentralServer
 				this.gsNetInfoList[i] = new GSNetInfo();
 
 			this.rcNetInfoList = new RCNetInfo[10];
-
-			//todo addtimer
-
 			return eResult;
 		}
 
@@ -100,8 +97,10 @@ namespace CentralServer
 			this.csKernelCfg.maxWaitingDBNum = json.GetInt( "WaitingDBNum" );
 			this.csKernelCfg.redisAddress = json.GetString( "redisAddress" );
 			this.csKernelCfg.redisPort = json.GetInt( "redisPort" );
+			this.csKernelCfg.redisPwd = json.GetString( "redisPwd" );
 			this.csKernelCfg.redisLogicAddress = json.GetString( "redisLogicAddress" );
 			this.csKernelCfg.redisLogicPort = json.GetInt( "redisLogicPort" );
+			this.csKernelCfg.redisLogicPwd = json.GetString( "redisLogicPwd" );
 			this.csKernelCfg.LogAddress = json.GetString( "LogAddress" );
 			this.csKernelCfg.LogPort = json.GetInt( "LogPort" );
 
@@ -171,11 +170,11 @@ namespace CentralServer
 			{
 				EndPoints =
 				{
-					{ "juntai.yytou.com", 23680 }
+					{ this.csKernelCfg.redisAddress, this.csKernelCfg.redisPort }
 				},
 				KeepAlive = 180,
 				AbortOnConnectFail = false,
-				Password = "159753"
+				Password = this.csKernelCfg.redisPwd
 			};
 			this._userDBredisAsyncContext = ConnectionMultiplexer.Connect( config );
 			if ( !this._userDBredisAsyncContext.IsConnected )

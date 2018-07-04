@@ -53,16 +53,14 @@ namespace CentralServer.UserModule
 		public CSUserMgr()
 		{
 			this.today = new DateTime();
-
+			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskComleteUserInfo] = this.OnMsgToGstoCsfromGcAskComleteUserInfo;
 			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskLogin] = this.OnMsgToGstoCsfromGcAskLogin;
 			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskReconnectGame] = this.OnMsgToGstoCsfromGcAskReconnectGame;
-			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskComleteUserInfo] = this.OnMsgToGstoCsfromGcAskComleteUserInfo;
+			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskChangeNickName] = this.OnMsgToGstoCsfromGcAskChangeNickName;
+			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskChangeheaderId] = this.OnMsgToGstoCsfromGcAskChangeheaderId;
 		}
 
-		public bool ContainsUser( UserNetInfo userNetInfo )
-		{
-			return this._userNetMap.ContainsKey( userNetInfo );
-		}
+		public bool ContainsUser( UserNetInfo userNetInfo ) => this._userNetMap.ContainsKey( userNetInfo );
 
 		public ErrorCode AddUser( CSUser csUser )
 		{
@@ -94,6 +92,38 @@ namespace CentralServer.UserModule
 			return ErrorCode.Success;
 		}
 
+		public ErrorCode RemoveUser( CSUser pUser )
+		{
+			if ( pUser == null )
+				return ErrorCode.NullUser;
+
+			CS.instance.RemoveTimer( pUser.timerID );
+			pUser.CheckHeroValidTimer( TimeUtils.utcTime );
+			//todo
+			//DBPoster_UpdateUser( pUser );//存盘// 
+			//CSSGameLogMgr::GetInstance().AddGameLog( eLog_UserDiscon, pUser.GetUserDBData() );
+			pUser.SaveToRedis();
+			//m_MailMgr.RemoveObjId( pUser.GetUserDBData().sPODUsrDBData.un64ObjIdx );
+			this._nickNameMap.Remove( pUser.nickname );
+			this._userGUIDMap.Remove( pUser.guid );
+
+			return ErrorCode.Success;
+		}
+
+		public bool CheckIfCanRemoveUser( CSUser pUser )
+		{
+			if ( pUser == null )
+				return false;
+			//todo
+			if ( pUser.userPlayingStatus == UserPlayingStatus.UserPlayingStatusOffLine /*&& pUser.GetUserBattleInfoEx().GetBattleState() == eBattleState_Free*/ )
+			{
+				this.RemoveUser( pUser );
+				Logger.Log( "user removed" );
+				return true;
+			}
+			return false;
+		}
+
 		public CSUser GetUser( UserNetInfo userNetInfo )
 		{
 			this._userNetMap.TryGetValue( userNetInfo, out CSUser user );
@@ -111,10 +141,23 @@ namespace CentralServer.UserModule
 			this._nickNameMap.TryGetValue( nickName, out CSUser user );
 			return user;
 		}
+
 		public CSUser GetUser( CSGSInfo csgsInfo, uint gcNetID )
 		{
 			UserNetInfo userNetInfo = new UserNetInfo( csgsInfo.m_n32GSID, gcNetID );
 			return this.GetUser( userNetInfo );
+		}
+
+		public CSUser CheckAndGetUserByNetInfo( CSGSInfo csgsInfo, uint gcNetID )
+		{
+			CSUser user = this.GetUser( csgsInfo, gcNetID );
+			if ( null == user )
+			{
+				Logger.Error( $"could not find gcNetID:{gcNetID}" );
+				return null;
+			}
+			user.ResetPingTimer();
+			return user;
 		}
 
 		private bool CheckIfInGuideBattle( CSUser csUser )
@@ -143,7 +186,7 @@ namespace CentralServer.UserModule
 				this._nickNameMap.Remove( csUser.nickname );
 				this._allNickNameSet.Remove( csUser.nickname );
 			}
-			csUser.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_NickName, nickname );
+			csUser.userDbData.ChangeUserDbData( UserDBDataType.NickName, nickname );
 			this._allNickNameSet.Add( nickname );
 			this._nickNameMap.Add( nickname, csUser );
 

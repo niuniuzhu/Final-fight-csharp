@@ -398,6 +398,13 @@ namespace Shared
 		UserPlayingStatusPlaying,
 	}
 
+	public enum PayType
+	{
+		PayTypeNone,
+		PayTypeGold,
+		PayTypeDiamond
+	}
+
 	public enum GoodsType
 	{
 		GoodsTypeNone,
@@ -432,10 +439,10 @@ namespace Shared
 		ObjectTypeNone,
 		ObjectTypeGuild,
 		ObjectTypeUser,
-		ObjectTypeHeroBegin = Consts.ObjTypeSpace,
-		ObjectTypeNPCBegin = Consts.ObjTypeSpace * 2,
-		ObjectTypeGoodsBegin = Consts.ObjTypeSpace * 3,
-		ObjectTypeAiRobotBegin = Consts.ObjTypeSpace * 4,
+		ObjectTypeHeroBegin = Consts.OBJ_TYPE_SPACE,
+		ObjectTypeNPCBegin = Consts.OBJ_TYPE_SPACE * 2,
+		ObjectTypeGoodsBegin = Consts.OBJ_TYPE_SPACE * 3,
+		ObjectTypeAiRobotBegin = Consts.OBJ_TYPE_SPACE * 4,
 	}
 
 	public enum LobbyType
@@ -605,6 +612,7 @@ namespace Shared
 		public const int DEFAULT_DEVICE_KEY_LEN = DEFAULT_NAME_LEN * 5;
 		public const int PROJECTILE_MAX_CHILD_PROJECTILE_TYPE = 3;
 		public const int DEFAULT_REMOVE_CONSOLE_KEY_LEN = 65;
-		public const int ObjTypeSpace = 10000;
+		public const int OBJ_TYPE_SPACE = 10000;
+		public const int PERSIST_TIME_ALWAYS = -1;
 	}
 }

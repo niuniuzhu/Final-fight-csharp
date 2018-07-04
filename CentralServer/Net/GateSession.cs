@@ -1,4 +1,5 @@
-﻿using Core.Misc;
+﻿using CentralServer.User;
+using Core.Misc;
 using Google.Protobuf;
 using Shared;
 using Shared.Net;
@@ -12,6 +13,7 @@ namespace CentralServer.Net
 			this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.MsgHandleInit );
 			// this._msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskRegiste, this.OnMsgFromGSAskRegiste );
 			this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsAskPing, this.OnMsgFromGSAskPing );
+			this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsUserOffLine, this.OnMsgToCsfromGsUserOffLine );
 			this.msgCenter.Register( ( int )GSToCS.MsgID.EMsgToCsfromGsReportGcmsg, this.OnMsgFromGSReportGCMsg );
 		}
 
@@ -198,6 +200,23 @@ namespace CentralServer.Net
 				return ErrorCode.GSNotFound;
 			this.owner.TranMsgToSession( csgsInfo.m_n32NSID, msg, ( int )CSToGS.MsgID.EMsgToGsfromCsAskPingRet, 0, 0 );
 
+			return ErrorCode.Success;
+		}
+
+		private ErrorCode OnMsgToCsfromGsUserOffLine( byte[] data, int offset, int size, int transID, int msgID, uint gcNetID )
+		{
+			GSToCS.UserOffLine sMsp = new GSToCS.UserOffLine();
+			sMsp.MergeFrom( data, offset, size );
+
+			CSGSInfo csgsInfo = CS.instance.GetGSInfoByNSID( this.id );
+			CSUser pUser = CS.instance.csUserMgr.GetUser( csgsInfo, ( uint )sMsp.Usernetid );
+			if ( null != pUser )
+			{
+				//todo
+				//if ( pUser.GetUserBattleInfoEx().GetBattleState() == eBattleState_Free )
+				CS.instance.csUserMgr.RemoveUser( pUser );
+				pUser.OnOffline();
+			}
 			return ErrorCode.Success;
 		}
 

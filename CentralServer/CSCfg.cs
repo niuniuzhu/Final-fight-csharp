@@ -22,8 +22,10 @@ namespace CentralServer
 		public string ipaddress;
 		public string redisAddress;
 		public int redisPort;
+		public string redisPwd;
 		public string redisLogicAddress;
 		public int redisLogicPort;
+		public string redisLogicPwd;
 		public string LogAddress;
 		public int LogPort;
 	}
@@ -48,28 +50,17 @@ namespace CentralServer
 		{
 			this.m_n32BattleNum += n32AddNum;
 			if ( 0 > this.m_n32BattleNum )
-			{
 				this.m_n32BattleNum = 0;
-			}
 			if ( this.m_n32BattleNum < Consts.MAX_BATTLE_IN_SS / 2 )
-			{
 				this.m_eSSNetState = ServerNetState.SnsFree;
-			}
 			else if ( this.m_n32BattleNum >= Consts.MAX_BATTLE_IN_SS / 2 )
-			{
 				this.m_eSSNetState = ServerNetState.SnsBusy;
-			}
 			else
-			{
 				this.m_eSSNetState = ServerNetState.SnsFull;
-			}
 			return ErrorCode.Success;
 		}
 
-		void ResetPing()
-		{
-			this.m_tLastPingMilSec = TimeUtils.utcTime;
-		}
+		void ResetPing() => this.m_tLastPingMilSec = TimeUtils.utcTime;
 	}
 
 	public class CSGSInfo
@@ -132,7 +123,7 @@ namespace CentralServer
 		private readonly List<uint> _newGoodsCfgVec = new List<uint>();
 		private readonly List<string> _invalidWorlds = new List<string>();
 
-		public UserDbSaveConfig userDbSaveCfg { get; }
+		public UserDbSaveConfig userDbSaveCfg { get; } = new UserDbSaveConfig();
 
 		public bool CheckAIRobotName( string nickname ) => this._aiRobotNameMapForCheck.ContainsKey( nickname );
 

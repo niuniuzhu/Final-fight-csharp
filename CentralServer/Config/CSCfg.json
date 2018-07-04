@@ -14,8 +14,10 @@
     "WaitingDBNum": "10",
     "LogAddress": "127.0.0.1",
     "LogPort": "1234",
-    "redisAddress": "127.0.0.1",
-    "redisPort": "6379",
+    "redisAddress": "juntai.yytou.com",
+    "redisPort": "23680",
+    "redisPwd": "159753",
     "redisLogicAddress": "127.0.0.1",
-    "redisLogicPort": "6380"
+    "redisLogicPort": "6380",
+    "redisLogicPwd": "123456"
 }

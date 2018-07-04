@@ -8,47 +8,46 @@ namespace CentralServer.Tools
 {
 	public enum UserDBDataType
 	{
-		UserDBType_None = 0,//			un64ObjIdx; 
-		UserDBType_Channel,//		userPlatform;
-		UserDBType_Name,//		szUserName[c_n32DefaultNameLen];
-		UserDBType_Pwd,//			szUserPwd[c_n32DefaultUserPwdLen]; 
-		UserDBType_NickName,//				szNickName[c_n32DefaultNickNameLen+1];
-		UserDBType_HeaderId,//		un32HeaderID;
-		UserDBType_Sex,//				n8Sex; 
-		UserDBType_Diamond,//			n64Diamond;
-		UserDBType_Gold,//			n64Gold;;
-		UserDBType_RegisterTime,//			tRegisteUTCMillisec;	//注册时间(s)
-		UserDBType_Score,//				n64Score;
-		UserDBType_TotalGameInns,//			un32TotalGameInns;
-		UserDBType_TotalWinInns,//		un32TotalWinInns;
-		UserDBType_TotalHeroKills,//				un32TotalHeroKills;
-		UserDBType_TotalDestoryBuild,//				un32TotalDestoryBuildings;
-		UserDBType_TotalDeadTimes,//				un32TotalDeadTimes;
+		None = 0,//			un64ObjIdx; 
+		Channel,//		userPlatform;
+		Name,//		szUserName[c_n32DefaultNameLen];
+		Pwd,//			szUserPwd[c_n32DefaultUserPwdLen]; 
+		NickName,//				szNickName[c_n32DefaultNickNameLen+1];
+		HeaderId,//		un32HeaderID;
+		Sex,//				n8Sex; 
+		Diamond,//			n64Diamond;
+		Gold,//			n64Gold;;
+		RegisterTime,//			tRegisteUTCMillisec;	//注册时间(s)
+		Score,//				n64Score;
+		TotalGameInns,//			un32TotalGameInns;
+		TotalWinInns,//		un32TotalWinInns;
+		TotalHeroKills,//				un32TotalHeroKills;
+		TotalDestoryBuild,//				un32TotalDestoryBuildings;
+		TotalDeadTimes,//				un32TotalDeadTimes;
 
-		UserDBType_UserLv,//				un16UserLv;
-		UserDBType_UserLvExp,//				un32UserCurLvExp;
-		UserDBType_LastFirstWinTime,//			tLastFirstWinTime; 
+		UserLv,//				un16UserLv;
+		UserLvExp,//				un32UserCurLvExp;
+		LastFirstWinTime,//			tLastFirstWinTime; 
 
-		UserDBType_CLDay,//				un16Cldays;
-		UserDBType_LastGetLoginReward,//			tLastGetLoginReward;
+		CLDay,//				un16Cldays;
+		LastGetLoginReward,//			tLastGetLoginReward;
 
-		UserDBType_Friends,    //				szFriends[c_un32FriendsLen]; 
+		Friends,    //				szFriends[c_un32FriendsLen]; 
 
-		UserDBType_UpSSGuideSteps, //UserGuideSteps		guideSteps;
-		UserDBType_ClearSSGuideSteps,  //UserGuideSteps		guideSteps; 
+		UpSSGuideSteps, //UserGuideSteps		guideSteps;
+		ClearSSGuideSteps,  //UserGuideSteps		guideSteps; 
 
-		UserDBType_UpCSGuideConSteps,  //CSUserGuideConSteps		guideSteps;
-		UserDBType_UpCSGuideNoConSteps,    //CSUserGuideNoConSteps		guideSteps;
+		UpCSGuideConSteps,  //CSUserGuideConSteps		guideSteps;
+		UpCSGuideNoConSteps,    //CSUserGuideNoConSteps		guideSteps;
 
+		HeroList,//		szHeroList[c_un32HeroListLen];
+		BuyGoods,////SUserBuyGoods		mSUserBuyGoods[c_TotalGoods];
 
-		UserDBType_HeroList,//		szHeroList[c_un32HeroListLen];
-		UserDBType_BuyGoods,////SUserBuyGoods		mSUserBuyGoods[c_TotalGoods];
+		VIPLevel,
+		VIPScore,
 
-		UserDBType_VIPLevel,
-		UserDBType_VIPScore,
-
-		UserDBType_TotalAssist,
-		UserDBType_End
+		TotalAssist,
+		End
 	}
 
 	public class UserDbSaveConfig
@@ -285,7 +284,7 @@ namespace CentralServer.Tools
 		[ProtoMember( 21 )]
 		public int vipScore;
 		[ProtoMember( 22 )]
-		public volatile bool[] _ifChangeArr = new bool[( int )UserDBDataType.UserDBType_End];
+		public volatile bool[] _ifChangeArr = new bool[( int )UserDBDataType.End];
 
 		public void Copy( PODUsrDBData other )
 		{
@@ -408,89 +407,81 @@ namespace CentralServer.Tools
 			this.heroListMap.Add( userHeroDbData.un32HeroID, userHeroDbData );
 		}
 
-		public void ChangeUserDbData( UserDBDataType dtype, long param )
+		public void ChangeUserDbData( UserDBDataType type, object param )
 		{
-			switch ( dtype )
+			switch ( type )
 			{
-				case UserDBDataType.UserDBType_Channel:
+				case UserDBDataType.Name:
+					this.szUserName = ( string )param;
+					break;
+				case UserDBDataType.Pwd:
+					this.szUserPwd = ( string )param;
+					break;
+				case UserDBDataType.NickName:
+					this.szNickName = ( string )param;
+					break;
+				case UserDBDataType.Channel:
 					this.usrDBData.userPlatform = ( UserPlatform )param;
 					break;
-				case UserDBDataType.UserDBType_HeaderId:
+				case UserDBDataType.HeaderId:
 					this.usrDBData.un16HeaderID = ( ushort )param;
 					break;
-				case UserDBDataType.UserDBType_Sex:
+				case UserDBDataType.Sex:
 					this.usrDBData.n16Sex = ( short )param;
 					break;
-				case UserDBDataType.UserDBType_RegisterTime:
-					this.usrDBData.tRegisteUTCMillisec = param;
+				case UserDBDataType.RegisterTime:
+					this.usrDBData.tRegisteUTCMillisec = ( long )param;
 					break;
-				case UserDBDataType.UserDBType_Score:
-					this.usrDBData.n64Score = param;
+				case UserDBDataType.Score:
+					this.usrDBData.n64Score = ( long )param;
 					break;
-				case UserDBDataType.UserDBType_LastFirstWinTime:
+				case UserDBDataType.LastFirstWinTime:
 					this.usrDBData.tLastFirstWinTime = ( ulong )param;
 					break;
-				case UserDBDataType.UserDBType_CLDay:
+				case UserDBDataType.CLDay:
 					this.usrDBData.un16Cldays = ( ushort )param;
 					break;
-				case UserDBDataType.UserDBType_Diamond:
-					this.usrDBData.n64Diamond += param;
+				case UserDBDataType.Diamond:
+					this.usrDBData.n64Diamond += ( long )param;
 					break;
-				case UserDBDataType.UserDBType_Gold:
-					this.usrDBData.n64Gold += param;
+				case UserDBDataType.Gold:
+					this.usrDBData.n64Gold += ( long )param;
 					break;
-				case UserDBDataType.UserDBType_TotalGameInns:
+				case UserDBDataType.TotalGameInns:
 					this.usrDBData.un32TotalGameInns += ( uint )param;
 					break;
-				case UserDBDataType.UserDBType_TotalWinInns:
+				case UserDBDataType.TotalWinInns:
 					this.usrDBData.un32TotalWinInns += ( uint )param;
 					break;
-				case UserDBDataType.UserDBType_TotalHeroKills:
+				case UserDBDataType.TotalHeroKills:
 					this.usrDBData.un32TotalHeroKills += ( uint )param;
 					break;
-				case UserDBDataType.UserDBType_TotalDestoryBuild:
+				case UserDBDataType.TotalDestoryBuild:
 					this.usrDBData.un32TotalDestoryBuildings += ( uint )param;
 					break;
-				case UserDBDataType.UserDBType_TotalDeadTimes:
+				case UserDBDataType.TotalDeadTimes:
 					this.usrDBData.un32TotalDeadTimes += ( uint )param;
 					break;
-				case UserDBDataType.UserDBType_UserLv:
+				case UserDBDataType.UserLv:
 					this.usrDBData.un8UserLv += ( byte )param;
 					break;
-				case UserDBDataType.UserDBType_UserLvExp:
+				case UserDBDataType.UserLvExp:
 					this.usrDBData.un32UserCurLvExp += ( uint )param;
 					break;
-				case UserDBDataType.UserDBType_VIPLevel:
+				case UserDBDataType.VIPLevel:
 					this.usrDBData.un16VipLv = ( short )param;
 					break;
-				case UserDBDataType.UserDBType_VIPScore:
+				case UserDBDataType.VIPScore:
 					this.usrDBData.vipScore = ( int )param;
 					break;
-				case UserDBDataType.UserDBType_TotalAssist:
+				case UserDBDataType.TotalAssist:
 					this.usrDBData.un32TotalAssist += ( uint )param;
 					break;
-				case UserDBDataType.UserDBType_LastGetLoginReward:
+				case UserDBDataType.LastGetLoginReward:
 					this.usrDBData.un32LastGetLoginRewardDay = ( int )param;
 					break;
 			}
-			this.usrDBData._ifChangeArr[( int )dtype] = true;
-		}
-
-		public void ChangeUserDbData( UserDBDataType dtype, string param )
-		{
-			switch ( dtype )
-			{
-				case UserDBDataType.UserDBType_Name:
-					this.szUserName = param;
-					break;
-				case UserDBDataType.UserDBType_Pwd:
-					this.szUserPwd = param;
-					break;
-				case UserDBDataType.UserDBType_NickName:
-					this.szNickName = param;
-					break;
-			}
-			this.usrDBData._ifChangeArr[( int )dtype] = true;
+			this.usrDBData._ifChangeArr[( int )type] = true;
 		}
 	}
 

@@ -1,4 +1,5 @@
-﻿using CentralServer.Tools;
+﻿using System.Collections.Generic;
+using CentralServer.Tools;
 using CentralServer.User;
 using Core.Misc;
 using Google.Protobuf;
@@ -8,17 +9,17 @@ namespace CentralServer.UserModule
 {
 	public partial class CSUserMgr
 	{
-		private static ErrorCode PostMsgToGCAskReturn( UserNetInfo crsUserNetInfo, int n32AskProtocalID, int n32RetFlag )
+		public ErrorCode PostMsgToGCAskReturn( UserNetInfo crsUserNetInfo, int n32AskProtocalID, ErrorCode errorCode )
 		{
 			GSToGC.AskRet sMsg = new GSToGC.AskRet
 			{
 				Askid = n32AskProtocalID,
-				Errorcode = n32RetFlag
+				Errorcode = ( int )errorCode
 			};
 			return CS.instance.PostMsgToGC( crsUserNetInfo, sMsg, ( int )GSToGC.MsgID.EMsgToGcfromGsGcaskRet );
 		}
 
-		private static ErrorCode PostMsgToGCAskReturn( CSGSInfo csgsInfo, uint gcNetID, int askProtocalID, ErrorCode errorCode )
+		public ErrorCode PostMsgToGCAskReturn( CSGSInfo csgsInfo, uint gcNetID, int askProtocalID, ErrorCode errorCode )
 		{
 			GSToGC.AskRet msg = new GSToGC.AskRet
 			{
@@ -55,7 +56,7 @@ namespace CentralServer.UserModule
 			CSUser csUser = this.GetUser( csgsInfo, gcNetID );
 			if ( null == csUser )
 			{
-				Logger.Error( $"user net({csgsInfo.m_n32NSID}) can't find" );
+				Logger.Error( $"could not find user({csgsInfo.m_n32NSID})" );
 				return ErrorCode.NullUser;
 			}
 
@@ -63,43 +64,42 @@ namespace CentralServer.UserModule
 			ErrorCode errorCode = ErrorCode.Success;
 			do
 			{
-				GCToCS.CompleteInfo pCompleteInfo = new GCToCS.CompleteInfo();
-				pCompleteInfo.MergeFrom( data, offset, size );
+				GCToCS.CompleteInfo completeInfo = new GCToCS.CompleteInfo();
+				completeInfo.MergeFrom( data, offset, size );
 
-				if ( string.IsNullOrEmpty( pCompleteInfo.Nickname ) )
+				if ( string.IsNullOrEmpty( completeInfo.Nickname ) )
 				{
 					errorCode = ErrorCode.NickNameNotAllowed;
 					break;
 				}
-
-				if ( pCompleteInfo.Nickname.Length > Consts.DEFAULT_NICK_NAME_LEN )
+				//长度是否合法
+				if ( completeInfo.Nickname.Length > Consts.DEFAULT_NICK_NAME_LEN )
 				{
 					errorCode = ErrorCode.NickNameNotAllowed;
 					break;
 				}
-
-				if ( CS.instance.csCfg.CheckInvalidWorld( pCompleteInfo.Nickname ) )
+				//昵称是否合法
+				if ( CS.instance.csCfg.CheckInvalidWorld( completeInfo.Nickname ) )
 				{
 					errorCode = ErrorCode.NickNameNotAllowed;
 					break;
 				}
-
-				if ( CS.instance.csCfg.CheckAIRobotName( pCompleteInfo.Nickname ) )
+				//是否和ai昵称冲突
+				if ( CS.instance.csCfg.CheckAIRobotName( completeInfo.Nickname ) )
+				{
+					errorCode = ErrorCode.NickNameCollision;
+					break;
+				}
+				//是否存在相同昵称
+				if ( this._allNickNameSet.Contains( completeInfo.Nickname ) )
 				{
 					errorCode = ErrorCode.NickNameCollision;
 					break;
 				}
 
-				if ( this._allNickNameSet.Contains( pCompleteInfo.Nickname ) )
-				{
-					errorCode = ErrorCode.NickNameCollision;
-					break;
-				}
-
-				csUser.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_Sex, pCompleteInfo.Sex );
-				csUser.userDbData.ChangeUserDbData( UserDBDataType.UserDBType_HeaderId, pCompleteInfo.Headid );
-
-				this.ChangeUserNickName( csUser, pCompleteInfo.Nickname );
+				csUser.userDbData.ChangeUserDbData( UserDBDataType.Sex, completeInfo.Sex );
+				csUser.userDbData.ChangeUserDbData( UserDBDataType.HeaderId, completeInfo.Headid );
+				this.ChangeUserNickName( csUser, completeInfo.Nickname );
 
 				csUser.SynUser_UserBaseInfo();
 				csUser.PostCSNotice();
@@ -107,7 +107,7 @@ namespace CentralServer.UserModule
 				//todo
 				//DBPoster_UpdateUser( csUser );//存盘// 
 
-				string log = $"{csUser.userDbData.szUserName}{LOG_SIGN}{pCompleteInfo.Headid}{pCompleteInfo.Nickname}";
+				string log = $"{csUser.userDbData.szUserName}{LOG_SIGN}{completeInfo.Headid}{completeInfo.Nickname}";
 				//todo
 				//CSSGameLogMgr::GetInstance().AddGameLog( eLog_HeadUse, mystream.str(), 0 );
 			} while ( false );
@@ -116,6 +116,59 @@ namespace CentralServer.UserModule
 				PostMsgToGCAskReturn( csgsInfo, gcNetID, ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskComleteUserInfo, errorCode );
 
 			return errorCode;
+		}
+
+		private ErrorCode OnMsgToGstoCsfromGcAskChangeNickName( CSGSInfo csgsInfo, uint gcNetID, byte[] data, int offset, int size )
+		{
+			CSUser user = this.CheckAndGetUserByNetInfo( csgsInfo, gcNetID );
+			GCToCS.ChangeNickName pMsg = new GCToCS.ChangeNickName();
+			pMsg.MergeFrom( data, offset, size );
+			ErrorCode errorCode = ErrorCode.Success;
+			do
+			{
+				if ( pMsg.Newnickname.Length < 3 )
+					errorCode = ErrorCode.NickNameTooShort;
+
+				if ( this._allNickNameSet.Contains( pMsg.Newnickname ) )
+				{
+					errorCode = ErrorCode.NickNameCollision;
+					break;
+				}
+				if ( !user.CheckIfEnoughPay( PayType.PayTypeDiamond, 20 ) )
+				{
+					errorCode = ErrorCode.DiamondNotEnough;
+					break;
+				}
+			} while ( false );
+
+			if ( errorCode != ErrorCode.Success )
+				return user.PostMsgToGCAskRetMsg( ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskChangeNickName, errorCode );
+
+			user.userDbData.ChangeUserDbData( UserDBDataType.Diamond, -20 );
+			user.PostMsgToGCNotifyNewNickname( user.guid, pMsg.Newnickname );
+
+			this.ChangeUserNickName( user, pMsg.Newnickname );
+
+			foreach ( KeyValuePair<ulong, UserRelationshipInfo> kv in user.userDbData.friendListMap )
+			{
+				CSUser piUser = this.GetUser( kv.Value.guididx );
+				if ( null != piUser && piUser.userPlayingStatus == UserPlayingStatus.UserPlayingStatusPlaying )
+					piUser.SynUserSNSList( user.guid, RelationShip.RsTypeFriends );
+			}
+
+			user.SynCurDiamond();
+			//todo
+			//CSSGameLogMgr::GetInstance().AddGameLog( eLog_ChangeUseName, user.GetGUID(), user.GetUserDBData().sPODUsrDBData.un8UserLv, user.GetUserDBData().sPODUsrDBData.un16VipLv );
+			return ErrorCode.Success;
+		}
+
+		private ErrorCode OnMsgToGstoCsfromGcAskChangeheaderId( CSGSInfo csgsInfo, uint gcNetID, byte[] data, int offset, int size )
+		{
+			CSUser pcUser = this.CheckAndGetUserByNetInfo( csgsInfo, gcNetID );
+			GCToCS.AskChangeheaderId pMsg = new GCToCS.AskChangeheaderId();
+			pMsg.MergeFrom( data, offset, size );
+			pcUser.AskChangeHeaderId( pMsg.Newheaderid );
+			return ErrorCode.Success;
 		}
 	}
 }
