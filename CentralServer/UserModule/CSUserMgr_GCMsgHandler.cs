@@ -91,7 +91,7 @@ namespace CentralServer.UserModule
 					break;
 				}
 				//是否存在相同昵称
-				if ( this._allNickNameSet.Contains( completeInfo.Nickname ) )
+				if ( this.allNickNameSet.Contains( completeInfo.Nickname ) )
 				{
 					errorCode = ErrorCode.NickNameCollision;
 					break;
@@ -129,7 +129,7 @@ namespace CentralServer.UserModule
 				if ( pMsg.Newnickname.Length < 3 )
 					errorCode = ErrorCode.NickNameTooShort;
 
-				if ( this._allNickNameSet.Contains( pMsg.Newnickname ) )
+				if ( this.allNickNameSet.Contains( pMsg.Newnickname ) )
 				{
 					errorCode = ErrorCode.NickNameCollision;
 					break;

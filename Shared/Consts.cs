@@ -359,7 +359,9 @@ namespace Shared
 		InvaildLogicID,
 		GSNotFound,
 		SSNotFound,
-		RedisReplyNil
+		RedisReplyNil,
+		InvalidDatabase,
+		SqlExecError
 	}
 
 	public enum UserPlatform
@@ -390,6 +392,14 @@ namespace Shared
 		None,
 		Friends,
 		Detestation
+	}
+
+	public enum DBOperation
+	{
+		None,
+		Add,
+		Del,
+		Upd
 	}
 
 	public enum UserPlayingStatus

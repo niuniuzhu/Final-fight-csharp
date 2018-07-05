@@ -39,7 +39,7 @@ namespace CentralServer.UserModule
 
 		//private void DBAsyn_QueryWhenThreadBegin()
 		//{
-		//	IDBConnector* piGameDBConnector = m_UserCacheDBActiveWrapper.GetDBConnector();
+		//	IDBConnector* piGameDBConnector = _userCacheDBActiveWrapper.GetDBConnector();
 		//	if ( null == piGameDBConnector )
 		//	{
 		//		Logger.Error( " can not connect db!" );
@@ -81,7 +81,7 @@ namespace CentralServer.UserModule
 		//private void CDKThreadBeginCallback()
 		//{
 		//	/*MysqlDWrapper.*/
-		//	IDBConnector* piGameDBConnector = m_CdkeyWrapper.GetDBConnector();
+		//	IDBConnector* piGameDBConnector = _cdkeyWrapper.GetDBConnector();
 		//	if ( null == piGameDBConnector )
 		//	{
 		//		Logger.Warn( " can not connect db!",  );
@@ -240,7 +240,7 @@ namespace CentralServer.UserModule
 		//		CSToDB.UpdateUser sUpdateUser = new CSToDB.UpdateUser();
 		//		sUpdateUser.Guid = ( long )psUserDBData.usrDBData.un64ObjIdx;
 		//		sUpdateUser.Sqlstr = ( m_SaveUserStream.str() );
-		//		m_UserCacheDBActiveWrapper.EncodeAndSendToDBThread( sUpdateUser, CSToDB.MsgID.EUpdateUserDbcallBack );
+		//		_userCacheDBActiveWrapper.EncodeAndSendToDBThread( sUpdateUser, CSToDB.MsgID.EUpdateUserDbcallBack );
 		//	}
 		//	return ErrorCode.Success;
 		//}
@@ -252,5 +252,13 @@ namespace CentralServer.UserModule
 		//		this.DBPosterUpdateUser( kv.Value );
 		//	Logger.Error( "only finish post save data to db, don't close me at once." );
 		//}
+
+		private void DBAsynQueryWhenThreadBegin()
+		{
+		}
+
+		private void CDKThreadBeginCallback()
+		{
+		}
 	}
 }

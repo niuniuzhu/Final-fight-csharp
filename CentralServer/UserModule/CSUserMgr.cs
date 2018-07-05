@@ -1,12 +1,11 @@
 ﻿using CentralServer.Tools;
 using CentralServer.User;
 using Core.Misc;
+using MySql.Data.MySqlClient;
 using Shared;
+using Shared.DB;
 using System;
 using System.Collections.Generic;
-using Core.Net;
-using Core.Structure;
-using Shared.DB;
 
 namespace CentralServer.UserModule
 {
@@ -34,54 +33,47 @@ namespace CentralServer.UserModule
 				return res < 1;
 			}
 
-			public static bool operator >( UserCombineKey a, UserCombineKey b )
-			{
-				return !( a < b );
-			}
+			public static bool operator >( UserCombineKey a, UserCombineKey b ) => !( a < b );
 		}
 
-
-		private delegate ErrorCode GCMsgHandler( CSGSInfo csgsInfo, uint gcNetID, byte[] data, int offset, int size );
+		public delegate ErrorCode GCMsgHandler( CSGSInfo csgsInfo, uint gcNetID, byte[] data, int offset, int size );
 
 		/// <summary>
 		/// 消息处理函数容器
 		/// </summary>
-		private readonly Dictionary<int, GCMsgHandler> _gcMsgHandlers = new Dictionary<int, GCMsgHandler>();
+		public Dictionary<int, GCMsgHandler> gcMsgHandlers { get; } = new Dictionary<int, GCMsgHandler>();
 		/// <summary>
 		/// 玩家和网络信息的映射
 		/// </summary>
-		private readonly Dictionary<UserNetInfo, CSUser> _userNetMap = new Dictionary<UserNetInfo, CSUser>();
+		public Dictionary<UserNetInfo, CSUser> userNetMap { get; } = new Dictionary<UserNetInfo, CSUser>();
 		/// <summary>
 		/// 玩家和唯一id的映射
 		/// </summary>
-		private readonly Dictionary<ulong, CSUser> _userGUIDMap = new Dictionary<ulong, CSUser>();
+		public Dictionary<ulong, CSUser> userGuidMap { get; } = new Dictionary<ulong, CSUser>();
 		/// <summary>
 		/// 在线玩家容器
 		/// </summary>
-		private readonly Dictionary<ulong, CSUser> _userOnlineMap = new Dictionary<ulong, CSUser>();
+		public Dictionary<ulong, CSUser> userOnlineMap { get; } = new Dictionary<ulong, CSUser>();
 		/// <summary>
 		/// 玩家和昵称的映射
 		/// </summary>
-		private readonly Dictionary<string, CSUser> _nickNameMap = new Dictionary<string, CSUser>();
+		public Dictionary<string, CSUser> nickNameMap { get; } = new Dictionary<string, CSUser>();
 		/// <summary>
 		/// 玩家名称(包括SDK ID)和唯一id的映射
 		/// </summary>
-		private readonly Dictionary<UserCombineKey, ulong> _allUserName2GUIDMap = new Dictionary<UserCombineKey, ulong>();
+		public Dictionary<UserCombineKey, ulong> allUserName2GuidMap { get; } = new Dictionary<UserCombineKey, ulong>();
 		/// <summary>
 		/// 昵称集合
 		/// </summary>
-		private readonly HashSet<string> _allNickNameSet = new HashSet<string>();
-		private readonly List<Notice> _notices = new List<Notice>();
-
-		private readonly SwitchQueue<StreamBuffer> _dbCallbackQueue = new SwitchQueue<StreamBuffer>();
-		private readonly ThreadSafeObejctPool<StreamBuffer> _dbCallbackQueuePool = new ThreadSafeObejctPool<StreamBuffer>();
+		public HashSet<string> allNickNameSet { get; } = new HashSet<string>();
+		public List<Notice> notices { get; } = new List<Notice>();
 
 		public DateTime today { get; private set; }
 
 		private ulong _maxGuid;
-		private DBActiveWrapper m_UserCacheDBActiveWrapper;
-		private DBActiveWrapper m_CdkeyWrapper;
-		private readonly List<DBActiveWrapper> m_pUserAskDBActiveWrapperVec = new List<DBActiveWrapper>();
+		private readonly DBActiveWrapper _userCacheDBActiveWrapper;
+		private readonly DBActiveWrapper _cdkeyWrapper;
+		private readonly List<DBActiveWrapper> _userAskDBActiveWrappers = new List<DBActiveWrapper>();
 
 		public CSUserMgr()
 		{
@@ -90,27 +82,35 @@ namespace CentralServer.UserModule
 			DBCfg cfgGameDb = CS.instance.csCfg.GetDBCfg( DBType.Game );
 			DBCfg cfgCdkeyDb = CS.instance.csCfg.GetDBCfg( DBType.Cdkey );
 
-			this.m_UserCacheDBActiveWrapper = new DBActiveWrapper( this.UserCacheDBAsynHandler, cfgGameDb );
-			this.m_UserCacheDBActiveWrapper.Start();
+			this._userCacheDBActiveWrapper = new DBActiveWrapper( this.UserCacheDBAsynHandler, cfgGameDb, this.DBAsynQueryWhenThreadBegin );
+			this._userCacheDBActiveWrapper.Start();
 
-			this.m_CdkeyWrapper = new DBActiveWrapper( this.UserAskDBAsynHandler, cfgCdkeyDb );
-			this.m_CdkeyWrapper.Start();
+			this._cdkeyWrapper = new DBActiveWrapper( this.UserAskDBAsynHandler, cfgCdkeyDb, this.CDKThreadBeginCallback );
+			this._cdkeyWrapper.Start();
 
 			for ( int i = 0; i < G_THREAD; i++ )
 			{
-				DBActiveWrapper pThreadDBWrapper = new DBActiveWrapper( this.UserAskDBAsynHandler, cfgGameDb );
+				DBActiveWrapper pThreadDBWrapper = new DBActiveWrapper( this.UserAskDBAsynHandler, cfgGameDb, null );
 				pThreadDBWrapper.Start();
-				this.m_pUserAskDBActiveWrapperVec.Add( pThreadDBWrapper );
+				this._userAskDBActiveWrappers.Add( pThreadDBWrapper );
 			}
 
-			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskComleteUserInfo] = this.OnMsgToGstoCsfromGcAskComleteUserInfo;
-			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskLogin] = this.OnMsgToGstoCsfromGcAskLogin;
-			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskReconnectGame] = this.OnMsgToGstoCsfromGcAskReconnectGame;
-			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskChangeNickName] = this.OnMsgToGstoCsfromGcAskChangeNickName;
-			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskChangeheaderId] = this.OnMsgToGstoCsfromGcAskChangeheaderId;
+			this.gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskComleteUserInfo] = this.OnMsgToGstoCsfromGcAskComleteUserInfo;
+			this.gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskLogin] = this.OnMsgToGstoCsfromGcAskLogin;
+			this.gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskReconnectGame] = this.OnMsgToGstoCsfromGcAskReconnectGame;
+			this.gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskChangeNickName] = this.OnMsgToGstoCsfromGcAskChangeNickName;
+			this.gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskChangeheaderId] = this.OnMsgToGstoCsfromGcAskChangeheaderId;
 		}
 
-		public bool ContainsUser( UserNetInfo userNetInfo ) => this._userNetMap.ContainsKey( userNetInfo );
+		public ErrorCode Invoke( CSGSInfo csgsInfo, int msgID, uint gcNetID, byte[] data, int offset, int size )
+		{
+			if ( this.gcMsgHandlers.TryGetValue( msgID, out GCMsgHandler handler ) )
+				return handler.Invoke( csgsInfo, gcNetID, data, offset, size );
+			Logger.Warn( $"invalid msg:{msgID}." );
+			return ErrorCode.InvalidMsgProtocalID;
+		}
+
+		public bool ContainsUser( UserNetInfo userNetInfo ) => this.userNetMap.ContainsKey( userNetInfo );
 
 		public ErrorCode AddUser( CSUser csUser )
 		{
@@ -127,14 +127,14 @@ namespace CentralServer.UserModule
 				return ErrorCode.InvalidUserName;
 			}
 
-			if ( !this._userGUIDMap.TryAdd( un64ObjIndex, csUser ) )
+			if ( !this.userGuidMap.TryAdd( un64ObjIndex, csUser ) )
 			{
 				Logger.Error( "add username fail" );
 				return ErrorCode.AddUserNameFailed;
 			}
 
 			if ( !string.IsNullOrEmpty( csUser.nickname ) )
-				this._nickNameMap.Add( csUser.nickname, csUser );
+				this.nickNameMap.Add( csUser.nickname, csUser );
 
 			long timerID = CS.instance.AddTimer( csUser.CheckDbSaveTimer, 1000, true );//todo CCSCfgMgr::getInstance().GetCSGlobalCfg().dbSaveTimeSpace * 1000
 			csUser.timerID = timerID;
@@ -154,8 +154,8 @@ namespace CentralServer.UserModule
 			//CSSGameLogMgr::GetInstance().AddGameLog( eLog_UserDiscon, pUser.GetUserDBData() );
 			pUser.SaveToRedis();
 			//m_MailMgr.RemoveObjId( pUser.GetUserDBData().sPODUsrDBData.un64ObjIdx );
-			this._nickNameMap.Remove( pUser.nickname );
-			this._userGUIDMap.Remove( pUser.guid );
+			this.nickNameMap.Remove( pUser.nickname );
+			this.userGuidMap.Remove( pUser.guid );
 
 			return ErrorCode.Success;
 		}
@@ -176,19 +176,19 @@ namespace CentralServer.UserModule
 
 		public CSUser GetUser( UserNetInfo userNetInfo )
 		{
-			this._userNetMap.TryGetValue( userNetInfo, out CSUser user );
+			this.userNetMap.TryGetValue( userNetInfo, out CSUser user );
 			return user;
 		}
 
 		public CSUser GetUser( ulong guid )
 		{
-			this._userGUIDMap.TryGetValue( guid, out CSUser user );
+			this.userGuidMap.TryGetValue( guid, out CSUser user );
 			return user;
 		}
 
 		public CSUser GetUser( string nickName )
 		{
-			this._nickNameMap.TryGetValue( nickName, out CSUser user );
+			this.nickNameMap.TryGetValue( nickName, out CSUser user );
 			return user;
 		}
 
@@ -233,16 +233,32 @@ namespace CentralServer.UserModule
 			}
 			if ( !string.IsNullOrEmpty( csUser.nickname ) )
 			{
-				this._nickNameMap.Remove( csUser.nickname );
-				this._allNickNameSet.Remove( csUser.nickname );
+				this.nickNameMap.Remove( csUser.nickname );
+				this.allNickNameSet.Remove( csUser.nickname );
 			}
 			csUser.userDbData.ChangeUserDbData( UserDBDataType.NickName, nickname );
-			this._allNickNameSet.Add( nickname );
-			this._nickNameMap.Add( nickname, csUser );
+			this.allNickNameSet.Add( nickname );
+			this.nickNameMap.Add( nickname, csUser );
 
 			this.UpdateUserNickNameToDB( csUser );
 
 			Logger.Log( $"nickname changed, username:{csUser.userDbData.szUserName}, nickname:{nickname}" );
+		}
+
+		public ErrorCode OnUserOnline( CSUser csUser, UserNetInfo netInfo )
+		{
+			this.userNetMap.Add( netInfo, csUser );
+			this.userOnlineMap.Add( csUser.guid, csUser );
+			csUser.SetUserNetInfo( netInfo );
+			Logger.Log( $"add user netinfo({netInfo.gcNetID})" );
+			return ErrorCode.Success;
+		}
+
+		public void OnUserOffline( CSUser csUser )
+		{
+			this.userNetMap.Remove( csUser.userNetInfo );
+			this.userOnlineMap.Remove( csUser.guid );
+			csUser.ClearNetInfo();
 		}
 
 		private void UpdateUserNickNameToDB( CSUser csUser )
@@ -252,43 +268,44 @@ namespace CentralServer.UserModule
 				Nickname = csUser.nickname,
 				Guid = ( long )csUser.guid
 			};
-			//todo
-			//m_CdkeyWrapper.EncodeAndSendToDBThread( sChangeNickName, sChangeNickName.msgid() );
+			this._cdkeyWrapper.EncodeAndSendToDBThread( sChangeNickName, ( int )CSToDB.MsgID.EChangeNickNameDbcall );
 		}
 
-		public void ForeachNotice( Action<Notice> handler )
+		private void InsertNewUserToMysql( GCToCS.Login login, CSUser user )
 		{
-			int count = this._notices.Count;
-			for ( int i = 0; i < count; i++ )
-				handler.Invoke( this._notices[i] );
+			if ( user == null )
+				return;
+
+			CSToDB.ExeSQL_Call sExeSQL_Call = new CSToDB.ExeSQL_Call
+			{
+				Sql = $"INSERT account_user(id,cs_id,sdk_id,cdkey) values({user.guid},{CS.instance.csKernelCfg.unCSId},{login.Sdk},\'{login.Name}\');"
+			};
+			this._cdkeyWrapper.EncodeAndSendToDBThread( sExeSQL_Call, ( int )CSToDB.MsgID.EExeSqlCall );
+
+			string op =
+				$"INSERT gameuser(obj_id,sdk_id,obj_cdkey, obj_register_time) values({user.guid},{login.Sdk},\'{login.Name}\',{user.userDbData.usrDBData.tRegisteUTCMillisec});INSERT gameuser_runne(user_id) values({user.guid});INSERT gameuser_guide(obj_id) values({user.guid});";
+			CSToDB.UpdateUser sUpdateUser = new CSToDB.UpdateUser
+			{
+				Sqlstr = op,
+				Guid = ( long )user.guid
+			};
+			this._userCacheDBActiveWrapper.EncodeAndSendToDBThread( sUpdateUser, ( int )CSToDB.MsgID.EUpdateUserDbcallBack );
 		}
 
-		public ErrorCode OnUserOnline( CSUser csUser, UserNetInfo netInfo )
+		public MySqlConnection GetDBSource( int actorID )
 		{
-			this._userNetMap.Add( netInfo, csUser );
-			this._userOnlineMap.Add( csUser.guid, csUser );
-			csUser.SetUserNetInfo( netInfo );
-			Logger.Log( $"add user netinfo({netInfo.gcNetID})" );
-			return ErrorCode.Success;
-		}
+			if ( this._userCacheDBActiveWrapper.actorID == actorID )
+				return this._userCacheDBActiveWrapper.db;
 
-		public void OnUserOffline( CSUser csUser )
-		{
-			this._userNetMap.Remove( csUser.userNetInfo );
-			this._userOnlineMap.Remove( csUser.guid );
-			csUser.ClearNetInfo();
-		}
+			if ( this._cdkeyWrapper.actorID == actorID )
+				return this._cdkeyWrapper.db;
 
-		private void InsertNewUserToMysql( GCToCS.Login login, CSUser csUser )
-		{
-		}
-
-		public ErrorCode Invoke( CSGSInfo csgsInfo, int msgID, uint gcNetID, byte[] data, int offset, int size )
-		{
-			if ( this._gcMsgHandlers.TryGetValue( msgID, out GCMsgHandler handler ) )
-				return handler.Invoke( csgsInfo, gcNetID, data, offset, size );
-			Logger.Warn( $"invalid msg:{msgID}." );
-			return ErrorCode.InvalidMsgProtocalID;
+			foreach ( DBActiveWrapper userAskDbActiveWrapper in this._userAskDBActiveWrappers )
+			{
+				if ( userAskDbActiveWrapper.actorID == actorID )
+					return userAskDbActiveWrapper.db;
+			}
+			return null;
 		}
 
 		private void OnTimeUpdate()

@@ -13,7 +13,7 @@ namespace ConsoleApp1
 
 		private static void Main( string[] args )
 		{
-			TestRedis();
+			//TestRedis();
 			TestDB();
 
 			Console.ReadLine();
@@ -21,21 +21,35 @@ namespace ConsoleApp1
 
 		private static void TestDB()
 		{
-			string query = "select * from account_user";
-			MySqlConnection myConnection = new MySqlConnection( "server=localhost;user id=root;password=ron159753;database=fball_accountdb" );
-			MySqlCommand myCommand = new MySqlCommand( query, myConnection );
-			myConnection.Open();
-			myCommand.ExecuteNonQuery();
-			MySqlDataReader myDataReader = myCommand.ExecuteReader();
+			MySqlConnection myConnection = new MySqlConnection( "server=localhost;user id=root;password=ron159753;database=fball_accountdb;port=3306" );
+			MySqlCommand myCommand = myConnection.CreateCommand();
+			MySqlDataReader myDataReader = null;
+
 			string bookres = "";
-			while ( myDataReader.Read() )
+			string query = "select * from account_user";
+			myCommand.CommandText = query;
+			try
 			{
-				bookres += myDataReader["id"];
-				bookres += myDataReader["user_name"];
-				bookres += myDataReader["cdkey"];
+				myConnection.Open();
+				myCommand.ExecuteNonQuery();
+				myDataReader = myCommand.ExecuteReader();
+				while ( myDataReader.Read() )
+				{
+					bookres += myDataReader["id"];
+					bookres += myDataReader["user_name"];
+					bookres += myDataReader["cdkey"];
+				}
 			}
-			myDataReader.Close();
-			myConnection.Close();
+			catch ( Exception e )
+			{
+				Console.WriteLine( e );
+				return;
+			}
+			finally
+			{
+				myDataReader?.Close();
+				myConnection.Close();
+			}
 			Console.WriteLine( bookres );
 		}
 

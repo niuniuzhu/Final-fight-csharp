@@ -37,11 +37,11 @@ namespace LoginServer
 			this._sdkCallbackQueue.Switch();
 			while ( !this._sdkCallbackQueue.isEmpty )
 			{
-				GBuffer gBuffer = this._sdkCallbackQueue.Pop();
-				if ( gBuffer.data == ( int )GCToLS.MsgID.EMsgToLsfromGcAskLogin )
+				GBuffer buffer = this._sdkCallbackQueue.Pop();
+				if ( buffer.data == ( int )GCToLS.MsgID.EMsgToLsfromGcAskLogin )
 				{
-					uint gcnetID = gBuffer.ReadUInt();
-					UserPlatform eplat = ( UserPlatform )gBuffer.ReadInt();
+					uint gcnetID = buffer.ReadUInt();
+					UserPlatform eplat = ( UserPlatform )buffer.ReadInt();
 					if ( IfTestPlatform( eplat ) )
 						this.AsynHandleLoiginCheckMsg_PC( gcnetID );
 					// 其他渠道暂不实现 todo
@@ -52,8 +52,8 @@ namespace LoginServer
 					//new_conn( gcNetID, gBuffer.data, str, this.gGlobalInfoInstance, platform, bState );
 					//}
 				}
-				gBuffer.position = 0;
-				this._sdkCallbackQueuePool.Push( gBuffer );
+				buffer.position = 0;
+				this._sdkCallbackQueuePool.Push( buffer );
 			}
 		}
 
@@ -95,13 +95,13 @@ namespace LoginServer
 
 		private void PostMsg( string msg, int msgID, uint gcnetID, UserPlatform eplat )
 		{
-			GBuffer pBuffer = this._sdkCallbackQueuePool.Pop();
-			pBuffer.Write( gcnetID );
-			pBuffer.Write( ( int )eplat );
-			pBuffer.WriteUTF8E( msg );
-			pBuffer.position = 0;
-			pBuffer.data = msgID;
-			this._sdkCallbackQueue.Push( pBuffer );
+			GBuffer buffer = this._sdkCallbackQueuePool.Pop();
+			buffer.Write( gcnetID );
+			buffer.Write( ( int )eplat );
+			buffer.WriteUTF8E( msg );
+			buffer.position = 0;
+			buffer.data = msgID;
+			this._sdkCallbackQueue.Push( buffer );
 		}
 
 		private void AsynHandleLoiginCheckMsg_PC( uint gcNetID )

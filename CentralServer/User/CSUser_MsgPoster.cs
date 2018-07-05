@@ -76,7 +76,7 @@ namespace CentralServer.User
 		public void PostCSNotice()
 		{
 			GSToGC.GameNotice msg = new GSToGC.GameNotice();
-			CS.instance.csUserMgr.ForeachNotice( tempNotice =>
+			foreach ( Notice tempNotice in CS.instance.csUserMgr.notices )
 			{
 				if ( tempNotice.msg.Length < 1 )
 					return;
@@ -106,7 +106,7 @@ namespace CentralServer.User
 					Notice_ = tempNotice.msg
 				};
 				msg.Notice.Add( notice );
-			} );
+			}
 			this.PostMsgToGC( msg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyNotice );
 		}
 

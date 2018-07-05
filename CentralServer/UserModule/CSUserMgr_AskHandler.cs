@@ -20,7 +20,7 @@ namespace CentralServer.UserModule
 			ErrorCode errorCode = ErrorCode.Success;
 
 			UserCombineKey sUserCombineKey = new UserCombineKey( login.Name, login.Sdk );
-			if ( this._allUserName2GUIDMap.TryGetValue( sUserCombineKey, out ulong guid ) )
+			if ( this.allUserName2GuidMap.TryGetValue( sUserCombineKey, out ulong guid ) )
 			{
 				//老玩家
 				//如果还在内存里
@@ -63,7 +63,7 @@ namespace CentralServer.UserModule
 				userDbData.usrDBData.tRegisteUTCMillisec = TimeUtils.utcTime;
 
 				//加入全局表
-				this._allUserName2GUIDMap.Add( sUserCombineKey, guid );
+				this.allUserName2GuidMap.Add( sUserCombineKey, guid );
 
 				pcUser.LoadDBData( userDbData );
 				//todo
@@ -100,7 +100,7 @@ namespace CentralServer.UserModule
 			//需要从消息获取
 			const int sdkID = 0;
 			UserCombineKey sUserCombineKey = new UserCombineKey( name, sdkID );
-			if ( !this._allUserName2GUIDMap.TryGetValue( sUserCombineKey, out ulong guid ) )
+			if ( !this.allUserName2GuidMap.TryGetValue( sUserCombineKey, out ulong guid ) )
 				return ErrorCode.NullUser;
 
 			CSUser pcUser = this.GetUser( guid );
