@@ -24,8 +24,8 @@ namespace CentralServer.Net
 				CSToSS.AskRegisteRet.Types.GSInfo pGSInfo =
 					new CSToSS.AskRegisteRet.Types.GSInfo
 					{
-						Gsid = CS.instance.gsInfoList[i].m_n32GSID,
-						Userpwd = CS.instance.gsInfoList[i].m_szUserPwd
+						Gsid = CS.instance.csKernelCfg.gsInfoList[i].m_n32GSID,
+						Userpwd = CS.instance.csKernelCfg.gsInfoList[i].m_szUserPwd
 					};
 				aAskRegisteRet.Gsinfo.Add( pGSInfo );
 			}
@@ -61,7 +61,7 @@ namespace CentralServer.Net
 			{
 				Logger.Info( $"SS({pcSSInfo.m_n32SSID}) DisConnected" );
 				int pos = pcSSInfo.m_n32SSID - ( int )CS.instance.csKernelCfg.un32SSBaseIdx;
-				pcSSInfo.m_eSSNetState = ServerNetState.SnsClosed;
+				pcSSInfo.m_eSSNetState = ServerNetState.Closed;
 				pcSSInfo.m_n32NSID = 0;
 				pcSSInfo.m_tLastConnMilsec = 0;
 				pcSSInfo.m_un32ConnTimes = 0;
@@ -87,7 +87,7 @@ namespace CentralServer.Net
 			}
 
 			// 加入SS
-			pcSSInfo.m_eSSNetState = ServerNetState.SnsConnecting;
+			pcSSInfo.m_eSSNetState = ServerNetState.Connecting;
 			pcSSInfo.m_n32NSID = ( int )this.id;
 			this.logicID = pcSSInfo.m_n32SSID;
 			pcSSInfo.m_tLastConnMilsec = TimeUtils.utcTime;

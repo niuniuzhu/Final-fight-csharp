@@ -70,7 +70,7 @@ namespace CentralServer.User
 				Guid = guid,
 				Newheaderid = headerID
 			};
-			return this.PostMsgToGC( msg, ( int ) GSToGC.MsgID.EMsgToGcfromGsNotifyNewHeaderid );
+			return this.PostMsgToGC( msg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyNewHeaderid );
 		}
 
 		public void PostCSNotice()
@@ -82,19 +82,19 @@ namespace CentralServer.User
 					return;
 
 				//平台判断
-				if ( tempNotice.platform != UserPlatform.Platform_All )
+				if ( tempNotice.platform != UserPlatform.All )
 					if ( tempNotice.platform != this.userDbData.usrDBData.userPlatform )
 						return;
 
 				//过期判断
-				long temp_date = TimeUtils.utcTime;
-				long temp_end = tempNotice.end_time - temp_date;
-				if ( temp_end < 0 )
+				long tempDate = TimeUtils.utcTime;
+				long tempEnd = tempNotice.end_time - tempDate;
+				if ( tempEnd < 0 )
 					return;
 
 				//是否到发送时间
-				long temp_star = tempNotice.star_time - temp_date;
-				if ( temp_star > 0 )
+				long tempStar = tempNotice.star_time - tempDate;
+				if ( tempStar > 0 )
 					return;
 
 				GSToGC.GameNotice.Types.Notice notice = new GSToGC.GameNotice.Types.Notice
@@ -114,13 +114,13 @@ namespace CentralServer.User
 		{
 			foreach ( KeyValuePair<ulong, UserRelationshipInfo> kv in this.userDbData.friendListMap )
 			{
-				CSUser piUser = CS.instance.csUserMgr.GetUser( kv.Value.guididx );
-				if ( null == piUser )
+				CSUser user = CS.instance.csUserMgr.GetUser( kv.Value.guididx );
+				if ( null == user )
 					continue;
-				if ( !piUser.CheckIfInFriendList( this.guid ) )
+				if ( !user.CheckIfInFriendList( this.guid ) )
 					continue;
-				if ( UserPlayingStatus.UserPlayingStatusPlaying == piUser.userPlayingStatus )
-					piUser.SynUserSNSList( this.guid, kv.Value.relationShip );
+				if ( UserPlayingStatus.Playing == user.userPlayingStatus )
+					user.SynUserSNSList( this.guid, kv.Value.relationShip );
 			}
 			return ErrorCode.Success;
 		}
@@ -138,13 +138,12 @@ namespace CentralServer.User
 		private ErrorCode SynCommidityCfgInfo()
 		{
 			GSToGC.GoodsBuyCfgInfo msg = new GSToGC.GoodsBuyCfgInfo();
-			CS.instance.csCfg.ForeachHeroBuyCfg( kv =>
+			foreach ( KeyValuePair<uint, HeroBuyCfg> kv in CS.instance.csCfg.heroBuyCfgMap )
 			{
 				HeroBuyCfg pCfg = kv.Value;
 				if ( !pCfg.bIfShowInShop )
-					return;
-
-				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
+					continue;
+				GSToGC.GoodsCfgInfo goodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
 				foreach ( ConsumeStruct consumeStruct in pCfg.sConsumeList )
 				{
 					GSToGC.GoodsCfgInfo.Types.Consume pConsume =
@@ -153,19 +152,19 @@ namespace CentralServer.User
 							Consumetype = ( int )consumeStruct.type,
 							Price = consumeStruct.price
 						};
-					sGoodsCfgInfo.Consume.Add( pConsume );
+					goodsCfgInfo.Consume.Add( pConsume );
 				}
 
-				sGoodsCfgInfo.CfgType = GSToGC.GoodsCfgInfo.Types.CfgType.Common;
-				msg.Info.Add( sGoodsCfgInfo );
-			} );
+				goodsCfgInfo.CfgType = GSToGC.GoodsCfgInfo.Types.CfgType.Common;
+				msg.Info.Add( goodsCfgInfo );
+			}
 
-			CS.instance.csCfg.ForeachRunesCfg( kv =>
+			foreach ( KeyValuePair<uint, RunesCfg> kv in CS.instance.csCfg.runesCfgMap )
 			{
 				RunesCfg pCfg = kv.Value;
 				if ( !pCfg.bIfShowInShop )
-					return;
-				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
+					continue;
+				GSToGC.GoodsCfgInfo goodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
 				foreach ( ConsumeStruct consumeStruct in pCfg.sConsumeList )
 				{
 					GSToGC.GoodsCfgInfo.Types.Consume pConsume =
@@ -174,14 +173,14 @@ namespace CentralServer.User
 							Consumetype = ( int )consumeStruct.type,
 							Price = consumeStruct.price
 						};
-					sGoodsCfgInfo.Consume.Add( pConsume );
+					goodsCfgInfo.Consume.Add( pConsume );
 				}
 
-				sGoodsCfgInfo.CfgType = ( GSToGC.GoodsCfgInfo.Types.CfgType.Common );
-				msg.Info.Add( sGoodsCfgInfo );
-			} );
+				goodsCfgInfo.CfgType = ( GSToGC.GoodsCfgInfo.Types.CfgType.Common );
+				msg.Info.Add( goodsCfgInfo );
+			}
 
-			CS.instance.csCfg.ForeachDiscountCfg( kv =>
+			foreach ( KeyValuePair<uint, DiscountCfg> kv in CS.instance.csCfg.discountCfgMap )
 			{
 				DiscountCfg pCfg = kv.Value;
 				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
@@ -198,27 +197,28 @@ namespace CentralServer.User
 
 				sGoodsCfgInfo.CfgType = ( GSToGC.GoodsCfgInfo.Types.CfgType.Discount );
 				msg.Info.Add( sGoodsCfgInfo );
-			} );
+			}
 
-			CS.instance.csCfg.ForeachNewGoodsCfg( newGoodsCfg =>
+			foreach ( uint newGoodsCfg in CS.instance.csCfg.newGoodsCfgVec )
 			{
-				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo
+				GSToGC.GoodsCfgInfo goodsCfgInfo = new GSToGC.GoodsCfgInfo
 				{
 					Goodid = ( int )newGoodsCfg,
 					CfgType = GSToGC.GoodsCfgInfo.Types.CfgType.New
 				};
-				msg.Info.Add( sGoodsCfgInfo );
-			} );
+				msg.Info.Add( goodsCfgInfo );
+			}
 
-			CS.instance.csCfg.ForeachHotGoodsCfg( hotGoodsCfg =>
+			foreach ( uint hotGoodsCfg in CS.instance.csCfg.hotGoodsCfgVec )
 			{
-				GSToGC.GoodsCfgInfo sGoodsCfgInfo = new GSToGC.GoodsCfgInfo
+
+				GSToGC.GoodsCfgInfo goodsCfgInfo = new GSToGC.GoodsCfgInfo
 				{
 					Goodid = ( int )hotGoodsCfg,
 					CfgType = GSToGC.GoodsCfgInfo.Types.CfgType.Hot
 				};
-				msg.Info.Add( sGoodsCfgInfo );
-			} );
+				msg.Info.Add( goodsCfgInfo );
+			}
 
 			CS.instance.PostMsgToGC( this.userNetInfo, msg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyGoodsCfgInfo );
 			return ErrorCode.Success;
@@ -241,19 +241,19 @@ namespace CentralServer.User
 			GSToGC.NotifyCSHeroList msg = new GSToGC.NotifyCSHeroList();
 			List<HeroListStruct> heroVec = new List<HeroListStruct>();
 			this.GetHeroVec( heroVec );
-			foreach ( HeroListStruct sHeroListStruct in heroVec )
+			foreach ( HeroListStruct heroListStruct in heroVec )
 			{
 				GSToGC.NotifyCSHeroList.Types.HeroListCfg pCfg = new GSToGC.NotifyCSHeroList.Types.HeroListCfg();
-				HeroBuyCfg t_cfg = CS.instance.csCfg.GetHeroClientMatchCfg( sHeroListStruct.heroid );
-				if ( t_cfg == null )
+				HeroBuyCfg heroBuyCfg = CS.instance.csCfg.GetHeroClientMatchCfg( heroListStruct.heroid );
+				if ( heroBuyCfg == null )
 					continue;
 
-				if ( sHeroListStruct.expiredTime <= 0 && sHeroListStruct.expiredTime != -1 && sHeroListStruct.ifFree != true )
+				if ( heroListStruct.expiredTime <= 0 && heroListStruct.expiredTime != -1 && heroListStruct.ifFree != true )
 					continue;
 
-				pCfg.Heroid = t_cfg.un32CommondityID;
-				pCfg.ExpiredTime = sHeroListStruct.expiredTime;
-				pCfg.IfFree = sHeroListStruct.ifFree;
+				pCfg.Heroid = heroBuyCfg.un32CommondityID;
+				pCfg.ExpiredTime = heroListStruct.expiredTime;
+				pCfg.IfFree = heroListStruct.ifFree;
 				msg.Herocfg.Add( pCfg );
 			}
 			return this.PostMsgToGC( msg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyHeroList );
@@ -268,7 +268,7 @@ namespace CentralServer.User
 				if ( null == user )
 					return ErrorCode.UserNotExist;
 
-				GSToGC.SNSInfo pInfo = new GSToGC.SNSInfo
+				GSToGC.SNSInfo info = new GSToGC.SNSInfo
 				{
 					Type = ( int )type,
 					Nickname = user.nickname,
@@ -277,17 +277,19 @@ namespace CentralServer.User
 					Guididx = ( guidFriends ),
 					Viplv = ( uint )user.userDbData.usrDBData.un16VipLv
 				};
-				notifyUserSNSList.Info.Add( pInfo );
+				notifyUserSNSList.Info.Add( info );
 			}
 			else
 			{
-				if ( RelationShip.RsTypeFriends == type )
+				if ( RelationShip.Friends == type )
 				{
 					foreach ( KeyValuePair<ulong, UserRelationshipInfo> kv in this.userDbData.friendListMap )
 					{
-						GSToGC.SNSInfo info = new GSToGC.SNSInfo();
-						info.Type = ( int )type;
-						info.Guididx = kv.Value.guididx;
+						GSToGC.SNSInfo info = new GSToGC.SNSInfo
+						{
+							Type = ( int )type,
+							Guididx = kv.Value.guididx
+						};
 						CSUser pTempUser = CS.instance.csUserMgr.GetUser( kv.Value.guididx );
 						if ( null != pTempUser )
 						{
@@ -300,7 +302,7 @@ namespace CentralServer.User
 						{
 							info.Headid = ( kv.Value.nHeadId );
 							info.Nickname = ( kv.Value.stNickName );
-							info.Status = ( int )( UserPlayingStatus.UserPlayingStatusOffLine );
+							info.Status = ( int )( UserPlayingStatus.OffLine );
 							info.Viplv = ( kv.Value.viplv );
 						}
 						notifyUserSNSList.Info.Add( info );
@@ -310,12 +312,14 @@ namespace CentralServer.User
 				{
 					foreach ( KeyValuePair<ulong, UserRelationshipInfo> kv in this.userDbData.blackListMap )
 					{
-						GSToGC.SNSInfo info = new GSToGC.SNSInfo();
-						info.Type = ( int )( type );
-						info.Headid = ( kv.Value.nHeadId );
-						info.Guididx = ( kv.Value.guididx );
 						CSUser pTempUser = CS.instance.csUserMgr.GetUser( kv.Value.guididx );
-						info.Nickname = null != pTempUser ? pTempUser.nickname : kv.Value.stNickName;
+						GSToGC.SNSInfo info = new GSToGC.SNSInfo
+						{
+							Type = ( int )( type ),
+							Headid = ( kv.Value.nHeadId ),
+							Guididx = ( kv.Value.guididx ),
+							Nickname = null != pTempUser ? pTempUser.nickname : kv.Value.stNickName
+						};
 						notifyUserSNSList.Info.Add( info );
 					}
 				}
@@ -326,8 +330,8 @@ namespace CentralServer.User
 
 		public ErrorCode SynCurDiamond()
 		{
-			GSToGC.NotifyCurDiamond msg = new GSToGC.NotifyCurDiamond();
-			msg.Diamond = ( ulong )this.userDbData.usrDBData.n64Diamond;
+			GSToGC.NotifyCurDiamond msg =
+				new GSToGC.NotifyCurDiamond { Diamond = ( ulong )this.userDbData.usrDBData.n64Diamond };
 			return this.PostMsgToGC( msg, ( int )GSToGC.MsgID.EMsgToGcfromGsNotifyCurDiamond );
 		}
 	}

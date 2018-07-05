@@ -134,7 +134,7 @@ namespace CentralServer.UserModule
 					errorCode = ErrorCode.NickNameCollision;
 					break;
 				}
-				if ( !user.CheckIfEnoughPay( PayType.PayTypeDiamond, 20 ) )
+				if ( !user.CheckIfEnoughPay( PayType.Diamond, 20 ) )
 				{
 					errorCode = ErrorCode.DiamondNotEnough;
 					break;
@@ -152,8 +152,8 @@ namespace CentralServer.UserModule
 			foreach ( KeyValuePair<ulong, UserRelationshipInfo> kv in user.userDbData.friendListMap )
 			{
 				CSUser piUser = this.GetUser( kv.Value.guididx );
-				if ( null != piUser && piUser.userPlayingStatus == UserPlayingStatus.UserPlayingStatusPlaying )
-					piUser.SynUserSNSList( user.guid, RelationShip.RsTypeFriends );
+				if ( null != piUser && piUser.userPlayingStatus == UserPlayingStatus.Playing )
+					piUser.SynUserSNSList( user.guid, RelationShip.Friends );
 			}
 
 			user.SynCurDiamond();

@@ -47,7 +47,7 @@ namespace LoginServer.Net
 			oneClientLogin.MergeFrom( data, offset, size );
 
 			string sessionID = string.Empty;
-			if ( oneClientLogin.Plat == ( uint )UserPlatform.Platform_PC )
+			if ( oneClientLogin.Plat == ( uint )UserPlatform.PC )
 			{
 				sessionID += oneClientLogin.Plat;
 				sessionID += oneClientLogin.Uin;

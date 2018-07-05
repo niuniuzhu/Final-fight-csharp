@@ -80,7 +80,7 @@ namespace LoginServer
 			string sendData = string.Empty;
 			switch ( platform )
 			{
-				case UserPlatform.Platform_PC:
+				case UserPlatform.PC:
 					sendData = "PCTest";
 					break;
 
@@ -118,7 +118,7 @@ namespace LoginServer
 			}
 
 			string temp = string.Empty;
-			if ( userLoginData.platFrom == ( uint )UserPlatform.Platform_PC )
+			if ( userLoginData.platFrom == ( uint )UserPlatform.PC )
 			{
 				temp += userLoginData.platFrom;
 				temp += userLoginData.uin;
@@ -145,9 +145,9 @@ namespace LoginServer
 		{
 			switch ( platform )
 			{
-				case UserPlatform.Platform_PC:
-				case UserPlatform.PlatformAndroid_UC:
-				case UserPlatform.PlatformiOS_OnlineGame:
+				case UserPlatform.PC:
+				case UserPlatform.AndroidUC:
+				case UserPlatform.OnlineGame:
 					return true;
 				default:
 					return false;

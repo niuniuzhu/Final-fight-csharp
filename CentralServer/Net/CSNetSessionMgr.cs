@@ -13,11 +13,7 @@ namespace CentralServer.Net
 			this.AddSession( session );
 			session.logicID = logicId;
 			session.connector.recvBufSize = recvsize;
-			if ( sessionType == SessionType.ClientC2R ||
-				 sessionType == SessionType.ClientC2LogicRedis )
-				session.connector.packetDecodeHandler = null;
-			else
-				session.connector.packetDecodeHandler = LengthEncoder.Decode;
+			session.connector.packetDecodeHandler = LengthEncoder.Decode;
 			return session.Connect( ip, port, socketType, protoType );
 		}
 
@@ -50,16 +46,6 @@ namespace CentralServer.Net
 			CliSession session;
 			switch ( sessionType )
 			{
-				case SessionType.ClientC2R:
-					session = NetSessionPool.instance.Pop<RedisSession>();
-					session.owner = this;
-					break;
-
-				case SessionType.ClientC2LogicRedis:
-					session = NetSessionPool.instance.Pop<LogicRedisSession>();
-					session.owner = this;
-					break;
-
 				case SessionType.ClientC2Log:
 					session = NetSessionPool.instance.Pop<CSLogSession>();
 					session.owner = this;

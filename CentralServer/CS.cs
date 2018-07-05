@@ -8,12 +8,9 @@ using Shared;
 using Shared.Net;
 using StackExchange.Redis;
 using System;
-using System.Collections;
-using System.IO;
 
 namespace CentralServer
 {
-
 	public delegate void HeartbeatCallback( long curTime, long tickSpan );
 
 	public class CS
@@ -23,21 +20,16 @@ namespace CentralServer
 
 		public CSKernelCfg csKernelCfg { get; }
 		public CSCfgMgr csCfg { get; }
-		public CSSSInfo[] ssInfoList { get; private set; }
-		public CSGSInfo[] gsInfoList { get; private set; }
-		public string remoteConsolekey { get; private set; }
-
 		public CSNetSessionMgr netSessionMgr { get; }
 		public CSUserMgr csUserMgr { get; }
 		public BattleTimer battleTimer { get; }
-
 		public SSNetInfo[] ssNetInfoList { get; private set; }
 		public GSNetInfo[] gsNetInfoList { get; private set; }
 		public RCNetInfo[] rcNetInfoList { get; private set; }
 
 		private ConnectionMultiplexer _userDBredisAsyncContext;
 
-		public CS()
+		private CS()
 		{
 			this.csKernelCfg = new CSKernelCfg();
 			this.csCfg = new CSCfgMgr();
@@ -56,9 +48,19 @@ namespace CentralServer
 		{
 			Console.Title = "CS";
 
-			ErrorCode eResult = this.LoadCfg();
-			if ( ErrorCode.Success == eResult )
-				Logger.Info( "CS Initialize success" );
+			ErrorCode eResult = this.csCfg.Initalize();
+			if ( ErrorCode.Success != eResult )
+			{
+				Logger.Info( $"CS initialize failed with error code:{eResult}" );
+				return eResult;
+			}
+
+			eResult = this.csKernelCfg.Load();
+			if ( ErrorCode.Success != eResult )
+			{
+				Logger.Info( $"CS initialize failed with error code:{eResult}" );
+				return eResult;
+			}
 
 			this.ssNetInfoList = new SSNetInfo[this.csKernelCfg.un32MaxSSNum];
 			for ( int i = 0; i < this.csKernelCfg.un32MaxSSNum; i++ )
@@ -73,85 +75,6 @@ namespace CentralServer
 		}
 
 		#region load config
-		private ErrorCode LoadCfg()
-		{
-			Hashtable json;
-			try
-			{
-				string content = File.ReadAllText( @".\Config\CSCfg.json" );
-				json = ( Hashtable )MiniJSON.JsonDecode( content );
-			}
-			catch ( Exception e )
-			{
-				Logger.Error( $"load CSCfg.xml failed for {e}" );
-				return ErrorCode.CfgFailed;
-			}
-			this.csKernelCfg.unCSId = json.GetUInt( "GameWorldID" );
-			this.csKernelCfg.ipaddress = json.GetString( "CSIP" );
-			this.csKernelCfg.n32SSNetListenerPort = json.GetInt( "SSPort" );
-			this.csKernelCfg.n32GSNetListenerPort = json.GetInt( "GSPort" );
-			this.csKernelCfg.un32MaxSSNum = json.GetUInt( "MaxSSNum" );
-			this.csKernelCfg.un32SSBaseIdx = json.GetUInt( "SSBaseIndex" );
-			this.csKernelCfg.un32MaxGSNum = json.GetUInt( "MaxGSNum" );
-			this.csKernelCfg.un32GSBaseIdx = json.GetUInt( "GSBaseIndex" );
-			this.csKernelCfg.maxWaitingDBNum = json.GetInt( "WaitingDBNum" );
-			this.csKernelCfg.redisAddress = json.GetString( "redisAddress" );
-			this.csKernelCfg.redisPort = json.GetInt( "redisPort" );
-			this.csKernelCfg.redisPwd = json.GetString( "redisPwd" );
-			this.csKernelCfg.redisLogicAddress = json.GetString( "redisLogicAddress" );
-			this.csKernelCfg.redisLogicPort = json.GetInt( "redisLogicPort" );
-			this.csKernelCfg.redisLogicPwd = json.GetString( "redisLogicPwd" );
-			this.csKernelCfg.LogAddress = json.GetString( "LogAddress" );
-			this.csKernelCfg.LogPort = json.GetInt( "LogPort" );
-
-			string ssIndexStr = json.GetString( "AllSSIndex" );
-			string[] ssIndexVec = ssIndexStr.Split( ';' );
-
-			if ( ssIndexVec.Length > 100000 )
-			{
-				Logger.Warn( $"too many ss!" );
-				return ErrorCode.CfgFailed;
-			}
-
-			this.ssInfoList = new CSSSInfo[ssIndexVec.Length];
-			for ( int i = 0; i != ssIndexVec.Length; ++i )
-			{
-				string[] ssInfoVec = ssIndexVec[i].Split( ',' );
-				if ( ssInfoVec.Length != 3 )
-				{
-					Logger.Error( "load CSCfg.xml failed." );
-					continue;
-				}
-				CSSSInfo csssInfo = new CSSSInfo();
-				csssInfo.m_n32SSID = int.Parse( ssInfoVec[0] );
-				csssInfo.m_szName = ssInfoVec[1];
-				csssInfo.m_szUserPwd = ssInfoVec[2];
-				this.ssInfoList[i] = csssInfo;
-			}
-
-			string gsIndexStr = json.GetString( "AllGSIndex" );
-			string[] gsIndexVec = gsIndexStr.Split( ';' );
-			this.gsInfoList = new CSGSInfo[gsIndexVec.Length];
-			for ( int i = 0; i != gsIndexVec.Length; ++i )
-			{
-				string[] gsInfoVec = gsIndexVec[i].Split( ',' );
-				if ( gsInfoVec.Length != 3 )
-				{
-					Logger.Error( "load CSCfg.xml failed." );
-					continue;
-				}
-				CSGSInfo csgsInfo = new CSGSInfo();
-				csgsInfo.m_n32GSID = int.Parse( gsInfoVec[0] );
-				csgsInfo.m_szName = gsInfoVec[1];
-				csgsInfo.m_szUserPwd = gsInfoVec[2];
-				this.gsInfoList[i] = csgsInfo;
-			}
-
-			this.csKernelCfg.n32RCNetListenerPort = json.GetInt( "RSPort" );
-			this.remoteConsolekey = json.GetString( "RSKey" );
-
-			return ErrorCode.Success;
-		}
 		#endregion
 
 		public ErrorCode Start()
@@ -203,7 +126,7 @@ namespace CentralServer
 		public CSGSInfo GetGSInfoByGSID( uint gsID )
 		{
 			gsID -= this.csKernelCfg.un32GSBaseIdx;
-			return gsID < this.csKernelCfg.un32MaxGSNum ? this.gsInfoList[gsID] : null;
+			return gsID < this.csKernelCfg.un32MaxGSNum ? this.csKernelCfg.gsInfoList[gsID] : null;
 		}
 
 		/// <summary>
@@ -228,7 +151,7 @@ namespace CentralServer
 		public CSSSInfo GetSSInfoBySSID( uint ssID )
 		{
 			ssID -= this.csKernelCfg.un32SSBaseIdx;
-			return ssID < this.csKernelCfg.un32MaxGSNum ? this.ssInfoList[ssID] : null;
+			return ssID < this.csKernelCfg.un32MaxGSNum ? this.csKernelCfg.ssInfoList[ssID] : null;
 		}
 
 		/// <summary>

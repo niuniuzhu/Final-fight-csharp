@@ -57,7 +57,7 @@ namespace CentralServer.Net
 				return;
 			Logger.Info( $"GS({csgsInfo.m_n32GSID}) DisConnected" );
 			int pos = ( int )( csgsInfo.m_n32GSID - CS.instance.csKernelCfg.un32GSBaseIdx );
-			csgsInfo.m_eGSNetState = ServerNetState.SnsClosed;
+			csgsInfo.m_eGSNetState = ServerNetState.Closed;
 			csgsInfo.m_n32NSID = 0;
 			csgsInfo.m_tLastConnMilsec = 0;
 			CS.instance.gsNetInfoList[pos].tConnMilsec = 0;
@@ -74,9 +74,9 @@ namespace CentralServer.Net
 			CSGSInfo csgsInfo = null;
 			for ( int i = 0; i < CS.instance.csKernelCfg.un32MaxGSNum; i++ )
 			{
-				if ( msg.Gsid != CS.instance.gsInfoList[i].m_n32GSID )
+				if ( msg.Gsid != CS.instance.csKernelCfg.gsInfoList[i].m_n32GSID )
 					continue;
-				csgsInfo = CS.instance.gsInfoList[i];
+				csgsInfo = CS.instance.csKernelCfg.gsInfoList[i];
 				gsPos = i;
 				break;
 			}
@@ -95,7 +95,7 @@ namespace CentralServer.Net
 
 			// 加入GS
 			long time = TimeUtils.utcTime;
-			csgsInfo.m_eGSNetState = ServerNetState.SnsFree;
+			csgsInfo.m_eGSNetState = ServerNetState.Free;
 			csgsInfo.m_n32NSID = this.id;
 			this.logicID = csgsInfo.m_n32GSID;
 			csgsInfo.m_tLastConnMilsec = time;
@@ -122,9 +122,9 @@ namespace CentralServer.Net
 			CSGSInfo pcGSInfo = null;
 			for ( int i = 0; i < CS.instance.csKernelCfg.un32MaxGSNum; i++ )
 			{
-				if ( sMsg.Gsid != CS.instance.gsInfoList[i].m_n32GSID )
+				if ( sMsg.Gsid != CS.instance.csKernelCfg.gsInfoList[i].m_n32GSID )
 					continue;
-				pcGSInfo = CS.instance.gsInfoList[i];
+				pcGSInfo = CS.instance.csKernelCfg.gsInfoList[i];
 				gsPos = i;
 				break;
 			}
@@ -144,7 +144,7 @@ namespace CentralServer.Net
 			long tCurUTCMilsec = TimeUtils.utcTime;
 			if ( ErrorCode.Success == n32Registe )
 			{
-				pcGSInfo.m_eGSNetState = ServerNetState.SnsFree;
+				pcGSInfo.m_eGSNetState = ServerNetState.Free;
 				pcGSInfo.m_n32NSID = csgsInfo.m_n32NSID;
 				pcGSInfo.m_tLastConnMilsec = tCurUTCMilsec;
 				pcGSInfo.m_sListenIP = sMsg.Ip;
@@ -167,7 +167,7 @@ namespace CentralServer.Net
 				sAskRegisteRet.Ssbaseid = CS.instance.csKernelCfg.un32SSBaseIdx;
 				for ( int i = 0; i < CS.instance.csKernelCfg.un32MaxSSNum; i++ )
 				{
-					CSSSInfo csssInfo = CS.instance.ssInfoList[i];
+					CSSSInfo csssInfo = CS.instance.csKernelCfg.ssInfoList[i];
 					CSToGS.AskRegisteRet.Types.SSInfo pSSInfo =
 						new CSToGS.AskRegisteRet.Types.SSInfo
 						{

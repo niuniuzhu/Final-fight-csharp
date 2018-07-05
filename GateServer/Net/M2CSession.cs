@@ -94,7 +94,7 @@ namespace GateServer.Net
 					ssInfo.listenPort = askRegisteRet.Ssinfo[i].Port;
 					ssInfo.ssNetState = ( ServerNetState )askRegisteRet.Ssinfo[i].Netstate;
 					GS.instance.gsStorage.AddSSInfo( ssInfo.ssID, ssInfo );
-					if ( ssInfo.ssNetState == ServerNetState.SnsClosed )
+					if ( ssInfo.ssNetState == ServerNetState.Closed )
 						continue;
 
 					this.owner.CreateConnector( SessionType.ClientG2S, ssInfo.listenIp, ssInfo.listenPort,
@@ -119,7 +119,7 @@ namespace GateServer.Net
 			{
 				pcSSInfo.listenIp = oneSsConnected.Ip.Replace( "\0", string.Empty );
 				pcSSInfo.listenPort = oneSsConnected.Port;
-				if ( pcSSInfo.ssNetState == ServerNetState.SnsClosed )
+				if ( pcSSInfo.ssNetState == ServerNetState.Closed )
 				{
 					pcSSInfo.ssNetState = ( ServerNetState )oneSsConnected.Netstate;
 					pcSSInfo.nsID = 0;

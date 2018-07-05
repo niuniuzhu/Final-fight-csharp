@@ -6,12 +6,14 @@ using System;
 using System.Collections.Generic;
 using Core.Net;
 using Core.Structure;
+using Shared.DB;
 
 namespace CentralServer.UserModule
 {
 	public partial class CSUserMgr
 	{
 		private const string LOG_SIGN = "#";
+		private const int G_THREAD = 2;
 
 		public struct UserCombineKey
 		{
@@ -75,11 +77,32 @@ namespace CentralServer.UserModule
 		private readonly ThreadSafeObejctPool<StreamBuffer> _dbCallbackQueuePool = new ThreadSafeObejctPool<StreamBuffer>();
 
 		public DateTime today { get; private set; }
+
 		private ulong _maxGuid;
+		private DBActiveWrapper m_UserCacheDBActiveWrapper;
+		private DBActiveWrapper m_CdkeyWrapper;
+		private readonly List<DBActiveWrapper> m_pUserAskDBActiveWrapperVec = new List<DBActiveWrapper>();
 
 		public CSUserMgr()
 		{
 			this.today = new DateTime();
+
+			DBCfg cfgGameDb = CS.instance.csCfg.GetDBCfg( DBType.Game );
+			DBCfg cfgCdkeyDb = CS.instance.csCfg.GetDBCfg( DBType.Cdkey );
+
+			this.m_UserCacheDBActiveWrapper = new DBActiveWrapper( this.UserCacheDBAsynHandler, cfgGameDb );
+			this.m_UserCacheDBActiveWrapper.Start();
+
+			this.m_CdkeyWrapper = new DBActiveWrapper( this.UserAskDBAsynHandler, cfgCdkeyDb );
+			this.m_CdkeyWrapper.Start();
+
+			for ( int i = 0; i < G_THREAD; i++ )
+			{
+				DBActiveWrapper pThreadDBWrapper = new DBActiveWrapper( this.UserAskDBAsynHandler, cfgGameDb );
+				pThreadDBWrapper.Start();
+				this.m_pUserAskDBActiveWrapperVec.Add( pThreadDBWrapper );
+			}
+
 			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskComleteUserInfo] = this.OnMsgToGstoCsfromGcAskComleteUserInfo;
 			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskLogin] = this.OnMsgToGstoCsfromGcAskLogin;
 			this._gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskReconnectGame] = this.OnMsgToGstoCsfromGcAskReconnectGame;
@@ -142,7 +165,7 @@ namespace CentralServer.UserModule
 			if ( pUser == null )
 				return false;
 			//todo
-			if ( pUser.userPlayingStatus == UserPlayingStatus.UserPlayingStatusOffLine /*&& pUser.GetUserBattleInfoEx().GetBattleState() == eBattleState_Free*/ )
+			if ( pUser.userPlayingStatus == UserPlayingStatus.OffLine /*&& pUser.GetUserBattleInfoEx().GetBattleState() == eBattleState_Free*/ )
 			{
 				this.RemoveUser( pUser );
 				Logger.Log( "user removed" );

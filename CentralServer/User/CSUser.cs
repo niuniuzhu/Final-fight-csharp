@@ -34,13 +34,13 @@ namespace CentralServer.User
 		public void SetUserNetInfo( UserNetInfo crsUNI )
 		{
 			this.userNetInfo.Copy( crsUNI );
-			this.userPlayingStatus = UserPlayingStatus.UserPlayingStatusPlaying;
+			this.userPlayingStatus = UserPlayingStatus.Playing;
 		}
 
 		public void ClearNetInfo()
 		{
 			this.userNetInfo.Clear();
-			this.userPlayingStatus = UserPlayingStatus.UserPlayingStatusOffLine;
+			this.userPlayingStatus = UserPlayingStatus.OffLine;
 		}
 
 		public void OnOnline( UserNetInfo netInfo, GCToCS.Login login, bool isFirstInDB, bool isFirstInMem, bool isReLogin = false )
@@ -62,8 +62,8 @@ namespace CentralServer.User
 			//CalculateItemAddition();
 			//SynOtherItemInfo( 0 );
 			//GetCSUserMgrInstance().PostUserCurtMailList( this );
-			this.SynUserSNSList( 0, RelationShip.RsTypeFriends );
-			this.SynUserSNSList( 0, RelationShip.RsTypeDetestation );
+			this.SynUserSNSList( 0, RelationShip.Friends );
+			this.SynUserSNSList( 0, RelationShip.Detestation );
 			//PosUserCSCurtGuideSteps();
 			//GetTaskMgr().NotifyAllTask();
 			if ( !isFirstInDB )
@@ -130,20 +130,21 @@ namespace CentralServer.User
 					sHeroListStruct.expiredTime = kv.Value.endTime + kv.Value.buyTime - TimeUtils.utcTime;
 				heroVec.Add( sHeroListStruct );
 			}
-			CS.instance.csCfg.ForeachHeroBuyCfg( kv =>
+
+			foreach ( KeyValuePair<uint, HeroBuyCfg> kv in CS.instance.csCfg.heroBuyCfgMap )
 			{
 				HeroBuyCfg pCfg = kv.Value;
 				if ( !pCfg.bIfShowInShop )
-					return;
+					continue;
 				foreach ( ConsumeStruct consumeStruct in pCfg.sConsumeList )
 				{
-					if ( consumeStruct.type == ConsumeType.ConsumeTypeFree && kv.Value.un32HeroID > 0 )
+					if ( consumeStruct.type == ConsumeType.Free && kv.Value.un32HeroID > 0 )
 					{
 						HeroListStruct sHeroListStruct = new HeroListStruct( kv.Value.un32HeroID, 0, true );
 						heroVec.Add( sHeroListStruct );
 					}
 				}
-			} );
+			}
 			return true;
 		}
 
@@ -182,10 +183,10 @@ namespace CentralServer.User
 		{
 			switch ( type )
 			{
-				case PayType.PayTypeGold:
+				case PayType.Gold:
 					return pay <= this.gold;
 
-				case PayType.PayTypeDiamond:
+				case PayType.Diamond:
 					return pay <= this.userDbData.usrDBData.n64Diamond;
 
 				default:
@@ -231,8 +232,8 @@ namespace CentralServer.User
 			foreach ( KeyValuePair<ulong, UserRelationshipInfo> kv in this.userDbData.friendListMap )
 			{
 				CSUser user = CS.instance.csUserMgr.GetUser( kv.Value.guididx );
-				if ( user != null && user.userPlayingStatus == UserPlayingStatus.UserPlayingStatusPlaying )
-					user.SynUserSNSList( this.guid, RelationShip.RsTypeFriends );
+				if ( user != null && user.userPlayingStatus == UserPlayingStatus.Playing )
+					user.SynUserSNSList( this.guid, RelationShip.Friends );
 			}
 			//todo
 			//string log = $"{headerID}{LOG_SIGN}{this.userDbData.szNickName}";

@@ -182,5 +182,17 @@ namespace Core.Misc
 				f[i] = Convert.ToInt64( v[i] );
 			return f;
 		}
+
+		public static Hashtable[] GetMapArray( this Hashtable ht, string key )
+		{
+			if ( !ht.ContainsKey( key ) )
+				return null;
+			ArrayList v = ( ArrayList )ht[key];
+			int c = v.Count;
+			Hashtable[] f = new Hashtable[c];
+			for ( int i = 0; i < c; i++ )
+				f[i] = ( Hashtable )v[i];
+			return f;
+		}
 	}
 }

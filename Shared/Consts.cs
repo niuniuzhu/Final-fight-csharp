@@ -4,11 +4,11 @@ namespace Shared
 {
 	public enum ServerNetState
 	{
-		SnsClosed = 0,
-		SnsConnecting,
-		SnsFree,
-		SnsBusy,
-		SnsFull,
+		Closed = 0,
+		Connecting,
+		Free,
+		Busy,
+		Full
 	}
 
 	public enum ErrorCode
@@ -365,128 +365,153 @@ namespace Shared
 	public enum UserPlatform
 	{
 		//ios
-		Platform_PC = 0,
-		PlatformiOS_91 = 1,
-		PlatformiOS_TB = 2,
-		PlatformiOS_PP = 3,
-		PlatformiOS_CMGE = 4,
-		PlatformiOS_UC = 5,
-		PlatformiOS_iTools = 6,
-		PlatformiOS_OnlineGame = 7,
-		PlatformiOS_As = 8,
-		PlatformiOS_XY = 9,
-		PlatformiOS_CMGE_ZB = 10,
+		PC = 0,
+		IOS_91 = 1,
+		IOS_TB = 2,
+		IOS_PP = 3,
+		IOS_CMGE = 4,
+		IOS_UC = 5,
+		IOS_iTools = 6,
+		OnlineGame = 7,
+		IOS_As = 8,
+		IOS_XY = 9,
+		IOS_CMGE_ZB = 10,
 		//android
-		PlatformAndroid_CMGE = 104,
-		PlatformAndroid_UC = 105,
+		AndroidCMGE = 104,
+		AndroidUC = 105,
 		//其他
 		PlatformiOS_CMGEInfo = 304,
 		//RC use
-		Platform_All = 1000,
+		All = int.MaxValue
 	}
 
 	public enum RelationShip
 	{
-		RsTypeNone,
-		RsTypeFriends,
-		RsTypeDetestation,
+		None,
+		Friends,
+		Detestation
 	}
 
 	public enum UserPlayingStatus
 	{
-		UserPlayingStatusOffLine,
-		UserPlayingStatusPlaying,
+		OffLine,
+		Playing
 	}
 
 	public enum PayType
 	{
-		PayTypeNone,
-		PayTypeGold,
-		PayTypeDiamond
+		None,
+		Gold,
+		Diamond
 	}
 
 	public enum GoodsType
 	{
-		GoodsTypeNone,
-		GoodsTypeHero,
-		GoodsTypeSkin,
-		GoodsTypeRune
+		None,
+		Hero,
+		Skin,
+		Rune
 	}
 
 	public enum HeroKind
 	{
-		HeroKindNone,
-		HeroKindDps,
-		HeroKindMagic,
-		HeroKindAss,
-		HeroKindTank
+		None,
+		Dps,
+		Magic,
+		Ass,
+		Tank
 	}
 
 	public enum SkinType
 	{
-		SkinNone = 0,
+		None
 	}
 
 	public enum ConsumeType
 	{
-		ConsumeTypeFree,
-		ConsumeTypeGold,
-		ConsumeTypeDiamond
+		Free,
+		Gold,
+		Diamond
+	}
+
+	public enum DBType
+	{
+		None,
+		Game,
+		Cdkey,
+		Log,
+		Mail
 	}
 
 	public enum ObjectType
 	{
-		ObjectTypeNone,
-		ObjectTypeGuild,
-		ObjectTypeUser,
-		ObjectTypeHeroBegin = Consts.OBJ_TYPE_SPACE,
-		ObjectTypeNPCBegin = Consts.OBJ_TYPE_SPACE * 2,
-		ObjectTypeGoodsBegin = Consts.OBJ_TYPE_SPACE * 3,
-		ObjectTypeAiRobotBegin = Consts.OBJ_TYPE_SPACE * 4,
+		None,
+		Guild,
+		User,
+		HeroBegin = Consts.OBJ_TYPE_SPACE,
+		NPCBegin = Consts.OBJ_TYPE_SPACE * 2,
+		GoodsBegin = Consts.OBJ_TYPE_SPACE * 3,
+		AiRobotBegin = Consts.OBJ_TYPE_SPACE * 4
 	}
 
 	public enum LobbyType
 	{
-		LobbyNull = -1,
-		LobbyEle, //初级场
-		LobbyMid, //中级场
-		LobbyHey, //高级场
-		LobbyTaW,
-		LobbyPve1,
-		LobbyTowerDef,
-		LobbyPvp007,
-		LobbyGuid1,
-		LobbyGuid2,
-		LobbyGuid3,
-		LobbyGuid4,
+		Null = -1,
+		Ele, //初级场
+		Mid, //中级场
+		Hey, //高级场
+		TaW,
+		Pve1,
+		TowerDef,
+		Pvp007,
+		Guid1,
+		Guid2,
+		Guid3,
+		Guid4
 	}
 
 	public enum RewardType
 	{
-		RewardTypeNone = 0,       //未设
-		RewardTypeNomal = 1,      //普通
-		RewardTypeExtend = 2, //额外
+		None,   //未设
+		Nomal,  //普通
+		Extend //额外
 	}
 
 	public enum LoginRewardItemType
 	{
-		LoginRewadItemNone = 0,//未设
-		LoginRewadItemGold = 1,//金币
-		LoginRewadItemDiamond = 2,//钻石
-		LoginRewadItemGoodsIDBegin = 3,//商品
+		None,           //未设
+		Gold,           //金币
+		Diamond,        //钻石
+		GoodsIDBegin   //商品
+	}
+
+	public class DBCfg
+	{
+		public int un32DBHostPort;
+		public string aszDBHostIP;
+		public string aszDBUserName;
+		public string aszDBUserPwd;
+		public string aszDBName;
+		public string aszUpgradeScriptDir;
 	}
 
 	public class UserNetInfo
 	{
+		private static ulong _gid;
+
 		public int gsID { get; private set; }
 		public uint gcNetID { get; private set; }
 
+		private readonly ulong _hash;
+
 		public UserNetInfo()
 		{
+			this._hash = _gid++;
 		}
 
 		public UserNetInfo( int gsID, uint gcNetID )
 		{
+			this._hash = _gid++;
 			this.gsID = gsID;
 			this.gcNetID = gcNetID;
 		}
@@ -510,14 +535,6 @@ namespace Shared
 			return this.Equals( ( UserNetInfo )obj );
 		}
 
-		public override int GetHashCode()
-		{
-			unchecked
-			{
-				return ( this.gsID * 397 ) ^ ( int )this.gcNetID;
-			}
-		}
-
 		public static bool operator ==( UserNetInfo a, UserNetInfo b )
 		{
 			bool aNull = ( a as object ) == null;
@@ -532,6 +549,10 @@ namespace Shared
 			return a.gsID == b.gsID && a.gcNetID == b.gcNetID;
 		}
 
+		public override int GetHashCode()
+		{
+			return this._hash.GetHashCode();
+		}
 
 		public static bool operator !=( UserNetInfo a, UserNetInfo b )
 		{
@@ -555,14 +576,14 @@ namespace Shared
 		eFlag_None = 0,
 		eFlag_OnSale = 1,
 		eFlag_Notice = 2,
-		eFlag_Services = 3,
+		eFlag_Services = 3
 	}
 
 	public enum NoticeState
 	{
 		eState_None = 0,
 		eState_Hot = 1,
-		eState_New = 2,
+		eState_New = 2
 	}
 
 	public class Notice
