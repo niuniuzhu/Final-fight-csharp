@@ -361,7 +361,9 @@ namespace Shared
 		SSNotFound,
 		RedisReplyNil,
 		InvalidDatabase,
-		SqlExecError
+		SqlExecError,
+		EncodeMsgToBufferFailed,
+		UserDataNotFound
 	}
 
 	public enum UserPlatform
@@ -503,6 +505,45 @@ namespace Shared
 		public string aszDBUserPwd;
 		public string aszDBName;
 		public string aszUpgradeScriptDir;
+	}
+
+	public enum MailCurtState
+	{
+		None,
+		New,
+		LookedButNotGotGift,
+		Look,
+		Del
+	}
+
+	public enum MailType
+	{
+		None,
+		T1,
+		T2,
+		T3,
+		T4
+	}
+
+	public class MailDBData
+	{
+		public long objIdx;
+		public int mailId;
+		public int channelId;
+		public MailCurtState curtState;
+		public MailType mailType; //邮件类型 
+		public long n64CreateTime;//邮件发送时间(mCreateTime创建时间)
+		public long n64EndTime; //邮件过期时间 
+
+		public string mailTitle;
+		public string mailContent;
+		public string mailGift;    //邮件礼包type:key:value eg:1:1:1000;2:2:1000;3:goodsid:1;3:goodsid:2;
+		public string szSender;
+		public string mCreateTime;
+		public string mEndTime;
+
+		public bool bIfPerDel;
+		public bool bIfNewMail;
 	}
 
 	public class UserNetInfo

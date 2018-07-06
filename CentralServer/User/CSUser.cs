@@ -1,5 +1,6 @@
 ﻿using CentralServer.Tools;
 using Core.Misc;
+using DBToCS;
 using ProtoBuf;
 using Shared;
 using StackExchange.Redis;
@@ -257,11 +258,11 @@ namespace CentralServer.User
 			//	continue;
 			//}
 			//UserItemInfo sSUserItemInfo;
-			//sSUserItemInfo.item_id = itemID;
-			//sSUserItemInfo.item_num = 5;
-			//sSUserItemInfo.end_time = -1;
+			//sSUserItemInfo.itemID = itemID;
+			//sSUserItemInfo.itemNum = 5;
+			//sSUserItemInfo.endTime = -1;
 			//ELOG( LOG_DBBUG, "增加临时洗练" );
-			//this._userDBData.item_Map[sSUserItemInfo.item_id] = sSUserItemInfo;
+			//this._userDBData.item_Map[sSUserItemInfo.itemID] = sSUserItemInfo;
 
 			//GetTaskMgr().UnpackTaskData( this._userDBData.szTaskData );//解析任务数据
 
@@ -295,8 +296,56 @@ namespace CentralServer.User
 				redis.GetDatabase().StringSetAsync( $"usercache:{this.userDbData.usrDBData.un64ObjIdx}", ms.ToArray(), null,
 													When.Always, CommandFlags.FireAndForget );
 			}
-
 			return true;
+		}
+
+		public void LoadUserSNSList( RSinfo msgSNSList )
+		{
+			UserRelationshipInfo tempInfo = new UserRelationshipInfo
+			{
+				guididx = msgSNSList.RelatedId,
+				nHeadId = ( ushort )msgSNSList.RelatedHeader,
+				stNickName = msgSNSList.RelatedName,
+				viplv = msgSNSList.RelatedVip,
+				relationShip = ( RelationShip )msgSNSList.Relation,
+				tMilSec = 0
+			};
+			if ( RelationShip.Friends == ( RelationShip )msgSNSList.Relation )
+				this.userDbData.friendListMap[msgSNSList.RelatedId] = tempInfo;
+
+			if ( RelationShip.Detestation == ( RelationShip )msgSNSList.Relation )
+				this.userDbData.blackListMap[msgSNSList.RelatedId] = tempInfo;
+		}
+
+		public void AddUserItems( ItemInfo itemInfo )
+		{
+			UserItemInfo temp_info = new UserItemInfo
+			{
+				itemID = ( uint )itemInfo.ItemId,
+				buyTime = ( ulong )itemInfo.BuyTime,
+				endTime = ( ulong )itemInfo.EndTime,
+				itemNum = ( int )itemInfo.ItemNum
+			};
+			//若不为永久拥有，过期则删除
+			if ( -1 != itemInfo.EndTime && 0 > itemInfo.EndTime + itemInfo.BuyTime - TimeUtils.utcTime )
+				CS.instance.csUserMgr.UserAskUdateItem( temp_info, DBOperation.Del, this.guid );
+			else
+				this.userDbData.item_Map[temp_info.itemID] = temp_info;
+		}
+
+		public void AddHero( UserHeroDBData db )
+		{
+			this.userDbData.heroListMap.Add( db.un32HeroID, db );
+			//todo
+			//将英雄加入数据库!
+			//string sql;
+			//CCSUserDbDataMgr::GetNewUserDbHerosData( m_sUserDBData.sPODUsrDBData.un64ObjIdx, db, sql );
+			//GetCSUserMgrInstance()->PostUserCacheMsgToDBThread( GetGUID(), sql );
+		}
+
+		public void InitRunes( string bagJson, string slotStr )
+		{
+			//todo
 		}
 	}
 }

@@ -156,34 +156,35 @@ namespace CentralServer.Tools
 		[ProtoMember( 6 )]
 		public long tMilSec;
 
-		//构造函数
-		public UserRelationshipInfo( string stName, int headId, RelationShip ers, long tm, ulong GuidIdx, uint vipLv )
+		public UserRelationshipInfo()
 		{
-			this.stNickName = stName.Length < Consts.DEFAULT_NICK_NAME_LEN ? stName : string.Empty;
 		}
+
+		public UserRelationshipInfo( string stName, int headId, RelationShip ers, long tm, ulong GuidIdx, uint vipLv ) =>
+			this.stNickName = stName.Length < Consts.DEFAULT_NICK_NAME_LEN ? stName : string.Empty;
 	}
 
 	[ProtoContract]
 	public class UserItemInfo
 	{
 		[ProtoMember( 1 )]
-		public uint item_id;
+		public uint itemID;
 		[ProtoMember( 2 )]
 		public bool ifusing;
 		[ProtoMember( 3 )]
-		public int item_num;
+		public int itemNum;
 		[ProtoMember( 4 )]
-		public ulong buy_time;
+		public ulong buyTime;
 		[ProtoMember( 5 )]
-		public ulong end_time;
+		public ulong endTime;
 
 		public void Clear()
 		{
-			this.item_id = 0;
-			this.end_time = 0;
+			this.itemID = 0;
+			this.endTime = 0;
 			this.ifusing = false;
-			this.item_id = 0;
-			this.buy_time = 0;
+			this.itemID = 0;
+			this.buyTime = 0;
 		}
 	}
 
@@ -193,11 +194,11 @@ namespace CentralServer.Tools
 		private const string GUIDE_SIGN = ",";
 
 		[ProtoMember( 1 )]
-		public string szCSContinueGuide;                       //CS界面引导,记录的都是已经完成的引导(格式:1001,1002,....,ok),ok代表完成该引导
+		public string szCSContinueGuide;	//CS界面引导,记录的都是已经完成的引导(格式:1001,1002,....,ok),ok代表完成该引导
 		[ProtoMember( 2 )]
-		public bool bSSGuideState;                         //战场引导是否完成(战场引导应完成一个CS的界面引导)
+		public bool bSSGuideState;			//战场引导是否完成(战场引导应完成一个CS的界面引导)
 		[ProtoMember( 3 )]
-		public bool bIsChange;                             //是否该引导有改变(用于保存)
+		public bool bIsChange;				//是否该引导有改变(用于保存)
 
 		public bool ifGuideEnd()
 		{

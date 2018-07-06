@@ -26,6 +26,7 @@ namespace CentralServer
 		public SSNetInfo[] ssNetInfoList { get; private set; }
 		public GSNetInfo[] gsNetInfoList { get; private set; }
 		public RCNetInfo[] rcNetInfoList { get; private set; }
+		public uint csID => this.csKernelCfg.unCSId;
 
 		private ConnectionMultiplexer _userDBredisAsyncContext;
 

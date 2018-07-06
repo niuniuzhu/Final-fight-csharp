@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Core.Misc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Core.Misc;
 
 namespace Shared.DB
 {
@@ -59,6 +59,7 @@ namespace Shared.DB
 			{
 				GBuffer buffer = await this._buffer.ReceiveAsync();
 				this._callback?.Invoke( buffer );
+				this._pool.Push( buffer );
 			}
 		}
 

@@ -1,11 +1,12 @@
 ﻿using CentralServer.Tools;
 using CentralServer.User;
 using Core.Misc;
-using MySql.Data.MySqlClient;
+using Core.Structure;
 using Shared;
 using Shared.DB;
 using System;
 using System.Collections.Generic;
+using Google.Protobuf;
 
 namespace CentralServer.UserModule
 {
@@ -75,24 +76,31 @@ namespace CentralServer.UserModule
 		private readonly DBActiveWrapper _cdkeyWrapper;
 		private readonly List<DBActiveWrapper> _userAskDBActiveWrappers = new List<DBActiveWrapper>();
 
+		private readonly SwitchQueue<GBuffer> _dbCallbackQueue = new SwitchQueue<GBuffer>();
+		private readonly ThreadSafeObejctPool<GBuffer> _dbCallbackQueuePool = new ThreadSafeObejctPool<GBuffer>();
+
 		public CSUserMgr()
 		{
 			this.today = new DateTime();
 
-			DBCfg cfgGameDb = CS.instance.csCfg.GetDBCfg( DBType.Game );
-			DBCfg cfgCdkeyDb = CS.instance.csCfg.GetDBCfg( DBType.Cdkey );
+			DBCfg cfgGameDB = CS.instance.csCfg.GetDBCfg( DBType.Game );
+			DBCfg cfgCdkeyDB = CS.instance.csCfg.GetDBCfg( DBType.Cdkey );
 
-			this._userCacheDBActiveWrapper = new DBActiveWrapper( this.UserCacheDBAsynHandler, cfgGameDb, this.DBAsynQueryWhenThreadBegin );
+			//第一个参数是更新玩家数据的方法,这是一个异步回调,通常由别的线程投递更新请求
+			//此实例会开启一个线程专门消费这些更新请求
+			//第三个参数是当这个线程开启时的回调函数,也是一个异步回调,这个回调只会执行一次,也就是服务器开启的时候
+			//具体该方法是处理什么消息,以后继续探讨
+			this._userCacheDBActiveWrapper = new DBActiveWrapper( this.UserCacheDBAsynHandler, cfgGameDB, this.DBAsynQueryWhenThreadBegin );
 			this._userCacheDBActiveWrapper.Start();
 
-			this._cdkeyWrapper = new DBActiveWrapper( this.UserAskDBAsynHandler, cfgCdkeyDb, this.CDKThreadBeginCallback );
+			this._cdkeyWrapper = new DBActiveWrapper( this.UserAskDBAsynHandler, cfgCdkeyDB, this.CDKThreadBeginCallback );
 			this._cdkeyWrapper.Start();
 
 			for ( int i = 0; i < G_THREAD; i++ )
 			{
-				DBActiveWrapper pThreadDBWrapper = new DBActiveWrapper( this.UserAskDBAsynHandler, cfgGameDb, null );
-				pThreadDBWrapper.Start();
-				this._userAskDBActiveWrappers.Add( pThreadDBWrapper );
+				DBActiveWrapper threadDBWrapper = new DBActiveWrapper( this.UserAskDBAsynHandler, cfgGameDB, null );
+				threadDBWrapper.Start();
+				this._userAskDBActiveWrappers.Add( threadDBWrapper );
 			}
 
 			this.gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskComleteUserInfo] = this.OnMsgToGstoCsfromGcAskComleteUserInfo;
@@ -100,6 +108,22 @@ namespace CentralServer.UserModule
 			this.gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskReconnectGame] = this.OnMsgToGstoCsfromGcAskReconnectGame;
 			this.gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskChangeNickName] = this.OnMsgToGstoCsfromGcAskChangeNickName;
 			this.gcMsgHandlers[( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskChangeheaderId] = this.OnMsgToGstoCsfromGcAskChangeheaderId;
+		}
+
+		/// <summary>
+		/// 把消息编码并投递到处理队列(异步生产,同步消费)
+		/// </summary>
+		private ErrorCode EncodeAndSendToLogicThread( IMessage msg, int msgID )
+		{
+			GBuffer buffer = this._dbCallbackQueuePool.Pop();
+			ErrorCode errorCode = DBActiveWrapper.EncodeProtoMsgToBuffer( msg, msgID, buffer );
+			if ( errorCode != ErrorCode.Success )
+			{
+				this._dbCallbackQueuePool.Push( buffer );
+				return ErrorCode.EncodeMsgToBufferFailed;
+			}
+			this._dbCallbackQueue.Push( buffer );
+			return ErrorCode.Success;
 		}
 
 		public ErrorCode Invoke( CSGSInfo csgsInfo, int msgID, uint gcNetID, byte[] data, int offset, int size )
@@ -261,6 +285,11 @@ namespace CentralServer.UserModule
 			csUser.ClearNetInfo();
 		}
 
+		public void UserAskUdateItem( UserItemInfo tempInfo, DBOperation del, ulong guid )
+		{
+			//todo
+		}
+
 		private void UpdateUserNickNameToDB( CSUser csUser )
 		{
 			CSToDB.ChangeNickName sChangeNickName = new CSToDB.ChangeNickName
@@ -292,18 +321,18 @@ namespace CentralServer.UserModule
 			this._userCacheDBActiveWrapper.EncodeAndSendToDBThread( sUpdateUser, ( int )CSToDB.MsgID.EUpdateUserDbcallBack );
 		}
 
-		public MySqlConnection GetDBSource( int actorID )
+		public DBActiveWrapper GetDBSource( int actorID )
 		{
 			if ( this._userCacheDBActiveWrapper.actorID == actorID )
-				return this._userCacheDBActiveWrapper.db;
+				return this._userCacheDBActiveWrapper;
 
 			if ( this._cdkeyWrapper.actorID == actorID )
-				return this._cdkeyWrapper.db;
+				return this._cdkeyWrapper;
 
 			foreach ( DBActiveWrapper userAskDbActiveWrapper in this._userAskDBActiveWrappers )
 			{
 				if ( userAskDbActiveWrapper.actorID == actorID )
-					return userAskDbActiveWrapper.db;
+					return userAskDbActiveWrapper;
 			}
 			return null;
 		}

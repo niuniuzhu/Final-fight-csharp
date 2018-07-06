@@ -1,52 +1,187 @@
-﻿using Google.Protobuf;
+﻿using Core.Misc;
+using Google.Protobuf;
 using MySql.Data.MySqlClient;
 using System;
 
 namespace Shared.DB
 {
+	public delegate ErrorCode SqlExecQueryHandler( MySqlDataReader dataReader );
+
 	public class DBActiveWrapper
 	{
 		public int actorID => this._active.actorID;
-		public MySqlConnection db { get; private set; }
 
+		/// <summary>
+		/// Native MySQL connection
+		/// </summary>
+		private MySqlConnection _db;
+		/// <summary>
+		/// 消息的生产和消费处理器
+		/// </summary>
 		private readonly DBActive _active;
+		/// <summary>
+		/// 数据库配置信息
+		/// </summary>
 		private readonly DBCfg _cfg;
 
+		/// <summary>
+		/// 构造函数
+		/// </summary>
+		/// <param name="callback">消息消费后的回调函数(通常和生产者不在同一个线程上)</param>
+		/// <param name="cfg">数据库配置信息</param>
+		/// <param name="beginCallback">开始处理消息的回调函数</param>
 		public DBActiveWrapper( Action<GBuffer> callback, DBCfg cfg, Action beginCallback )
 		{
 			this._cfg = cfg;
 			this._active = new DBActive( callback, beginCallback );
 		}
 
-		public void Start()
-		{
-			this.db = new MySqlConnection( $"server={this._cfg.aszDBHostIP};user id={this._cfg.aszDBUserName};password={this._cfg.aszDBUserPwd};port={this._cfg.un32DBHostPort};database={this._cfg.aszDBName}" );
-		}
+		/// <summary>
+		/// 开始连接数据库
+		/// </summary>
+		public void Start() => this._db = new MySqlConnection(
+								   $"server={this._cfg.aszDBHostIP};user id={this._cfg.aszDBUserName};password={this._cfg.aszDBUserPwd};port={this._cfg.un32DBHostPort};database={this._cfg.aszDBName}" );
 
+		/// <summary>
+		/// 断开数据库的连接
+		/// </summary>
 		public void Stop()
 		{
 		}
 
-		private bool EncodeProtoMsgToBuffer( IMessage msg, int msgID, GBuffer buffer )
+		/// <summary>
+		/// 把消息编码到缓冲区
+		/// </summary>
+		public static ErrorCode EncodeProtoMsgToBuffer( IMessage msg, int msgID, GBuffer buffer )
 		{
 			buffer.Write( msg.ToByteArray() );
 			buffer.position = 0;
 			buffer.data = msgID;
-			return true;
+			return ErrorCode.Success;
 		}
 
-		public bool EncodeAndSendToDBThread( IMessage msg, int msgID )
+		/// <summary>
+		/// 把消息编码到缓冲区并投递到消息处理器
+		/// </summary>
+		public ErrorCode EncodeAndSendToDBThread( IMessage msg, int msgID )
 		{
 			GBuffer buffer = this._active.GetBuffer();
-			bool res = this.EncodeProtoMsgToBuffer( msg, msgID, buffer );
-			if ( !res )
+			ErrorCode errCode = EncodeProtoMsgToBuffer( msg, msgID, buffer );
+			if ( errCode != ErrorCode.Success )
 			{
 				this._active.ReleaseBuffer( buffer );
-				return false;
+				return ErrorCode.EncodeMsgToBufferFailed;
 			}
 			buffer.actorID = this._active.actorID;
 			this._active.Send( buffer );
-			return true;
+			return ErrorCode.Success;
+		}
+
+		/// <summary>
+		/// 执行查询指令
+		/// </summary>
+		/// <param name="command">sql指令</param>
+		/// <param name="handler">查询结果的回调函数</param>
+		/// <returns>错误信息</returns>
+		public ErrorCode SqlExecQuery( string command, SqlExecQueryHandler handler )
+		{
+			if ( null == this._db )
+			{
+				Logger.Warn( "invalid db" );
+				return ErrorCode.InvalidDatabase;
+			}
+
+			MySqlCommand sqlCmd = this._db.CreateCommand();
+			MySqlDataReader dataReader = null;
+			try
+			{
+				this._db.Open();
+				sqlCmd.CommandText = command;
+				sqlCmd.ExecuteNonQuery();
+				dataReader = sqlCmd.ExecuteReader();
+			}
+			catch ( Exception e )
+			{
+				Logger.Warn( $"sql execute error:{e}" );
+				dataReader?.Close();
+				this._db.Close();
+				return ErrorCode.SqlExecError;
+			}
+
+			ErrorCode errorCode = ErrorCode.Success;
+			if ( handler != null )
+				errorCode = handler.Invoke( dataReader );
+
+			dataReader?.Close();
+			this._db.Close();
+			return errorCode;
+		}
+
+		/// <summary>
+		/// 执行查询指令
+		/// </summary>
+		/// <param name="command">sql指令</param>
+		/// <returns>错误信息</returns>
+		public ErrorCode SqlExecNonQuery( string command )
+		{
+			if ( null == this._db )
+			{
+				Logger.Warn( "invalid db" );
+				return ErrorCode.InvalidDatabase;
+			}
+
+			MySqlCommand sqlCmd = this._db.CreateCommand();
+			try
+			{
+				this._db.Open();
+				sqlCmd.CommandText = command;
+				sqlCmd.ExecuteNonQuery();
+			}
+			catch ( Exception e )
+			{
+				Logger.Warn( $"sql execute error:{e}" );
+				return ErrorCode.SqlExecError;
+			}
+			finally
+			{
+				this._db.Close();
+			}
+			return ErrorCode.Success;
+		}
+
+		/// <summary>
+		/// 执行连串查询指令
+		/// </summary>
+		/// <param name="commands">sql指令集合</param>
+		/// <returns>错误信息</returns>
+		public ErrorCode SqlExecNonQuery( string[] commands )
+		{
+			if ( null == this._db )
+			{
+				Logger.Warn( "invalid db" );
+				return ErrorCode.InvalidDatabase;
+			}
+
+			MySqlCommand sqlCmd = this._db.CreateCommand();
+			try
+			{
+				this._db.Open();
+				foreach ( string command in commands )
+				{
+					sqlCmd.CommandText = command;
+					sqlCmd.ExecuteNonQuery();
+				}
+			}
+			catch ( Exception e )
+			{
+				Logger.Warn( $"sql execute error:{e}" );
+				return ErrorCode.SqlExecError;
+			}
+			finally
+			{
+				this._db.Close();
+			}
+			return ErrorCode.Success;
 		}
 	}
 }
