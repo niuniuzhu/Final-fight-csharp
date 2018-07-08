@@ -144,7 +144,7 @@ namespace CentralServer.UserModule
 			if ( errorCode != ErrorCode.Success )
 				return user.PostMsgToGCAskRetMsg( ( int )GCToCS.MsgNum.EMsgToGstoCsfromGcAskChangeNickName, errorCode );
 
-			user.userDbData.ChangeUserDbData( UserDBDataType.Diamond, -20 );
+			user.userDbData.ChangeUserDbData( UserDBDataType.Diamond, ( long )-20 );
 			user.PostMsgToGCNotifyNewNickname( user.guid, pMsg.Newnickname );
 
 			this.ChangeUserNickName( user, pMsg.Newnickname );

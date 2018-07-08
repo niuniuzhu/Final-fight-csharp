@@ -194,11 +194,11 @@ namespace CentralServer.Tools
 		private const string GUIDE_SIGN = ",";
 
 		[ProtoMember( 1 )]
-		public string szCSContinueGuide;	//CS界面引导,记录的都是已经完成的引导(格式:1001,1002,....,ok),ok代表完成该引导
+		public string szCSContinueGuide;    //CS界面引导,记录的都是已经完成的引导(格式:1001,1002,....,ok),ok代表完成该引导
 		[ProtoMember( 2 )]
-		public bool bSSGuideState;			//战场引导是否完成(战场引导应完成一个CS的界面引导)
+		public bool bSSGuideState;          //战场引导是否完成(战场引导应完成一个CS的界面引导)
 		[ProtoMember( 3 )]
-		public bool bIsChange;				//是否该引导有改变(用于保存)
+		public bool bIsChange;              //是否该引导有改变(用于保存)
 
 		public bool ifGuideEnd()
 		{
@@ -425,10 +425,10 @@ namespace CentralServer.Tools
 					this.usrDBData.userPlatform = ( UserPlatform )param;
 					break;
 				case UserDBDataType.HeaderId:
-					this.usrDBData.un16HeaderID = ( ushort )param;
+					this.usrDBData.un16HeaderID = Convert.ToUInt16( param );
 					break;
 				case UserDBDataType.Sex:
-					this.usrDBData.n16Sex = ( short )param;
+					this.usrDBData.n16Sex = Convert.ToInt16( param );
 					break;
 				case UserDBDataType.RegisterTime:
 					this.usrDBData.tRegisteUTCMillisec = ( long )param;
@@ -440,7 +440,7 @@ namespace CentralServer.Tools
 					this.usrDBData.tLastFirstWinTime = ( ulong )param;
 					break;
 				case UserDBDataType.CLDay:
-					this.usrDBData.un16Cldays = ( ushort )param;
+					this.usrDBData.un16Cldays = Convert.ToUInt16( param );
 					break;
 				case UserDBDataType.Diamond:
 					this.usrDBData.n64Diamond += ( long )param;
@@ -488,8 +488,8 @@ namespace CentralServer.Tools
 
 	public struct ConsumeStruct
 	{
-		public ConsumeType type;
-		public int price;
+		public readonly ConsumeType type;
+		public readonly int price;
 
 		public ConsumeStruct( ConsumeType type, int price )
 		{
@@ -544,7 +544,7 @@ namespace CentralServer.Tools
 		public SkinType eDefaultSkin;
 		public SkinType eOnSaleSkins;
 		public long useTimeSpan;
-		public readonly List<ConsumeStruct> sConsumeList = new List<ConsumeStruct>();
+		public readonly List<ConsumeStruct> consumeList = new List<ConsumeStruct>();
 		public bool bIfShowInShop;
 	}
 

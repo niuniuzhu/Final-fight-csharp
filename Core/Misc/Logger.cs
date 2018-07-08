@@ -34,34 +34,34 @@ namespace Core.Misc
 			LogManager.Shutdown();
 		}
 
-		public static void Debug( object obj )
+		public static void Debug( object obj, int startFrame = 2, int count = 100 )
 		{
-			_log.Debug( $"{obj}{Environment.NewLine}{ GetStacks( 2, 100 )}" );
+			_log.Debug( $"{obj}{Environment.NewLine}{ GetStacks( startFrame, count )}" );
 		}
 
-		public static void Log( object obj )
+		public static void Log( object obj, int startFrame = 2, int count = 1 )
 		{
-			_log.Debug( $"{ GetStacks( 2, 1 )}: {obj}" );
+			_log.Debug( $"{ GetStacks( startFrame, count )}: {obj}" );
 		}
 
-		public static void Warn( object obj )
+		public static void Warn( object obj, int startFrame = 2, int count = 1 )
 		{
-			_log.Warn( $"{ GetStacks( 2, 1 )}: {obj}" );
+			_log.Warn( $"{ GetStacks( startFrame, count )}: {obj}" );
 		}
 
-		public static void Error( object obj )
+		public static void Error( object obj, int startFrame = 2, int count = 1 )
 		{
-			_log.Error( $"{ GetStacks( 2, 1 )}: {obj}" );
+			_log.Error( $"{ GetStacks( startFrame, count )}: {obj}" );
 		}
 
-		public static void Info( object obj )
+		public static void Info( object obj, int startFrame = 2, int count = 1 )
 		{
-			_log.Info( $"{ GetStacks( 2, 1 )}: {obj}" );
+			_log.Info( $"{ GetStacks( startFrame, count )}: {obj}" );
 		}
 
-		public static void Fatal( object obj )
+		public static void Fatal( object obj, int startFrame = 2, int count = 100 )
 		{
-			_log.Fatal( $"{obj}{Environment.NewLine}{ GetStacks( 2, 100 )}" );
+			_log.Fatal( $"{obj}{Environment.NewLine}{ GetStacks( startFrame, count )}" );
 		}
 
 		private static Stream GenerateStreamFromString( string s )

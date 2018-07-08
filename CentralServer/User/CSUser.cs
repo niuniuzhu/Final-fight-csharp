@@ -13,7 +13,7 @@ namespace CentralServer.User
 	public partial class CSUser
 	{
 		public UserDBData userDbData { get; private set; }
-		public UserNetInfo userNetInfo { get; } = new UserNetInfo();
+		public UserNetInfo userNetInfo { get; private set; }
 		public ulong guid => this.userDbData.usrDBData.un64ObjIdx;
 		public string username => this.userDbData.szUserName;
 		public string nickname => this.userDbData.szNickName;
@@ -32,9 +32,9 @@ namespace CentralServer.User
 		private long _gcLastPing;
 		private long _offlineTime;
 
-		public void SetUserNetInfo( UserNetInfo crsUNI )
+		public void SetUserNetInfo( UserNetInfo netInfo )
 		{
-			this.userNetInfo.Copy( crsUNI );
+			this.userNetInfo = netInfo;
 			this.userPlayingStatus = UserPlayingStatus.Playing;
 		}
 
@@ -137,7 +137,7 @@ namespace CentralServer.User
 				HeroBuyCfg pCfg = kv.Value;
 				if ( !pCfg.bIfShowInShop )
 					continue;
-				foreach ( ConsumeStruct consumeStruct in pCfg.sConsumeList )
+				foreach ( ConsumeStruct consumeStruct in pCfg.consumeList )
 				{
 					if ( consumeStruct.type == ConsumeType.Free && kv.Value.un32HeroID > 0 )
 					{
@@ -170,7 +170,7 @@ namespace CentralServer.User
 			if ( lastDays < baseDays )
 			{
 				this.userDbData.ChangeUserDbData( UserDBDataType.LastGetLoginReward, 0 );
-				this.userDbData.ChangeUserDbData( UserDBDataType.CLDay, 0 );
+				this.userDbData.ChangeUserDbData( UserDBDataType.CLDay, ( ushort )0 );
 			}
 		}
 
@@ -246,8 +246,8 @@ namespace CentralServer.User
 			this.userDbData = userDbData.Clone();
 			if ( 0 == this.userDbData.usrDBData.un8UserLv )
 			{
-				this.userDbData.ChangeUserDbData( UserDBDataType.UserLv, 1 );
-				this.userDbData.ChangeUserDbData( UserDBDataType.VIPLevel, 1 );
+				this.userDbData.ChangeUserDbData( UserDBDataType.UserLv, ( byte )1 );
+				this.userDbData.ChangeUserDbData( UserDBDataType.VIPLevel, ( short )1 );
 			}
 
 			//auto itemID = RefreshCardBegin + i;

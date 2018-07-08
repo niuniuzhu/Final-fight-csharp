@@ -118,10 +118,6 @@ namespace GateServer
 		/// <param name="pos">列表中的位置</param>
 		public void StopListener( int pos ) => this._netSessionMgr.StopListener( pos );
 
-		public void AddSession( NetSession session ) => this._netSessionMgr.AddSession( session );
-
-		public bool RemoveSession( NetSession session ) => this._netSessionMgr.RemoveSession( session );
-
 		/// <summary>
 		/// 获取指定id的session
 		/// </summary>

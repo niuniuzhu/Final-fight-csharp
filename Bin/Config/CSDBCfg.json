@@ -1,0 +1,20 @@
+{
+    "DB": [
+        {
+            "type": "1",
+            "ip": "127.0.0.1",
+            "port": "3306",
+            "user": "root",
+            "pwd": "ron159753",
+            "dbname": "FBAll_GameDB_1"
+        },
+        {
+            "type": "2",
+            "ip": "127.0.0.1",
+            "port": "3306",
+            "user": "root",
+            "pwd": "ron159753",
+            "dbname": "FBAll_AccountDB"
+        }
+    ]
+}

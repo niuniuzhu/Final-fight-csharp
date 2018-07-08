@@ -51,26 +51,24 @@ namespace CentralServer.UserModule
 		{
 			ErrorCode errorCode = this._userCacheDBActiveWrapper.SqlExecQuery( "select MAX(mail_id) as mailid from game_mail;", dataReader =>
 			{
-				dataReader.Read();
-				int tValue = Convert.ToInt32( dataReader["mailid"] );
-				//todo
-				//服务器启动的时候 没有登录的玩家，可以这样设置
-				//m_MailMgr.setCurtMaxMailIdx( tValue );
+				if ( dataReader.Read() && !dataReader.IsDBNull( 0 ) )
+				{
+					int value = dataReader.GetInt32( 0 );
+					//todo
+					//服务器启动的时候 没有登录的玩家，可以这样设置
+					//m_MailMgr.setCurtMaxMailIdx( tValue );
 
-				//if ( tValue > 0 )
-				// DBAsyn_QueryGameMailList( this._userCacheDBActiveWrapper, 0 );
+					//if ( tValue > 0 )
+					// DBAsyn_QueryGameMailList( this._userCacheDBActiveWrapper, 0 );
+				}
+
 				return ErrorCode.Success;
 			} );
+
 			if ( errorCode != ErrorCode.Success )
 				return;
 
-			this._userCacheDBActiveWrapper.SqlExecQuery( "select * from notice;", dataReader =>
-			{
-				int tValue = dataReader.FieldCount;
-				if ( tValue > 0 )
-					this.DBAsynQueryNoticeCallBack( this._userCacheDBActiveWrapper );
-				return ErrorCode.Success;
-			} );
+			this.DBAsynQueryNoticeCallBack( this._userCacheDBActiveWrapper );
 		}
 
 		private ErrorCode DBAsynQueryNoticeCallBack( DBActiveWrapper db )
@@ -83,15 +81,15 @@ namespace CentralServer.UserModule
 					DBToCS.QueryNotice.Types.Notice info =
 						new DBToCS.QueryNotice.Types.Notice
 						{
-							Id = Convert.ToUInt32( dataReader["id"] ),
-							Platform = Convert.ToUInt32( dataReader["platform_id"] ),
-							Title = Convert.ToString( dataReader["title"] ),
-							Eflag = Convert.ToInt32( dataReader["eflag"] ),
-							Estate = Convert.ToInt32( dataReader["estate"] ),
-							Priority = Convert.ToInt32( dataReader["priority"] ),
-							Notice_ = Convert.ToString( dataReader["notice"] ),
-							StarTime = Convert.ToUInt64( dataReader["star_time"] ),
-							EndTime = Convert.ToUInt64( dataReader["end_time"] )
+							Id = dataReader.GetUInt32( "id" ),
+							Platform = dataReader.GetUInt32( "platform_id" ),
+							Title = dataReader.GetString( "title" ),
+							Eflag = dataReader.GetInt32( "eflag" ),
+							Estate = dataReader.GetInt32( "estate" ),
+							Priority = dataReader.GetInt32( "priority" ),
+							Notice_ = dataReader.GetString( "notice" ),
+							StarTime = dataReader.GetUInt64( "star_time" ),
+							EndTime = dataReader.GetUInt64( "end_time" )
 						};
 					notice.NoticeInfo.Add( info );
 				}
@@ -111,10 +109,10 @@ namespace CentralServer.UserModule
 					DBToCS.QueryAllAccount.Types.Account account =
 						new DBToCS.QueryAllAccount.Types.Account
 						{
-							Guid = Convert.ToInt64( dataReader["id"] ),
-							UserName = Convert.ToString( dataReader["cdkey"] ),
-							Nickname = Convert.ToString( dataReader["user_name"] ),
-							Sdkid = Convert.ToInt32( dataReader["sdk_id"] )
+							Guid = dataReader.GetInt64( "id" ),
+							UserName = dataReader.GetString( "cdkey" ),
+							Nickname = dataReader.GetString( "user_name" ),
+							Sdkid = dataReader.GetInt32( "sdk_id" )
 						};
 					queryAllAccount.Account.Add( account );
 				}

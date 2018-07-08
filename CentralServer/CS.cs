@@ -16,13 +16,13 @@ namespace CentralServer
 	public class CS
 	{
 		private static CS _instance;
-		public static CS instance => _instance ?? ( _instance = new CS() );
+		public static CS instance => _instance ?? new CS();
 
-		public CSKernelCfg csKernelCfg { get; }
-		public CSCfgMgr csCfg { get; }
-		public CSNetSessionMgr netSessionMgr { get; }
-		public CSUserMgr csUserMgr { get; }
-		public BattleTimer battleTimer { get; }
+		public CSKernelCfg csKernelCfg { get; private set; }
+		public CSCfgMgr csCfg { get; private set; }
+		public CSNetSessionMgr netSessionMgr { get; private set; }
+		public CSUserMgr csUserMgr { get; private set; }
+		public BattleTimer battleTimer { get; private set; }
 		public SSNetInfo[] ssNetInfoList { get; private set; }
 		public GSNetInfo[] gsNetInfoList { get; private set; }
 		public RCNetInfo[] rcNetInfoList { get; private set; }
@@ -32,11 +32,7 @@ namespace CentralServer
 
 		private CS()
 		{
-			this.csKernelCfg = new CSKernelCfg();
-			this.csCfg = new CSCfgMgr();
-			this.netSessionMgr = new CSNetSessionMgr();
-			this.csUserMgr = new CSUserMgr();
-			this.battleTimer = new BattleTimer();
+			_instance = this;
 		}
 
 		public void Dispose()
@@ -49,13 +45,15 @@ namespace CentralServer
 		{
 			Console.Title = "CS";
 
-			ErrorCode eResult = this.csCfg.Initalize();
+			this.csCfg = new CSCfgMgr();
+			ErrorCode eResult = this.csCfg.Load();
 			if ( ErrorCode.Success != eResult )
 			{
 				Logger.Info( $"CS initialize failed with error code:{eResult}" );
 				return eResult;
 			}
 
+			this.csKernelCfg = new CSKernelCfg();
 			eResult = this.csKernelCfg.Load();
 			if ( ErrorCode.Success != eResult )
 			{
@@ -72,6 +70,11 @@ namespace CentralServer
 				this.gsNetInfoList[i] = new GSNetInfo();
 
 			this.rcNetInfoList = new RCNetInfo[10];
+
+			this.netSessionMgr = new CSNetSessionMgr();
+			this.csUserMgr = new CSUserMgr();
+			this.battleTimer = new BattleTimer();
+
 			return eResult;
 		}
 

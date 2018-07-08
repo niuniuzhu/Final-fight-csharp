@@ -546,68 +546,15 @@ namespace Shared
 		public bool bIfNewMail;
 	}
 
-	public class UserNetInfo
+	public struct UserNetInfo
 	{
-		private static ulong _gid;
-
 		public int gsID { get; private set; }
 		public uint gcNetID { get; private set; }
 
-		private readonly ulong _hash;
-
-		public UserNetInfo()
-		{
-			this._hash = _gid++;
-		}
-
 		public UserNetInfo( int gsID, uint gcNetID )
 		{
-			this._hash = _gid++;
 			this.gsID = gsID;
 			this.gcNetID = gcNetID;
-		}
-
-		public void Copy( UserNetInfo other )
-		{
-			this.gsID = other.gsID;
-			this.gcNetID = other.gcNetID;
-		}
-
-		private bool Equals( UserNetInfo other )
-		{
-			return this.gsID == other.gsID && this.gcNetID == other.gcNetID;
-		}
-
-		public override bool Equals( object obj )
-		{
-			if ( ReferenceEquals( null, obj ) ) return false;
-			if ( ReferenceEquals( this, obj ) ) return true;
-			if ( obj.GetType() != this.GetType() ) return false;
-			return this.Equals( ( UserNetInfo )obj );
-		}
-
-		public static bool operator ==( UserNetInfo a, UserNetInfo b )
-		{
-			bool aNull = ( a as object ) == null;
-			bool bNull = ( b as object ) == null;
-
-			if ( aNull && bNull )
-				return true;
-
-			if ( aNull || bNull )
-				return false;
-
-			return a.gsID == b.gsID && a.gcNetID == b.gcNetID;
-		}
-
-		public override int GetHashCode()
-		{
-			return this._hash.GetHashCode();
-		}
-
-		public static bool operator !=( UserNetInfo a, UserNetInfo b )
-		{
-			return !( a == b );
 		}
 
 		public void Clear()

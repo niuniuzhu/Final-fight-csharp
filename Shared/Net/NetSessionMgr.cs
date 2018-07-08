@@ -1,8 +1,8 @@
-﻿using Core.Net;
+﻿using Core.Misc;
+using Core.Net;
 using Google.Protobuf;
 using System.Collections.Generic;
 using System.Net.Sockets;
-using Core.Misc;
 
 namespace Shared.Net
 {
@@ -231,7 +231,7 @@ namespace Shared.Net
 			NetSession session = this.GetSession( sessionId );
 			if ( session == null )
 			{
-				Logger.Warn( $"invalid sessionID:{sessionId}" );
+				Logger.Warn( $"invalid sessionID:{sessionId}", 2, 5 );
 				return;
 			}
 			session.Send( buffer, buffer.Length );

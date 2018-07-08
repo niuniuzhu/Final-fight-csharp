@@ -14,7 +14,7 @@ namespace Shared.DB
 		/// <summary>
 		/// Native MySQL connection
 		/// </summary>
-		private MySqlConnection _db;
+		private readonly MySqlConnection _db;
 		/// <summary>
 		/// 消息的生产和消费处理器
 		/// </summary>
@@ -34,13 +34,15 @@ namespace Shared.DB
 		{
 			this._cfg = cfg;
 			this._active = new DBActive( callback, beginCallback );
+			this._db = new MySqlConnection(
+				$"server={this._cfg.aszDBHostIP};user id={this._cfg.aszDBUserName};password={this._cfg.aszDBUserPwd};port={this._cfg.un32DBHostPort};database={this._cfg.aszDBName}" );
+
 		}
 
 		/// <summary>
 		/// 开始连接数据库
 		/// </summary>
-		public void Start() => this._db = new MySqlConnection(
-								   $"server={this._cfg.aszDBHostIP};user id={this._cfg.aszDBUserName};password={this._cfg.aszDBUserPwd};port={this._cfg.un32DBHostPort};database={this._cfg.aszDBName}" );
+		public void Start() => this._active.Run();
 
 		/// <summary>
 		/// 断开数据库的连接

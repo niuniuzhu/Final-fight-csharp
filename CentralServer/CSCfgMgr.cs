@@ -24,7 +24,7 @@ namespace CentralServer
 
 		public bool CheckAIRobotName( string nickname ) => this.aiRobotNameMapForCheck.ContainsKey( nickname );
 
-		public ErrorCode Initalize()
+		public ErrorCode Load()
 		{
 			ErrorCode errorCode = ErrorCode.Success;
 			if ( ErrorCode.Success == errorCode ) errorCode = this.LoadFilterWordsCfg();

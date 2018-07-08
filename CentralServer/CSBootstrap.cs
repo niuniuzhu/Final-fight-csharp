@@ -23,8 +23,7 @@ namespace CentralServer
 
 			Logger.Init( File.ReadAllText( @".\Config\CSLogCfg.xml" ), "CS" );
 
-			_inputHandler = new InputHandler();
-			_inputHandler.cmdHandler = HandleInput;
+			_inputHandler = new InputHandler { cmdHandler = HandleInput };
 			_inputHandler.Start();
 
 			CS kernel = CS.instance;

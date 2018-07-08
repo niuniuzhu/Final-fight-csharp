@@ -144,7 +144,7 @@ namespace CentralServer.User
 				if ( !pCfg.bIfShowInShop )
 					continue;
 				GSToGC.GoodsCfgInfo goodsCfgInfo = new GSToGC.GoodsCfgInfo { Goodid = ( int )kv.Key };
-				foreach ( ConsumeStruct consumeStruct in pCfg.sConsumeList )
+				foreach ( ConsumeStruct consumeStruct in pCfg.consumeList )
 				{
 					GSToGC.GoodsCfgInfo.Types.Consume pConsume =
 						new GSToGC.GoodsCfgInfo.Types.Consume

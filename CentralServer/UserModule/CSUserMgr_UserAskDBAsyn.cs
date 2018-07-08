@@ -92,7 +92,7 @@ namespace CentralServer.UserModule
 		private ErrorCode DBAsynQueryUser( UserDBData userData, DBToCS.QueryUser queryUser, DBActiveWrapper db )
 		{
 			string sqlStr =
-				$"SELECT * from gameuser, gameuser_runne,gameuser_guide where gameuser.obj_id = {userData.usrDBData.un64ObjIdx} and " +
+				$"select * from gameuser, gameuser_runne,gameuser_guide where gameuser.obj_id = {userData.usrDBData.un64ObjIdx} and " +
 				$"gameuser_runne.user_id ={userData.usrDBData.un64ObjIdx} and gameuser_guide.obj_id = {userData.usrDBData.un64ObjIdx};";
 			ErrorCode errorCode = db.SqlExecQuery( sqlStr, dataReader =>
 			{
@@ -102,40 +102,40 @@ namespace CentralServer.UserModule
 					return ErrorCode.UserDataNotFound;
 				}
 
-				userData.szNickName = Convert.ToString( dataReader["obj_name"] );
-				userData.usrDBData.n16Sex = Convert.ToInt16( dataReader["obj_sex"] );
-				userData.usrDBData.userPlatform = ( UserPlatform )Convert.ToInt32( dataReader["sdk_id"] );
-				userData.usrDBData.un16HeaderID = Convert.ToUInt16( dataReader["obj_headid"] );
+				userData.szNickName = dataReader.GetString( "obj_name" );
+				userData.usrDBData.n16Sex = dataReader.GetInt16( "obj_sex" );
+				userData.usrDBData.userPlatform = ( UserPlatform )dataReader.GetInt32( "sdk_id" );
+				userData.usrDBData.un16HeaderID = dataReader.GetUInt16( "obj_headid" );
 
-				userData.usrDBData.n64Score = Convert.ToInt64( dataReader["obj_score"] );
-				userData.usrDBData.n64Diamond = Convert.ToInt64( dataReader["obj_diamond"] );
-				userData.usrDBData.n64Gold = Convert.ToInt64( dataReader["obj_gold"] );
-				userData.usrDBData.un32TotalGameInns = Convert.ToUInt32( dataReader["obj_game_inns"] );
-				userData.usrDBData.un32TotalWinInns = Convert.ToUInt32( dataReader["obj_game_winns"] );
-				userData.usrDBData.un32TotalHeroKills = Convert.ToUInt32( dataReader["obj_kill_hero_num"] );
-				userData.usrDBData.un32TotalAssist = Convert.ToUInt32( dataReader["obj_ass_kill_num"] );
-				userData.usrDBData.un32TotalDestoryBuildings = Convert.ToUInt32( dataReader["obj_dest_building_num"] );
-				userData.usrDBData.un32TotalDeadTimes = Convert.ToUInt32( dataReader["obj_dead_num"] );
-				userData.usrDBData.un32UserCurLvExp = Convert.ToUInt32( dataReader["obj_cur_lv_exp"] );
+				userData.usrDBData.n64Score = dataReader.GetInt64( "obj_score" );
+				userData.usrDBData.n64Diamond = dataReader.GetInt64( "obj_diamond" );
+				userData.usrDBData.n64Gold = dataReader.GetInt64( "obj_gold" );
+				userData.usrDBData.un32TotalGameInns = dataReader.GetUInt32( "obj_game_inns" );
+				userData.usrDBData.un32TotalWinInns = dataReader.GetUInt32( "obj_game_winns" );
+				userData.usrDBData.un32TotalHeroKills = dataReader.GetUInt32( "obj_kill_hero_num" );
+				userData.usrDBData.un32TotalAssist = dataReader.GetUInt32( "obj_ass_kill_num" );
+				userData.usrDBData.un32TotalDestoryBuildings = dataReader.GetUInt32( "obj_dest_building_num" );
+				userData.usrDBData.un32TotalDeadTimes = dataReader.GetUInt32( "obj_dead_num" );
+				userData.usrDBData.un32UserCurLvExp = dataReader.GetUInt32( "obj_cur_lv_exp" );
 
-				userData.usrDBData.un8UserLv = Convert.ToByte( dataReader["obj_lv"] );
-				userData.usrDBData.un16Cldays = Convert.ToUInt16( dataReader["obj_cldays"] );
-				userData.usrDBData.un16VipLv = Convert.ToInt16( dataReader["obj_vip_lv"] );
+				userData.usrDBData.un8UserLv = dataReader.GetByte( "obj_lv" );
+				userData.usrDBData.un16Cldays = dataReader.GetUInt16( "obj_cldays" );
+				userData.usrDBData.un16VipLv = dataReader.GetInt16( "obj_vip_lv" );
 
-				userData.usrDBData.un32LastGetLoginRewardDay = Convert.ToInt32( dataReader["obj_last_loginreward_time"] );
-				userData.usrDBData.tRegisteUTCMillisec = Convert.ToInt64( dataReader["obj_register_time"] );
-				userData.szTaskData = Convert.ToString( dataReader["obj_task_data"] );
+				userData.usrDBData.un32LastGetLoginRewardDay = dataReader.GetInt32( "obj_last_loginreward_time" );
+				userData.usrDBData.tRegisteUTCMillisec = dataReader.GetInt64( "obj_register_time" );
+				userData.szTaskData = dataReader.GetString( "obj_task_data" );
 
 				queryUser.TaskData = userData.szTaskData;
 
 				DBToCS.RuneInfo runedB = new DBToCS.RuneInfo
 				{
-					SlotStr = Convert.ToString( dataReader["runeslot_json"] ),
-					BagStr = Convert.ToString( dataReader["runnebag_json"] )
+					SlotStr = dataReader.GetString( "runeslot_json" ),
+					BagStr = dataReader.GetString( "runnebag_json" )
 				};
 
 				queryUser.Runeinfo.Add( runedB );
-				queryUser.Guidestr = Convert.ToString( dataReader["obj_cs_guide_com_steps"] );
+				queryUser.Guidestr = dataReader.GetString( "obj_cs_guide_com_steps" );
 
 				return ErrorCode.Success;
 			} );
@@ -185,9 +185,9 @@ namespace CentralServer.UserModule
 				{
 					DBToCS.HeroCfg heroDB = new DBToCS.HeroCfg
 					{
-						Buytime = Convert.ToInt64( dataReader["hero_buy_time"] ),
-						Expiredtime = Convert.ToInt64( dataReader["hero_end_time"] ),
-						Commodityid = Convert.ToUInt32( dataReader["hero_id"] )
+						Buytime = dataReader.GetInt64( "hero_buy_time" ),
+						Expiredtime = dataReader.GetInt64( "hero_end_time" ),
+						Commodityid = dataReader.GetUInt32( "hero_id" )
 					};
 					sQueryUser.Herocfg.Add( heroDB );
 				}
@@ -203,7 +203,7 @@ namespace CentralServer.UserModule
 			{
 				while ( dataReader.Read() )
 				{
-					t_map[Convert.ToUInt64( dataReader["related_id"] )] = Convert.ToUInt32( dataReader["relation"] );
+					t_map[dataReader.GetUInt64( "related_id" )] = dataReader.GetUInt32( "relation" );
 				}
 				return ErrorCode.Success;
 			} );
@@ -217,9 +217,9 @@ namespace CentralServer.UserModule
 			{
 				if ( dataReader.Read() )
 				{
-					rs_info.RelatedName = Convert.ToString( dataReader["obj_name"] );
-					rs_info.RelatedHeader = Convert.ToUInt32( dataReader["obj_headid"] );
-					rs_info.RelatedVip = Convert.ToUInt32( dataReader["obj_vip_lv"] );
+					rs_info.RelatedName = dataReader.GetString( "obj_name" );
+					rs_info.RelatedHeader = dataReader.GetUInt32( "obj_headid" );
+					rs_info.RelatedVip = dataReader.GetUInt32( "obj_vip_lv" );
 				}
 				return ErrorCode.Success;
 			} );
@@ -235,10 +235,10 @@ namespace CentralServer.UserModule
 				{
 					DBToCS.ItemInfo item_info = new DBToCS.ItemInfo
 					{
-						ItemId = Convert.ToInt32( dataReader["item_id"] ),
-						ItemNum = Convert.ToUInt32( dataReader["item_num"] ),
-						BuyTime = Convert.ToInt32( dataReader["buy_time"] ),
-						EndTime = Convert.ToInt32( dataReader["end_time"] )
+						ItemId = dataReader.GetInt32( "item_id" ),
+						ItemNum = dataReader.GetUInt32( "item_num" ),
+						BuyTime = dataReader.GetInt32( "buy_time" ),
+						EndTime = dataReader.GetInt32( "end_time" )
 					};
 					sQueryUser.ItemInfo.Add( item_info );
 
@@ -258,8 +258,8 @@ namespace CentralServer.UserModule
 				{
 					DBToCS.MailInfo mailInfo = new DBToCS.MailInfo
 					{
-						Mailid = Convert.ToInt32( dataReader["mail_id"] ),
-						State = Convert.ToInt32( dataReader["mail_state"] )
+						Mailid = dataReader.GetInt32( "mail_id" ),
+						State = dataReader.GetInt32( "mail_state" )
 					};
 					sQueryUser.MailInfo.Add( mailInfo );
 				}
@@ -283,15 +283,15 @@ namespace CentralServer.UserModule
 				{
 					MailDBData mailDb = new MailDBData
 					{
-						mailId = Convert.ToInt32( dataReader["mail_id"] ),
-						mailType = ( MailType )Convert.ToInt32( dataReader["mail_type"] ),
-						channelId = Convert.ToInt32( dataReader["mail_sdk"] ),
-						mailTitle = Convert.ToString( dataReader["mail_title"] ),
-						mailContent = Convert.ToString( dataReader["mail_content"] ),
-						mailGift = Convert.ToString( dataReader["mail_gift"] ),
-						szSender = Convert.ToString( dataReader["mail_send"] ),
-						mCreateTime = Convert.ToString( dataReader["mail_create_time"] ),
-						mEndTime = Convert.ToString( dataReader["mail_over_time"] )
+						mailId = dataReader.GetInt32( "mail_id" ),
+						mailType = ( MailType )dataReader.GetInt32( "mail_type" ),
+						channelId = dataReader.GetInt32( "mail_sdk" ),
+						mailTitle = dataReader.GetString( "mail_title" ),
+						mailContent = dataReader.GetString( "mail_content" ),
+						mailGift = dataReader.GetString( "mail_gift" ),
+						szSender = dataReader.GetString( "mail_send" ),
+						mCreateTime = dataReader.GetString( "mail_create_time" ),
+						mEndTime = dataReader.GetString( "mail_over_time" )
 					};
 					mailDb.objIdx = objIdx > 0 ? ( long )objIdx : mailDb.objIdx;
 
