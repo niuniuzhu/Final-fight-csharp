@@ -14,11 +14,12 @@ namespace CentralServer.UserModule
 	{
 		private const string LOG_SIGN = "#";
 		private const int G_THREAD = 2;
+		private const int GUID_Devide = 1000;
 
 		public struct UserCombineKey
 		{
-			public string username { get; }
-			public int sdkid { get; }
+			public string username;
+			public int sdkid;
 
 			public UserCombineKey( string username, int sdkid )
 			{
@@ -83,6 +84,7 @@ namespace CentralServer.UserModule
 			this._userCacheDBActiveWrapper = new DBActiveWrapper( this.UserCacheDBAsynHandler, cfgGameDB, this.DBAsynQueryWhenThreadBegin );
 			this._userCacheDBActiveWrapper.Start();
 
+			//服务端启动就开启一个线程查询玩家数据
 			this._cdkeyWrapper = new DBActiveWrapper( this.UserAskDBAsynHandler, cfgCdkeyDB, this.CDKThreadBeginCallback );
 			this._cdkeyWrapper.Start();
 

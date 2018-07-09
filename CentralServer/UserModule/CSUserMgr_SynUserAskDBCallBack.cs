@@ -55,7 +55,6 @@ namespace CentralServer.UserModule
 					int value = dataReader.GetInt32( 0 );
 					//服务器启动的时候 没有登录的玩家，可以这样设置
 					CS.instance.mailMgr.setCurtMaxMailIdx( value );
-
 					if ( value > 0 )
 						this.DBAsynQueryGameMailList( this._userCacheDBActiveWrapper, 0 );
 				}
@@ -213,8 +212,8 @@ namespace CentralServer.UserModule
 			for ( int i = 0; i < msg.ItemInfo.Count; i++ )
 				user.AddUserItems( msg.ItemInfo[i] );
 
-			//for ( int i = 0; i < msg.MailInfo.Count; ++i )
-			//	m_MailMgr.updatePerMailList( msg.MailInfo[i].Mailid, userDbData.usrDBData.un64ObjIdx, ( EMailCurtState )msg.MailInfo[i].State );
+			for ( int i = 0; i < msg.MailInfo.Count; ++i )
+				CS.instance.mailMgr.UpdatePerMailList( msg.MailInfo[i].Mailid, userDbData.usrDBData.un64ObjIdx, ( MailCurtState )msg.MailInfo[i].State );
 
 			//todo
 			//user.GetUserBattleInfoEx().mDebugName = pLogin.Name;
@@ -231,7 +230,6 @@ namespace CentralServer.UserModule
 					UserHeroDBData userHeroDbData = new UserHeroDBData( heroCfg.Commodityid, heroCfg.Expiredtime, heroCfg.Buytime );
 					user.AddHero( userHeroDbData );
 				}
-
 				for ( int i = 0; i < msg.Runeinfo.Count; ++i )
 				{
 					DBToCS.RuneInfo runeInfo = msg.Runeinfo[i];
@@ -247,16 +245,87 @@ namespace CentralServer.UserModule
 			return ErrorCode.Success;
 		}
 
+		/// <summary>
+		/// 查询玩家数据的回调函数
+		/// 把数据库的所有玩家数据取回内存
+		/// </summary>
 		private void SynHandleAllAccountCallback( GBuffer buffer )
 		{
+			DBToCS.QueryAllAccount msg = new DBToCS.QueryAllAccount();
+			msg.MergeFrom( buffer.GetBuffer(), 0, ( int )buffer.length );
+
+			for ( int i = 0; i < msg.Account.Count; ++i )
+			{
+				DBToCS.QueryAllAccount.Types.Account pAccount = msg.Account[i];
+				//取回所有昵称
+				if ( !string.IsNullOrEmpty( pAccount.Nickname ) )
+					this.allNickNameSet.Add( pAccount.Nickname );
+
+				UserCombineKey userCombineKey;
+				userCombineKey.sdkid = pAccount.Sdkid;
+				userCombineKey.username = pAccount.UserName;
+
+				ulong guid = ( ulong )pAccount.Guid;
+				//取回所有guid
+				this.allUserName2GuidMap.Add( userCombineKey, guid );
+				if ( this._maxGuid < guid )
+					this._maxGuid = guid;
+			}
+			this._maxGuid /= GUID_Devide;
+			Logger.Log( $"Load maxguid {this._maxGuid}" );
 		}
 
 		private void SynHandleMailCallback( GBuffer buffer )
 		{
+			DBToCS.MailCallBack pMsg = new DBToCS.MailCallBack();
+			pMsg.MergeFrom( buffer.GetBuffer(), 0, ( int )buffer.length );
+
+			MailDBData mailDb = new MailDBData();
+			mailDb.mailId = pMsg.Mailid;
+			mailDb.mailType = ( MailType )pMsg.Mailtype;
+			mailDb.channelId = pMsg.Channel;
+			mailDb.mailContent = pMsg.Content;
+			mailDb.mailTitle = pMsg.Title;
+			mailDb.mailGift = pMsg.Gift;
+			mailDb.szSender = pMsg.Sender;
+			mailDb.mCreateTime = pMsg.Createtime;
+			//todo
+			//mailDb.n64CreateTime = CFunction::FormatTime2TimeT( mailDb.mCreateTime );
+			//mailDb.n64EndTime = CFunction::FormatTime2TimeT( mailDb.mEndTime );
+			mailDb.objIdx = pMsg.Objid;
+			CS.instance.mailMgr.AddGameMail( mailDb );
 		}
 
 		private void DBCallBackQueryNotice( GBuffer buffer )
 		{
+			DBToCS.QueryNotice msg = new DBToCS.QueryNotice();
+			msg.MergeFrom( buffer.GetBuffer(), 0, ( int )buffer.length );
+
+			for ( int i = 0; i < msg.NoticeInfo.Count; i++ )
+			{
+				Notice notice = new Notice();
+				DBToCS.QueryNotice.Types.Notice noticeInfo = msg.NoticeInfo[i];
+				notice.id = noticeInfo.Id;
+				notice.platform = ( UserPlatform )noticeInfo.Platform;
+				notice.title = noticeInfo.Title;
+				notice.flag = ( NoticeFlag )noticeInfo.Eflag;
+				notice.state = ( NoticeState )noticeInfo.Estate;
+				notice.priority = ( uint )noticeInfo.Priority;
+				notice.msg = noticeInfo.Notice_;
+				notice.star_time = ( long )noticeInfo.StarTime;
+				notice.end_time = ( long )noticeInfo.EndTime;
+				this.AddNotice( notice );
+			}
+		}
+
+		private bool AddNotice( Notice notice )
+		{
+			long temp_date = TimeUtils.utcTime;
+			long temp = temp_date - notice.end_time;
+			if ( temp > 0 ) //公告过期判断
+				return false;
+			this.notices.Add( notice );
+			return true;
 		}
 
 		private void PostSaveCmd()
