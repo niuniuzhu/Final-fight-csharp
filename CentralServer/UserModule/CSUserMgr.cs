@@ -2,11 +2,11 @@
 using CentralServer.User;
 using Core.Misc;
 using Core.Structure;
+using Google.Protobuf;
 using Shared;
 using Shared.DB;
 using System;
 using System.Collections.Generic;
-using Google.Protobuf;
 
 namespace CentralServer.UserModule
 {
@@ -25,16 +25,6 @@ namespace CentralServer.UserModule
 				this.username = username;
 				this.sdkid = sdkid;
 			}
-
-			public static bool operator <( UserCombineKey a, UserCombineKey b )
-			{
-				int res = string.CompareOrdinal( a.username, b.username );
-				if ( res == 0 )
-					return a.sdkid < b.sdkid;
-				return res < 1;
-			}
-
-			public static bool operator >( UserCombineKey a, UserCombineKey b ) => !( a < b );
 		}
 
 		public delegate ErrorCode GCMsgHandler( CSGSInfo csgsInfo, uint gcNetID, byte[] data, int offset, int size );

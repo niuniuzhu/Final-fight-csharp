@@ -209,12 +209,12 @@ namespace CentralServer.Net
 			sMsp.MergeFrom( data, offset, size );
 
 			CSGSInfo csgsInfo = CS.instance.GetGSInfoByNSID( this.id );
-			CSUser pUser = CS.instance.csUserMgr.GetUser( csgsInfo, ( uint )sMsp.Usernetid );
+			CSUser pUser = CS.instance.userMgr.GetUser( csgsInfo, ( uint )sMsp.Usernetid );
 			if ( null != pUser )
 			{
 				//todo
 				//if ( pUser.GetUserBattleInfoEx().GetBattleState() == eBattleState_Free )
-				CS.instance.csUserMgr.RemoveUser( pUser );
+				CS.instance.userMgr.RemoveUser( pUser );
 				pUser.OnOffline();
 			}
 			return ErrorCode.Success;

@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CentralServer", "CentralSer
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Developing", "Developing", "{36D3ACC3-C6FA-43FF-9F33-B930C0E7BAF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{93C77222-CE60-4FD8-9B7F-061F9844F419}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{93C77222-CE60-4FD8-9B7F-061F9844F419}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,7 +64,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{EA3779B5-9A80-4FF1-A218-F5925876B1CD} = {36D3ACC3-C6FA-43FF-9F33-B930C0E7BAF2}
 		{93C77222-CE60-4FD8-9B7F-061F9844F419} = {36D3ACC3-C6FA-43FF-9F33-B930C0E7BAF2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

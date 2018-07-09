@@ -51,7 +51,7 @@ namespace CentralServer.User
 			this.LoginRewardInit();
 			if ( !isReLogin )
 				this.userDbData.ChangeUserDbData( UserDBDataType.Channel, login.Platform );
-			CS.instance.csUserMgr.OnUserOnline( this, netInfo );
+			CS.instance.userMgr.OnUserOnline( this, netInfo );
 			this.NotifyUserPlayState();
 			this.SynUserIsOnSS();
 			this.SynUser_UserBaseInfo();
@@ -94,10 +94,10 @@ namespace CentralServer.User
 		public void OnOffline()
 		{
 			//todo
-			//CS.instance.csUserMgr.DBPoster_UpdateUser( this );
+			//CS.instance.userMgr.DBPoster_UpdateUser( this );
 			//更新下线时间
 			this._offlineTime = TimeUtils.utcTime + CS.instance.csCfg.userDbSaveCfg.delayDelFromCacheTime;
-			CS.instance.csUserMgr.OnUserOffline( this );
+			CS.instance.userMgr.OnUserOffline( this );
 			this.NotifyUserPlayState();
 
 			//CSSGameLogMgr::GetInstance().AddGameLog( eLog_Logout, GetUserDBData().szUserName, 0 );
@@ -163,7 +163,7 @@ namespace CentralServer.User
 
 		private void LoginRewardInit()
 		{
-			DateTime today = CS.instance.csUserMgr.today;
+			DateTime today = CS.instance.userMgr.today;
 			int curDays = today.DayOfYear;
 			int baseDays = curDays - today.Day + 1;
 			int lastDays = this.userDbData.usrDBData.un32LastGetLoginRewardDay;
@@ -222,7 +222,7 @@ namespace CentralServer.User
 
 			//通知从数据库删除
 			//todo
-			//CS.instance.csUserMgr.PostUserCacheMsgToDBThread( GetGUID(), expireSql );
+			//CS.instance.userMgr.PostUserCacheMsgToDBThread( GetGUID(), expireSql );
 		}
 
 		public void AskChangeHeaderId( uint headerID )
@@ -232,7 +232,7 @@ namespace CentralServer.User
 			//notify new header to on-line friend
 			foreach ( KeyValuePair<ulong, UserRelationshipInfo> kv in this.userDbData.friendListMap )
 			{
-				CSUser user = CS.instance.csUserMgr.GetUser( kv.Value.guididx );
+				CSUser user = CS.instance.userMgr.GetUser( kv.Value.guididx );
 				if ( user != null && user.userPlayingStatus == UserPlayingStatus.Playing )
 					user.SynUserSNSList( this.guid, RelationShip.Friends );
 			}
@@ -328,7 +328,7 @@ namespace CentralServer.User
 			};
 			//若不为永久拥有，过期则删除
 			if ( -1 != itemInfo.EndTime && 0 > itemInfo.EndTime + itemInfo.BuyTime - TimeUtils.utcTime )
-				CS.instance.csUserMgr.UserAskUdateItem( temp_info, DBOperation.Del, this.guid );
+				CS.instance.userMgr.UserAskUdateItem( temp_info, DBOperation.Del, this.guid );
 			else
 				this.userDbData.item_Map[temp_info.itemID] = temp_info;
 		}

@@ -5,7 +5,6 @@ using Google.Protobuf;
 using ProtoBuf;
 using Shared;
 using Shared.DB;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -54,12 +53,11 @@ namespace CentralServer.UserModule
 				if ( dataReader.Read() && !dataReader.IsDBNull( 0 ) )
 				{
 					int value = dataReader.GetInt32( 0 );
-					//todo
 					//服务器启动的时候 没有登录的玩家，可以这样设置
-					//m_MailMgr.setCurtMaxMailIdx( tValue );
+					CS.instance.mailMgr.setCurtMaxMailIdx( value );
 
-					//if ( tValue > 0 )
-					// DBAsyn_QueryGameMailList( this._userCacheDBActiveWrapper, 0 );
+					if ( value > 0 )
+						this.DBAsynQueryGameMailList( this._userCacheDBActiveWrapper, 0 );
 				}
 
 				return ErrorCode.Success;
@@ -69,6 +67,52 @@ namespace CentralServer.UserModule
 				return;
 
 			this.DBAsynQueryNoticeCallBack( this._userCacheDBActiveWrapper );
+		}
+
+		private ErrorCode DBAsynQueryGameMailList( DBActiveWrapper db, long objIdx )
+		{
+			string sqlStr = "select * from game_mail where mail_del_state<> " + MailCurtState.Del;
+			if ( objIdx > 0 )
+				sqlStr += " and mail_user_id = " + objIdx;
+			else
+				sqlStr += " and (mail_user_id is NULL or mail_user_id < 1) ";
+			sqlStr += " and unix_timestamp(mail_over_time ) > unix_timestamp(NOW()) order by mail_id DESC;";
+
+			ErrorCode errorCode = db.SqlExecQuery( sqlStr, dataReader =>
+			{
+				while ( dataReader.Read() )
+				{
+					MailDBData mailDb = new MailDBData
+					{
+						mailId = dataReader.GetInt32( "mail_id" ),
+						mailType = ( MailType )dataReader.GetInt32( "mail_type" ),
+						channelId = dataReader.GetInt32( "mail_sdk" ),
+						mailTitle = dataReader.GetString( "mail_title" ),
+						mailContent = dataReader.GetString( "mail_content" ),
+						mailGift = dataReader.GetString( "mail_gift" ),
+						szSender = dataReader.GetString( "mail_send" ),
+						mCreateTime = dataReader.GetString( "mail_create_time" ),
+						mEndTime = dataReader.GetString( "mail_over_time" )
+					};
+					mailDb.objIdx = objIdx > 0 ? objIdx : mailDb.objIdx;
+
+					DBToCS.MailCallBack pMsg = new DBToCS.MailCallBack
+					{
+						Mailid = mailDb.mailId,
+						Mailtype = ( int )mailDb.mailType,
+						Channel = mailDb.channelId,
+						Title = mailDb.mailTitle,
+						Content = mailDb.mailContent,
+						Gift = mailDb.mailGift,
+						Sender = mailDb.szSender,
+						Createtime = mailDb.mCreateTime,
+						Objid = mailDb.objIdx
+					};
+					CS.instance.userMgr.EncodeAndSendToLogicThread( pMsg, ( int )DBToCS.MsgID.EMailCallBack );
+				}
+				return ErrorCode.Success;
+			} );
+			return errorCode;
 		}
 
 		private ErrorCode DBAsynQueryNoticeCallBack( DBActiveWrapper db )
@@ -93,7 +137,7 @@ namespace CentralServer.UserModule
 						};
 					notice.NoticeInfo.Add( info );
 				}
-				CS.instance.csUserMgr.EncodeAndSendToLogicThread( notice, ( int )DBToCS.MsgID.EQueryNoticeCallBack );
+				CS.instance.userMgr.EncodeAndSendToLogicThread( notice, ( int )DBToCS.MsgID.EQueryNoticeCallBack );
 				return ErrorCode.Success;
 			} );
 			return errorCode;
@@ -117,7 +161,7 @@ namespace CentralServer.UserModule
 					queryAllAccount.Account.Add( account );
 				}
 				if ( dataReader.HasRows )
-					CS.instance.csUserMgr.EncodeAndSendToLogicThread( queryAllAccount, ( int )DBToCS.MsgID.EQueryAllAccountCallBack );
+					CS.instance.userMgr.EncodeAndSendToLogicThread( queryAllAccount, ( int )DBToCS.MsgID.EQueryAllAccountCallBack );
 				return ErrorCode.Success;
 			} );
 		}
@@ -173,7 +217,7 @@ namespace CentralServer.UserModule
 			//	m_MailMgr.updatePerMailList( msg.MailInfo[i].Mailid, userDbData.usrDBData.un64ObjIdx, ( EMailCurtState )msg.MailInfo[i].State );
 
 			//todo
-			//pcUser.GetUserBattleInfoEx().mDebugName = pLogin.Name;
+			//user.GetUserBattleInfoEx().mDebugName = pLogin.Name;
 
 			if ( !newUser )
 			{
@@ -200,15 +244,6 @@ namespace CentralServer.UserModule
 				return errorCode;
 
 			user.OnOnline( netInfo, login, newUser, true );
-			//todo
-			//if ( bNewUser )
-			//{
-			//	stringstream mystream;
-			//	mystream << pLogin.name() << LOG_SIGN << pLogin.sdk() << LOG_SIGN;
-			//	mystream << pLogin.platform() << LOG_SIGN << pLogin.equimentid() << LOG_SIGN;
-			//	mystream << pLogin.ipaddress();
-			//	CSSGameLogMgr.GetInstance().AddGameLog( eLog_Register, pcUser.GetUserDBData().sPODUsrDBData.un64ObjIdx, mystream.str() );
-			//}
 			return ErrorCode.Success;
 		}
 
@@ -232,10 +267,10 @@ namespace CentralServer.UserModule
 			Logger.Error( "only finish post save data to db, don't close me at once." );
 		}
 
-		private ErrorCode DBPosterUpdateUser( CSUser pcUser )
+		private ErrorCode DBPosterUpdateUser( CSUser user )
 		{
-			//UserDBData psUserDBData = pcUser.userDbData;
-			//pcUser.GetTaskMgr().PackTaskData( psUserDBData.szTaskData, psUserDBData.isTaskRush );//存数据库时增加任务数据
+			//UserDBData psUserDBData = user.userDbData;
+			//user.GetTaskMgr().PackTaskData( psUserDBData.szTaskData, psUserDBData.isTaskRush );//存数据库时增加任务数据
 			//CCSUserDbDataMgr.UpdateUserDbData( psUserDBData, m_SaveUserStream );
 			//if ( !m_SaveUserStream.str().empty() )
 			//{

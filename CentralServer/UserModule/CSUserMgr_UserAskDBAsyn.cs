@@ -85,7 +85,7 @@ namespace CentralServer.UserModule
 				queryUser.Gsid = msg.Gsid;
 				queryUser.Nickname = userDbData.szNickName;
 			}
-			CS.instance.csUserMgr.EncodeAndSendToLogicThread( queryUser, ( int )DBToCS.MsgID.EQueryUserDbcallBack );
+			CS.instance.userMgr.EncodeAndSendToLogicThread( queryUser, ( int )DBToCS.MsgID.EQueryUserDbcallBack );
 			return ErrorCode.Success;
 		}
 
@@ -307,7 +307,7 @@ namespace CentralServer.UserModule
 						Createtime = mailDb.mCreateTime,
 						Objid = mailDb.objIdx
 					};
-					CS.instance.csUserMgr.EncodeAndSendToLogicThread( pMsg, ( int )DBToCS.MsgID.EMailCallBack );
+					CS.instance.userMgr.EncodeAndSendToLogicThread( pMsg, ( int )DBToCS.MsgID.EMailCallBack );
 				}
 				return ErrorCode.Success;
 			} );

@@ -19,10 +19,6 @@ namespace Shared.DB
 		/// 消息的生产和消费处理器
 		/// </summary>
 		private readonly DBActive _active;
-		/// <summary>
-		/// 数据库配置信息
-		/// </summary>
-		private readonly DBCfg _cfg;
 
 		/// <summary>
 		/// 构造函数
@@ -32,10 +28,9 @@ namespace Shared.DB
 		/// <param name="beginCallback">开始处理消息的回调函数</param>
 		public DBActiveWrapper( Action<GBuffer> callback, DBCfg cfg, Action beginCallback )
 		{
-			this._cfg = cfg;
 			this._active = new DBActive( callback, beginCallback );
 			this._db = new MySqlConnection(
-				$"server={this._cfg.aszDBHostIP};user id={this._cfg.aszDBUserName};password={this._cfg.aszDBUserPwd};port={this._cfg.un32DBHostPort};database={this._cfg.aszDBName}" );
+				$"server={cfg.aszDBHostIP};user id={cfg.aszDBUserName};password={cfg.aszDBUserPwd};port={cfg.un32DBHostPort};database={cfg.aszDBName}" );
 
 		}
 

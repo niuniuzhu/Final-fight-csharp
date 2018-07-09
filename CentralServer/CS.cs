@@ -8,6 +8,7 @@ using Shared;
 using Shared.Net;
 using StackExchange.Redis;
 using System;
+using CentralServer.Mail;
 
 namespace CentralServer
 {
@@ -21,7 +22,8 @@ namespace CentralServer
 		public CSKernelCfg csKernelCfg { get; private set; }
 		public CSCfgMgr csCfg { get; private set; }
 		public CSNetSessionMgr netSessionMgr { get; private set; }
-		public CSUserMgr csUserMgr { get; private set; }
+		public CSUserMgr userMgr { get; private set; }
+		public CSMailMgr mailMgr { get; private set; }
 		public BattleTimer battleTimer { get; private set; }
 		public SSNetInfo[] ssNetInfoList { get; private set; }
 		public GSNetInfo[] gsNetInfoList { get; private set; }
@@ -72,7 +74,8 @@ namespace CentralServer
 			this.rcNetInfoList = new RCNetInfo[10];
 
 			this.netSessionMgr = new CSNetSessionMgr();
-			this.csUserMgr = new CSUserMgr();
+			this.userMgr = new CSUserMgr();
+			this.mailMgr = new CSMailMgr();
 			this.battleTimer = new BattleTimer();
 
 			return eResult;
@@ -120,7 +123,7 @@ namespace CentralServer
 		public void Update( long elapsed, long dt )
 		{
 			this.netSessionMgr.Update();
-			this.csUserMgr.OnHeartBeatImmediately();
+			this.userMgr.OnHeartBeatImmediately();
 			//todo
 		}
 
@@ -175,7 +178,7 @@ namespace CentralServer
 		}
 
 		public ErrorCode InvokeGCMsg( CSGSInfo csgsInfo, int msgID, uint gcNetID, byte[] data, int offset, int size ) =>
-			this.csUserMgr.Invoke( csgsInfo, msgID, gcNetID, data, offset, size );
+			this.userMgr.Invoke( csgsInfo, msgID, gcNetID, data, offset, size );
 
 		public ConnectionMultiplexer GetUserDBCacheRedisHandler() => this._userDBredisAsyncContext;
 

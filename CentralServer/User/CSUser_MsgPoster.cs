@@ -50,7 +50,7 @@ namespace CentralServer.User
 
 		public ErrorCode PostMsgToGCAskRetMsg( int n32AskProtocalID, ErrorCode errorCode )
 		{
-			return CS.instance.csUserMgr.PostMsgToGCAskReturn( this.userNetInfo, n32AskProtocalID, errorCode );
+			return CS.instance.userMgr.PostMsgToGCAskReturn( this.userNetInfo, n32AskProtocalID, errorCode );
 		}
 
 		public ErrorCode PostMsgToGCNotifyNewNickname( ulong guid, string nickname )
@@ -76,7 +76,7 @@ namespace CentralServer.User
 		public void PostCSNotice()
 		{
 			GSToGC.GameNotice msg = new GSToGC.GameNotice();
-			foreach ( Notice tempNotice in CS.instance.csUserMgr.notices )
+			foreach ( Notice tempNotice in CS.instance.userMgr.notices )
 			{
 				if ( tempNotice.msg.Length < 1 )
 					return;
@@ -114,7 +114,7 @@ namespace CentralServer.User
 		{
 			foreach ( KeyValuePair<ulong, UserRelationshipInfo> kv in this.userDbData.friendListMap )
 			{
-				CSUser user = CS.instance.csUserMgr.GetUser( kv.Value.guididx );
+				CSUser user = CS.instance.userMgr.GetUser( kv.Value.guididx );
 				if ( null == user )
 					continue;
 				if ( !user.CheckIfInFriendList( this.guid ) )
@@ -227,7 +227,7 @@ namespace CentralServer.User
 		private ErrorCode SynUserCLDays()
 		{
 			GSToGC.NotifyUserCLDays msg = new GSToGC.NotifyUserCLDays();
-			DateTime today = CS.instance.csUserMgr.today;
+			DateTime today = CS.instance.userMgr.today;
 			msg.Month = ( uint )today.Month;//当前月
 			msg.Today = ( uint )today.Day;//当前日
 			msg.TotalCldays = ( uint )DateTime.DaysInMonth( today.Year, today.Month );//月总天数
@@ -264,7 +264,7 @@ namespace CentralServer.User
 			GSToGC.NotifyUserSNSList notifyUserSNSList = new GSToGC.NotifyUserSNSList();
 			if ( guidFriends != 0 )
 			{
-				CSUser user = CS.instance.csUserMgr.GetUser( guidFriends );
+				CSUser user = CS.instance.userMgr.GetUser( guidFriends );
 				if ( null == user )
 					return ErrorCode.UserNotExist;
 
@@ -290,7 +290,7 @@ namespace CentralServer.User
 							Type = ( int )type,
 							Guididx = kv.Value.guididx
 						};
-						CSUser pTempUser = CS.instance.csUserMgr.GetUser( kv.Value.guididx );
+						CSUser pTempUser = CS.instance.userMgr.GetUser( kv.Value.guididx );
 						if ( null != pTempUser )
 						{
 							info.Headid = ( pTempUser.headID );
@@ -312,7 +312,7 @@ namespace CentralServer.User
 				{
 					foreach ( KeyValuePair<ulong, UserRelationshipInfo> kv in this.userDbData.blackListMap )
 					{
-						CSUser pTempUser = CS.instance.csUserMgr.GetUser( kv.Value.guididx );
+						CSUser pTempUser = CS.instance.userMgr.GetUser( kv.Value.guididx );
 						GSToGC.SNSInfo info = new GSToGC.SNSInfo
 						{
 							Type = ( int )( type ),
