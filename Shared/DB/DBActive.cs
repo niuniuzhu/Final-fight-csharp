@@ -59,7 +59,7 @@ namespace Shared.DB
 			{
 				GBuffer buffer = await this._buffer.ReceiveAsync();
 				this._callback?.Invoke( buffer );
-				this._pool.Push( buffer );
+				this.ReleaseBuffer( buffer );
 			}
 		}
 

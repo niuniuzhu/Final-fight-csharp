@@ -89,7 +89,7 @@ namespace Core.Misc
 				MethodBase method = sf.GetMethod();
 				SB.Append( $"{method.DeclaringType.FullName}::{method.Name}:{sf.GetFileLineNumber()}" );
 				if ( i != endFrame )
-					SB.AppendLine();
+					SB.AppendLine("\t");
 			}
 			return SB.ToString();
 		}

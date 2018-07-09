@@ -154,7 +154,7 @@ namespace CentralServer.UserModule
 						{
 							Guid = dataReader.GetInt64( "id" ),
 							UserName = dataReader.GetString( "cdkey" ),
-							Nickname = dataReader.GetString( "user_name" ),
+							Nickname = dataReader.IsDBNull( 3 ) ? string.Empty : dataReader.GetString( 3 ),
 							Sdkid = dataReader.GetInt32( "sdk_id" )
 						};
 					queryAllAccount.Account.Add( account );
@@ -272,7 +272,7 @@ namespace CentralServer.UserModule
 					this._maxGuid = guid;
 			}
 			this._maxGuid /= GUID_Devide;
-			Logger.Log( $"Load maxguid {this._maxGuid}" );
+			Logger.Log( $"load maxguid {this._maxGuid}" );
 		}
 
 		private void SynHandleMailCallback( GBuffer buffer )

@@ -128,62 +128,62 @@ namespace CentralServer.UserModule
 
 		public bool ContainsUser( UserNetInfo userNetInfo ) => this.userNetMap.ContainsKey( userNetInfo );
 
-		public ErrorCode AddUser( CSUser csUser )
+		public ErrorCode AddUser( CSUser user )
 		{
-			if ( null == csUser )
+			if ( null == user )
 				return ErrorCode.NullUser;
 
-			csUser.ResetPingTimer();
+			user.ResetPingTimer();
 
-			ulong un64ObjIndex = csUser.guid;
+			ulong un64ObjIndex = user.guid;
 
-			if ( string.IsNullOrEmpty( csUser.username ) )
+			if ( string.IsNullOrEmpty( user.username ) )
 			{
 				Logger.Error( "invalid username" );
 				return ErrorCode.InvalidUserName;
 			}
 
-			if ( !this.userGuidMap.TryAdd( un64ObjIndex, csUser ) )
+			if ( !this.userGuidMap.TryAdd( un64ObjIndex, user ) )
 			{
 				Logger.Error( "add username fail" );
 				return ErrorCode.AddUserNameFailed;
 			}
 
-			if ( !string.IsNullOrEmpty( csUser.nickname ) )
-				this.nickNameMap.Add( csUser.nickname, csUser );
+			if ( !string.IsNullOrEmpty( user.nickname ) )
+				this.nickNameMap.Add( user.nickname, user );
 
-			long timerID = CS.instance.AddTimer( csUser.CheckDbSaveTimer, 1000, true );//todo CCSCfgMgr::getInstance().GetCSGlobalCfg().dbSaveTimeSpace * 1000
-			csUser.timerID = timerID;
+			long timerID = CS.instance.AddTimer( user.CheckDbSaveTimer, 1000, true );//todo CCSCfgMgr::getInstance().GetCSGlobalCfg().dbSaveTimeSpace * 1000
+			user.timerID = timerID;
 
 			return ErrorCode.Success;
 		}
 
-		public ErrorCode RemoveUser( CSUser pUser )
+		public ErrorCode RemoveUser( CSUser user )
 		{
-			if ( pUser == null )
+			if ( user == null )
 				return ErrorCode.NullUser;
 
-			CS.instance.RemoveTimer( pUser.timerID );
-			pUser.CheckHeroValidTimer( TimeUtils.utcTime );
+			CS.instance.RemoveTimer( user.timerID );
+			user.CheckHeroValidTimer( TimeUtils.utcTime );
 			//todo
-			//DBPosterUpdateUser( pUser );//存盘// 
-			//CSSGameLogMgr::GetInstance().AddGameLog( eLog_UserDiscon, pUser.GetUserDBData() );
-			pUser.SaveToRedis();
-			//m_MailMgr.RemoveObjId( pUser.GetUserDBData().sPODUsrDBData.un64ObjIdx );
-			this.nickNameMap.Remove( pUser.nickname );
-			this.userGuidMap.Remove( pUser.guid );
+			//DBPosterUpdateUser( user );//存盘// 
+			//CSSGameLogMgr::GetInstance().AddGameLog( eLog_UserDiscon, user.GetUserDBData() );
+			user.SaveToRedis();
+			//m_MailMgr.RemoveObjId( user.GetUserDBData().sPODUsrDBData.un64ObjIdx );
+			this.nickNameMap.Remove( user.nickname );
+			this.userGuidMap.Remove( user.guid );
 
 			return ErrorCode.Success;
 		}
 
-		public bool CheckIfCanRemoveUser( CSUser pUser )
+		public bool CheckIfCanRemoveUser( CSUser user )
 		{
-			if ( pUser == null )
+			if ( user == null )
 				return false;
 			//todo
-			if ( pUser.userPlayingStatus == UserPlayingStatus.OffLine /*&& pUser.GetUserBattleInfoEx().GetBattleState() == eBattleState_Free*/ )
+			if ( user.userPlayingStatus == UserPlayingStatus.OffLine /*&& user.GetUserBattleInfoEx().GetBattleState() == eBattleState_Free*/ )
 			{
-				this.RemoveUser( pUser );
+				this.RemoveUser( user );
 				Logger.Log( "user removed" );
 				return true;
 			}
@@ -226,7 +226,7 @@ namespace CentralServer.UserModule
 			return user;
 		}
 
-		private bool CheckIfInGuideBattle( CSUser csUser )
+		private bool CheckIfInGuideBattle( CSUser user )
 		{
 			//todo
 			return true;
@@ -240,25 +240,25 @@ namespace CentralServer.UserModule
 			return this._maxGuid;
 		}
 
-		private void ChangeUserNickName( CSUser csUser, string nickname )
+		private void ChangeUserNickName( CSUser user, string nickname )
 		{
 			if ( string.IsNullOrEmpty( nickname ) )
 			{
 				Logger.Error( "nickname is empty!" );
 				return;
 			}
-			if ( !string.IsNullOrEmpty( csUser.nickname ) )
+			if ( !string.IsNullOrEmpty( user.nickname ) )
 			{
-				this.nickNameMap.Remove( csUser.nickname );
-				this.allNickNameSet.Remove( csUser.nickname );
+				this.nickNameMap.Remove( user.nickname );
+				this.allNickNameSet.Remove( user.nickname );
 			}
-			csUser.userDbData.ChangeUserDbData( UserDBDataType.NickName, nickname );
+			user.userDbData.ChangeUserDbData( UserDBDataType.NickName, nickname );
 			this.allNickNameSet.Add( nickname );
-			this.nickNameMap.Add( nickname, csUser );
+			this.nickNameMap.Add( nickname, user );
 
-			this.UpdateUserNickNameToDB( csUser );
+			this.UpdateUserNickNameToDB( user );
 
-			Logger.Log( $"nickname changed, username:{csUser.userDbData.szUserName}, nickname:{nickname}" );
+			Logger.Log( $"nickname changed, username:{user.userDbData.szUserName}, nickname:{nickname}" );
 		}
 
 		public ErrorCode OnUserOnline( CSUser csUser, UserNetInfo netInfo )
@@ -270,11 +270,11 @@ namespace CentralServer.UserModule
 			return ErrorCode.Success;
 		}
 
-		public void OnUserOffline( CSUser csUser )
+		public void OnUserOffline( CSUser user )
 		{
-			this.userNetMap.Remove( csUser.userNetInfo );
-			this.userOnlineMap.Remove( csUser.guid );
-			csUser.ClearNetInfo();
+			this.userNetMap.Remove( user.userNetInfo );
+			this.userOnlineMap.Remove( user.guid );
+			user.ClearNetInfo();
 		}
 
 		public void UserAskUdateItem( UserItemInfo tempInfo, DBOperation del, ulong guid )
@@ -282,14 +282,14 @@ namespace CentralServer.UserModule
 			//todo
 		}
 
-		private void UpdateUserNickNameToDB( CSUser csUser )
+		private void UpdateUserNickNameToDB( CSUser user )
 		{
-			CSToDB.ChangeNickName sChangeNickName = new CSToDB.ChangeNickName
+			CSToDB.ChangeNickName changeNickName = new CSToDB.ChangeNickName
 			{
-				Nickname = csUser.nickname,
-				Guid = ( long )csUser.guid
+				Nickname = user.nickname,
+				Guid = ( long )user.guid
 			};
-			this._cdkeyWrapper.EncodeAndSendToDBThread( sChangeNickName, ( int )CSToDB.MsgID.EChangeNickNameDbcall );
+			this._cdkeyWrapper.EncodeAndSendToDBThread( changeNickName, ( int )CSToDB.MsgID.EChangeNickNameDbcall );
 		}
 
 		private void InsertNewUserToMysql( GCToCS.Login login, CSUser user )
@@ -297,20 +297,22 @@ namespace CentralServer.UserModule
 			if ( user == null )
 				return;
 
-			CSToDB.ExeSQL_Call sExeSQL_Call = new CSToDB.ExeSQL_Call
+			CSToDB.ExeSQL_Call sqlCall = new CSToDB.ExeSQL_Call
 			{
-				Sql = $"INSERT account_user(id,cs_id,sdk_id,cdkey) values({user.guid},{CS.instance.csKernelCfg.unCSId},{login.Sdk},\'{login.Name}\');"
+				Sql = $"insert account_user(id,cs_id,sdk_id,cdkey) values({user.guid},{CS.instance.csKernelCfg.unCSId},{login.Sdk},\'{login.Name}\');"
 			};
-			this._cdkeyWrapper.EncodeAndSendToDBThread( sExeSQL_Call, ( int )CSToDB.MsgID.EExeSqlCall );
+			this._cdkeyWrapper.EncodeAndSendToDBThread( sqlCall, ( int )CSToDB.MsgID.EExeSqlCall );
 
 			string op =
-				$"INSERT gameuser(obj_id,sdk_id,obj_cdkey, obj_register_time) values({user.guid},{login.Sdk},\'{login.Name}\',{user.userDbData.usrDBData.tRegisteUTCMillisec});INSERT gameuser_runne(user_id) values({user.guid});INSERT gameuser_guide(obj_id) values({user.guid});";
-			CSToDB.UpdateUser sUpdateUser = new CSToDB.UpdateUser
+				$"insert gameuser(obj_id,sdk_id,obj_cdkey, obj_register_time) values({user.guid},{login.Sdk},\'{login.Name}\',{user.userDbData.usrDBData.tRegisteUTCMillisec});" +
+				$"insert gameuser_runne(user_id) values({user.guid});" +
+				$"insert gameuser_guide(obj_id) values({user.guid});";
+			CSToDB.UpdateUser updateUser = new CSToDB.UpdateUser
 			{
 				Sqlstr = op,
 				Guid = ( long )user.guid
 			};
-			this._userCacheDBActiveWrapper.EncodeAndSendToDBThread( sUpdateUser, ( int )CSToDB.MsgID.EUpdateUserDbcallBack );
+			this._userCacheDBActiveWrapper.EncodeAndSendToDBThread( updateUser, ( int )CSToDB.MsgID.EUpdateUserDbcallBack );
 		}
 
 		public DBActiveWrapper GetDBSource( int actorID )

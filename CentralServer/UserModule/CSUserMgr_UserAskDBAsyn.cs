@@ -4,7 +4,6 @@ using Google.Protobuf;
 using ProtoBuf;
 using Shared;
 using Shared.DB;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -14,7 +13,7 @@ namespace CentralServer.UserModule
 	public partial class CSUserMgr
 	{
 		/// <summary>
-		/// 异步查询玩家数据
+		/// 异步查询/更新玩家数据
 		/// </summary>
 		private void UserAskDBAsynHandler( GBuffer buffer )
 		{
@@ -35,7 +34,7 @@ namespace CentralServer.UserModule
 					break;
 
 				case CSToDB.MsgID.EExeSqlCall:
-					this.DBAsyn_ExeSQL( buffer, db );
+					this.DBAsynExeSQL( buffer, db );
 					break;
 
 				case CSToDB.MsgID.EInsertCdkeyEvents:
@@ -176,10 +175,10 @@ namespace CentralServer.UserModule
 			return errorCode;
 		}
 
-		private ErrorCode GetUserHeros( DBActiveWrapper pConn, ulong un64ObjIdx, DBToCS.QueryUser sQueryUser )
+		private ErrorCode GetUserHeros( DBActiveWrapper db, ulong un64ObjIdx, DBToCS.QueryUser sQueryUser )
 		{
 			string sqlStr = $"select hero_id,hero_end_time,hero_buy_time from gameuser_hero where user_id={un64ObjIdx};";
-			ErrorCode errorCode = pConn.SqlExecQuery( sqlStr, dataReader =>
+			ErrorCode errorCode = db.SqlExecQuery( sqlStr, dataReader =>
 			{
 				while ( dataReader.Read() )
 				{
@@ -196,10 +195,10 @@ namespace CentralServer.UserModule
 			return errorCode;
 		}
 
-		private ErrorCode DBAsynQueryUserSNSList( DBActiveWrapper pConn, ulong un64ObjIdx, Dictionary<ulong, uint> t_map )
+		private ErrorCode DBAsynQueryUserSNSList( DBActiveWrapper db, ulong un64ObjIdx, Dictionary<ulong, uint> t_map )
 		{
 			string sqlStr = $"select * from gameuser_sns where user_id={un64ObjIdx};";
-			ErrorCode errorCode = pConn.SqlExecQuery( sqlStr, dataReader =>
+			ErrorCode errorCode = db.SqlExecQuery( sqlStr, dataReader =>
 			{
 				while ( dataReader.Read() )
 				{
@@ -210,10 +209,10 @@ namespace CentralServer.UserModule
 			return errorCode;
 		}
 
-		private ErrorCode DBAsynQueryUserHeaderAndNickname( DBActiveWrapper pConn, ulong un64ObjIdx, DBToCS.RSinfo rs_info )
+		private ErrorCode DBAsynQueryUserHeaderAndNickname( DBActiveWrapper db, ulong un64ObjIdx, DBToCS.RSinfo rs_info )
 		{
 			string sqlStr = $"select obj_name,obj_headid,obj_vip_lv from gameuser where obj_id={un64ObjIdx};";
-			ErrorCode errorCode = pConn.SqlExecQuery( sqlStr, dataReader =>
+			ErrorCode errorCode = db.SqlExecQuery( sqlStr, dataReader =>
 			{
 				if ( dataReader.Read() )
 				{
@@ -226,10 +225,10 @@ namespace CentralServer.UserModule
 			return errorCode;
 		}
 
-		private ErrorCode DBAsynQueryUserItems( DBActiveWrapper pConn, ulong user_id, DBToCS.QueryUser sQueryUser )
+		private ErrorCode DBAsynQueryUserItems( DBActiveWrapper db, ulong user_id, DBToCS.QueryUser sQueryUser )
 		{
 			string sqlStr = $"select * from gameuser_item where user_id={user_id};";
-			ErrorCode errorCode = pConn.SqlExecQuery( sqlStr, dataReader =>
+			ErrorCode errorCode = db.SqlExecQuery( sqlStr, dataReader =>
 			{
 				while ( dataReader.Read() )
 				{
@@ -248,11 +247,11 @@ namespace CentralServer.UserModule
 			return errorCode;
 		}
 
-		private ErrorCode GetUserShortGiftMail( DBActiveWrapper pConn, UserDBData sUserData, DBToCS.QueryUser sQueryUser )
+		private ErrorCode GetUserShortGiftMail( DBActiveWrapper db, UserDBData sUserData, DBToCS.QueryUser sQueryUser )
 		{
 			string sqlStr =
 				$"select mail_id,mail_state from gameuser_mail where user_id = {sUserData.usrDBData.un64ObjIdx} order by mail_id DESC;";
-			ErrorCode errorCode = pConn.SqlExecQuery( sqlStr, dataReader =>
+			ErrorCode errorCode = db.SqlExecQuery( sqlStr, dataReader =>
 			{
 				while ( dataReader.Read() )
 				{
@@ -263,21 +262,21 @@ namespace CentralServer.UserModule
 					};
 					sQueryUser.MailInfo.Add( mailInfo );
 				}
-				this.DBAsynQueryGameMailList( pConn, sUserData.usrDBData.un64ObjIdx );
+				this.DBAsynQueryGameMailList( db, sUserData.usrDBData.un64ObjIdx );
 				return ErrorCode.Success;
 			} );
 			return errorCode;
 		}
 
-		private ErrorCode DBAsynQueryGameMailList( DBActiveWrapper pConn, ulong objIdx )
+		private ErrorCode DBAsynQueryGameMailList( DBActiveWrapper db, ulong objIdx )
 		{
-			string sqlStr = "select *  from game_mail where mail_del_state<> " + ( int )MailCurtState.Del;
+			string sqlStr = "select * from game_mail where mail_del_state<> " + ( int )MailCurtState.Del;
 			if ( objIdx > 0 )
 				sqlStr += $" and mail_user_id = {objIdx}";
 			else
 				sqlStr += " and (mail_user_id is NULL or mail_user_id < 1) ";
-			sqlStr += " AND unix_timestamp(mail_over_time ) > unix_timestamp(NOW()) order by mail_id DESC;";
-			ErrorCode errorCode = pConn.SqlExecQuery( sqlStr, dataReader =>
+			sqlStr += " and unix_timestamp(mail_over_time ) > unix_timestamp(NOW()) order by mail_id DESC;";
+			ErrorCode errorCode = db.SqlExecQuery( sqlStr, dataReader =>
 			{
 				while ( dataReader.Read() )
 				{
@@ -316,37 +315,88 @@ namespace CentralServer.UserModule
 
 		private ErrorCode DBAsynUpdateGameMail( GBuffer buffer, DBActiveWrapper db )
 		{
-			return ErrorCode.Success;
+			CSToDB.UpdateGameMail pMsg = new CSToDB.UpdateGameMail();
+			pMsg.MergeFrom( buffer.GetBuffer(), 0, ( int )buffer.length );
+
+			int total = pMsg.Maillist.Count;
+			if ( total <= 0 )
+				return ErrorCode.Success;
+
+			string[] sqlStrs = new string[3];
+			sqlStrs[0] = "begin; set autocommit=0;";
+			for ( int i = 0; i < total; i++ )
+			{
+				CSToDB.GameMailInfo mail = pMsg.Maillist[i];
+				if ( mail.Curtstate == CSToDB.EMailCurtState.EMailStateDel )
+					sqlStrs[1] = $"update game_mail set mail_del_state ={mail.Curtstate}  where  mail_id={mail.MailId};";
+				else if ( mail.Curtstate == CSToDB.EMailCurtState.EMailStateNew )
+				{
+					sqlStrs[1] =
+						$"insert into game_mail(mail_id,mail_sdk,mail_type,mail_user_id,mail_title,mail_content,mail_gift,mail_send,mail_create_time,mail_over_time,mail_del_state) values({mail.MailId},{mail.Sdkidx},{mail.Type},{mail.Userid},\'{mail.Title}\',\'{mail.Content}\',\'{mail.Giftstr}\',\'{mail.Sender}\',\'{mail.Createtime}\',\'{mail.Overtime}\',{mail.Curtstate});";
+				}
+			}
+			sqlStrs[2] = "commit;";
+			return db.SqlExecNonQuery( sqlStrs );
 		}
 
 		private ErrorCode DBAsynChangeNickNameCallBack( GBuffer buffer, DBActiveWrapper db )
 		{
-			return ErrorCode.Success;
+			CSToDB.ChangeNickName sChangeNickName = new CSToDB.ChangeNickName();
+			sChangeNickName.MergeFrom( buffer.GetBuffer(), 0, ( int )buffer.length );
+			string mystream =
+				$"update account_user set user_name=\'{sChangeNickName.Nickname}\' where id={sChangeNickName.Guid};";
+			ErrorCode errorCode = db.SqlExecNonQuery( mystream );
+			return errorCode;
 		}
 
-		private ErrorCode DBAsyn_ExeSQL( GBuffer buffer, DBActiveWrapper db )
+		private ErrorCode DBAsynExeSQL( GBuffer buffer, DBActiveWrapper db )
 		{
-			return ErrorCode.Success;
+			CSToDB.ExeSQL_Call sMsg = new CSToDB.ExeSQL_Call();
+			sMsg.MergeFrom( buffer.GetBuffer(), 0, ( int )buffer.length );
+			return db.SqlExecNonQuery( sMsg.Sql );
 		}
 
 		private ErrorCode InsertCDKeyEvent( GBuffer buffer, DBActiveWrapper db )
 		{
-			return ErrorCode.Success;
+			CSToDB.CDKeyEvents sMsg = new CSToDB.CDKeyEvents();
+			sMsg.MergeFrom( buffer.GetBuffer(), 0, ( int )buffer.length );
+			return db.SqlExecNonQuery( sMsg.SqlStr );
 		}
 
 		private ErrorCode DBAsynUpdateUserGameMail( GBuffer buffer, DBActiveWrapper db )
 		{
-			return ErrorCode.Success;
+			CSToDB.UpdateUserMail pMsg = new CSToDB.UpdateUserMail();
+			pMsg.MergeFrom( buffer.GetBuffer(), 0, ( int )buffer.length );
+
+			string sqlStr = $"select id from gameuser_mail where mail_id={pMsg.Mailid} and user_id={pMsg.Objid};";
+			int ntotal = 0;
+			ErrorCode errorCode = db.SqlExecQuery( sqlStr, dataReader =>
+			{
+				ntotal = dataReader.GetInt32( "id" );
+				return ErrorCode.Success;
+			} );
+			if ( errorCode != ErrorCode.Success )
+				return errorCode;
+			sqlStr = ntotal > 0
+						 ? $"update gameuser_mail set mail_state={pMsg.Cstate} where mail_id={pMsg.Mailid} and user_id={pMsg.Objid};"
+						 : $"insert into gameuser_mail (mail_id,user_id, mail_state) values({pMsg.Mailid},{pMsg.Objid},{pMsg.Cstate});";
+
+			errorCode = db.SqlExecNonQuery( sqlStr );
+			return errorCode;
 		}
 
 		private ErrorCode UpdateCDKey( GBuffer buffer, DBActiveWrapper db )
 		{
-			return ErrorCode.Success;
+			CSToDB.UpdateCDKeyInfo sMsg = new CSToDB.UpdateCDKeyInfo();
+			sMsg.MergeFrom( buffer.GetBuffer(), 0, ( int )buffer.length );
+			return db.SqlExecNonQuery( sMsg.SqlStr );
 		}
 
 		private ErrorCode InsertCDKey( GBuffer buffer, DBActiveWrapper db )
 		{
-			return ErrorCode.Success;
+			CSToDB.InsertCDKeyInfo sMsg = new CSToDB.InsertCDKeyInfo();
+			sMsg.MergeFrom( buffer.GetBuffer(), 0, ( int )buffer.length );
+			return db.SqlExecNonQuery( sMsg.SqlStr );
 		}
 	}
 }
