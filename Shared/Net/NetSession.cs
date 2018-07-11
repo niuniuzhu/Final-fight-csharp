@@ -67,7 +67,6 @@ namespace Shared.Net
 			this.InternalClose();
 			this.connection.Close();
 			this.OnClose();
-			NetSessionPool.instance.Push( this );
 		}
 
 		protected virtual void InternalClose()

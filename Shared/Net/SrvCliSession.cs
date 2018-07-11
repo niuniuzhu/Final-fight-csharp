@@ -1,4 +1,6 @@
-﻿namespace Shared.Net
+﻿using Core.Net;
+
+namespace Shared.Net
 {
 	/// <summary>
 	/// 作为服务端的session,通常是监听器接受连接后创建的session
@@ -14,6 +16,7 @@
 			base.InternalClose();
 			//由于此session是被动创建的
 			this.owner.RemoveSession( this );
+			NetSessionPool.instance.Push( this );
 		}
 
 		public override void OnEstablish()
