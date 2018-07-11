@@ -16,7 +16,6 @@ namespace Shared.Net
 			base.InternalClose();
 			//由于此session是被动创建的
 			this.owner.RemoveSession( this );
-			NetSessionPool.instance.Push( this );
 		}
 
 		public override void OnEstablish()

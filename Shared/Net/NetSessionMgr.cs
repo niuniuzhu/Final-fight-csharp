@@ -80,7 +80,11 @@ namespace Shared.Net
 
 		public void AddSession( NetSession session ) => this._idToSession[session.id] = session;
 
-		public bool RemoveSession( NetSession session ) => this._idToSession.Remove( session.id );
+		public void RemoveSession( NetSession session )
+		{
+			this._idToSession.Remove( session.id );
+			NetSessionPool.instance.Push( session );
+		}
 
 		/// <summary>
 		/// 获取指定id的session

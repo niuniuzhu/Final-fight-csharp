@@ -9,7 +9,6 @@ namespace Shared.Net
 	/// </summary>
 	public abstract class CliSession : NetSession
 	{
-
 		public IConnector connector { get; }
 		public bool reconnectTag { get; set; }
 
